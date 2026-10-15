@@ -18,6 +18,9 @@ pure reducer slice only; WP-02 remains incomplete.
 The [Windows safeguards note](docs/planning/windows-safeguards.md) records the
 next local synthetic cancellation and audio-admission slice. It does not
 qualify actual QAudioSink or worker process containment.
+The [Windows Job Object probe](docs/planning/windows-job-probe.md) is the next
+local WP-03 experiment with controlled test processes; it does not qualify the
+production worker launcher or real LOTRO.
 
 Read these in order:
 
