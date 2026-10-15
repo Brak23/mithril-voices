@@ -1,0 +1,1899 @@
+{
+  "spec_version": "2.0",
+  "status": "SPECIFICATION_ONLY_ALL_TESTS_NOT_RUN",
+  "tests": [
+    {
+      "id": "AT-001",
+      "title": "Late A audio after Stop and B start",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-CTL-004",
+        "R-IPC-002",
+        "R-AUD-OUT-001"
+      ],
+      "applicability": "CORE",
+      "given": "Fake clock; fake child A held before completion; renderer records each write.",
+      "steps": [
+        "Start A in generation 1",
+        "Stop",
+        "Start B in new generation",
+        "Deliver A completed and then B completed"
+      ],
+      "expected": [
+        "No A frame is written after Stop fence acknowledgment",
+        "Only B is admitted in its generation",
+        "A has one canceled terminal outcome"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_001.py"
+    },
+    {
+      "id": "AT-002",
+      "title": "Stop before initial OCR returns",
+      "layer": "PURE",
+      "requirements": [
+        "R-CTL-004",
+        "R-DAT-001"
+      ],
+      "applicability": "CORE",
+      "given": "No current page identity; Auto enabled; held OCR result.",
+      "steps": [
+        "Start recognize",
+        "Stop",
+        "Deliver recognize result",
+        "Advance virtual clock 60 seconds"
+      ],
+      "expected": [
+        "No speech",
+        "AUTO_HELD_UNKNOWN remains until explicit rearm or confirmed close/new open"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_002.py"
+    },
+    {
+      "id": "AT-003",
+      "title": "Stop tombstone has no cooldown expiry",
+      "layer": "PURE",
+      "requirements": [
+        "R-CTL-003",
+        "R-CTL-004"
+      ],
+      "applicability": "CORE",
+      "given": "Page A accepted and then stopped.",
+      "steps": [
+        "Deliver duplicate log and identical observations",
+        "Advance virtual clock one hour"
+      ],
+      "expected": [
+        "No automatic synthesis for A",
+        "Explicit Read can authorize A in a new generation"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_003.py"
+    },
+    {
+      "id": "AT-004",
+      "title": "Cached stale audio obeys fence",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-STO-002",
+        "R-CTL-004",
+        "R-AUD-OUT-001"
+      ],
+      "applicability": "CORE",
+      "given": "Cache hit held between preparation and renderer admission.",
+      "steps": [
+        "Read A",
+        "Stop",
+        "Complete pending cache lookup and enqueue"
+      ],
+      "expected": [
+        "Zero post-fence A writes",
+        "Cache success does not revive a canceled request"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_004.py"
+    },
+    {
+      "id": "AT-005",
+      "title": "Old sink callback cannot complete new unit",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-AUD-OUT-002",
+        "R-CTL-006"
+      ],
+      "applicability": "CORE",
+      "given": "Sink epoch 1 replaced by epoch 2; same host session.",
+      "steps": [
+        "Deliver old IdleState/completion after new sink starts"
+      ],
+      "expected": [
+        "Epoch 2 cursor unchanged",
+        "Old callback discarded"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_005.py"
+    },
+    {
+      "id": "AT-006",
+      "title": "Resource caps and emergency Stop",
+      "layer": "PURE",
+      "requirements": [
+        "R-IPC-005",
+        "R-ARC-002"
+      ],
+      "applicability": "CORE",
+      "given": "Paused sink; fast fake generator; full 256-entry normal event queue.",
+      "steps": [
+        "Submit repeated observations and synthesis completions",
+        "Submit Stop"
+      ],
+      "expected": [
+        "Only latest observation retained",
+        "At most current and one prepared next unit",
+        "Stop processed independently of full ordinary queue"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_006.py"
+    },
+    {
+      "id": "AT-007",
+      "title": "Generator exception produces terminal failure",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-002",
+        "R-CTL-006",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Fake child raises during synthesis.",
+      "steps": [
+        "Submit valid unit",
+        "Trigger exception",
+        "Advance to supervision deadline"
+      ],
+      "expected": [
+        "Exactly one failed terminal result",
+        "No infinite consumer wait",
+        "Later units are not skipped into playback"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_007.py"
+    },
+    {
+      "id": "AT-008",
+      "title": "Native worker death and deadline",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-IPC-004",
+        "R-IPC-002"
+      ],
+      "applicability": "CORE",
+      "given": "Contained child plus descendant; active request.",
+      "steps": [
+        "Kill or hang child during request",
+        "Advance real host deadline"
+      ],
+      "expected": [
+        "WORKER_CRASHED or MODEL_TIMEOUT",
+        "Process tree reclaimed",
+        "Controls responsive; no auto replay"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_008.py"
+    },
+    {
+      "id": "AT-009",
+      "title": "Terminal result duplication",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-CTL-001",
+        "R-IPC-002"
+      ],
+      "applicability": "CORE",
+      "given": "Accepted request with valid completed result.",
+      "steps": [
+        "Send duplicate completed then failed then canceled for same request"
+      ],
+      "expected": [
+        "One effective terminal outcome",
+        "No duplicate playback or status resurrection"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_009.py"
+    },
+    {
+      "id": "AT-010",
+      "title": "Same NPC, different page while speaking",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-CTL-003",
+        "R-ARC-002",
+        "R-AUD-002",
+        "R-OBS-003"
+      ],
+      "applicability": "CORE",
+      "given": "A and B from the same synthetic NPC; distinct stable titles/body.",
+      "steps": [
+        "Start A",
+        "Observe B before A drains",
+        "Validate B"
+      ],
+      "expected": [
+        "Old A fenced on confirmed replacement",
+        "B observation is not blocked by A playback",
+        "B starts exactly once after validation"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_010.py"
+    },
+    {
+      "id": "AT-011",
+      "title": "Duplicate hints do not restart a page",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-CTL-003",
+        "R-LOG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Stable page and repeated same-NPC hints.",
+      "steps": [
+        "Append ten duplicate hints during and after reading"
+      ],
+      "expected": [
+        "One automatic reading for that occurrence",
+        "No two-second time heuristic"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_011.py"
+    },
+    {
+      "id": "AT-012",
+      "title": "Close and reopen creates an interaction",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-CTL-002",
+        "R-CTL-003",
+        "R-OBS-003"
+      ],
+      "applicability": "CORE",
+      "given": "Auto on; A completed.",
+      "steps": [
+        "Confirm close",
+        "Reopen A with fresh frame"
+      ],
+      "expected": [
+        "New interaction ID",
+        "A may read once again",
+        "Old results cannot attach to new interaction"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_012.py"
+    },
+    {
+      "id": "AT-013",
+      "title": "Pause/resume without new generation",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-CTL-005",
+        "R-AUD-OUT-002"
+      ],
+      "applicability": "CORE",
+      "given": "Valid active sink and endpoint.",
+      "steps": [
+        "Pause mid-unit",
+        "Finish one in-flight TTS unit",
+        "Resume"
+      ],
+      "expected": [
+        "Generation unchanged",
+        "No further prefetch while paused",
+        "Local sink frame position retained"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_013.py"
+    },
+    {
+      "id": "AT-014",
+      "title": "Auto toggle and manual reading semantics",
+      "layer": "PURE",
+      "requirements": [
+        "R-CTL-002",
+        "R-UX-001"
+      ],
+      "applicability": "CORE",
+      "given": "Manual reading active in Auto mode.",
+      "steps": [
+        "Turn Auto off",
+        "Repeat with automatically originated reading"
+      ],
+      "expected": [
+        "Manual reading continues",
+        "Automatic reading is stopped and pending auto work canceled",
+        "Next app launch starts Auto off"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_014.py"
+    },
+    {
+      "id": "AT-015",
+      "title": "History replay with game closed",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-CTL-002",
+        "R-STO-001"
+      ],
+      "applicability": "CORE",
+      "given": "Saved accepted snapshot and approved voice realization.",
+      "steps": [
+        "Close game",
+        "Replay Last",
+        "Lock session then resume session"
+      ],
+      "expected": [
+        "No capture attempt for replay",
+        "Replay pauses on lock",
+        "Explicit resume required after invalidated device/sink"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_015.py"
+    },
+    {
+      "id": "AT-016",
+      "title": "Panel change fails OCR",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-CTL-003",
+        "R-TXT-002"
+      ],
+      "applicability": "CORE",
+      "given": "A speaking; B is confirmed new geometry/content but unreadable.",
+      "steps": [
+        "Confirm B replacement",
+        "Fail B text validation"
+      ],
+      "expected": [
+        "A remains stopped",
+        "B is Preview/TEXT_UNCERTAIN",
+        "Neither guessed B nor obsolete A plays"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_016.py"
+    },
+    {
+      "id": "AT-017",
+      "title": "Independent observation/playback progress",
+      "layer": "PURE",
+      "requirements": [
+        "R-CTL-001",
+        "R-ARC-002"
+      ],
+      "applicability": "CORE",
+      "given": "Playback PLAYING and observation WATCHING.",
+      "steps": [
+        "Submit detect and recognize events while sink stays active"
+      ],
+      "expected": [
+        "Observation advances independently",
+        "No shared busy flag serializes whole reading"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_017.py"
+    },
+    {
+      "id": "AT-018",
+      "title": "Read replacement and Preview independence",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-CTL-002",
+        "R-OBS-004"
+      ],
+      "applicability": "CORE",
+      "given": "Reading A active; valid unchanged panel.",
+      "steps": [
+        "Preview same panel",
+        "Issue Read twice rapidly"
+      ],
+      "expected": [
+        "Preview alone does not start second speech",
+        "Last Read replaces prior Read",
+        "No page backlog"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_018.py"
+    },
+    {
+      "id": "AT-019",
+      "title": "Unknown-page Stop rearm",
+      "layer": "PURE",
+      "requirements": [
+        "R-CTL-004"
+      ],
+      "applicability": "CORE",
+      "given": "AUTO_HELD_UNKNOWN active.",
+      "steps": [
+        "Supply fresh OCR only",
+        "Toggle Auto off/on",
+        "Supply qualified current page"
+      ],
+      "expected": [
+        "OCR alone cannot release hold",
+        "Explicit off/on can rearm",
+        "Exactly one new reading"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_019.py"
+    },
+    {
+      "id": "AT-020",
+      "title": "Idle log watcher budget",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-003",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Existing non-growing file and instrumented virtual poller.",
+      "steps": [
+        "Advance clock for 60 seconds"
+      ],
+      "expected": [
+        "At most four scheduled reconciliations per second",
+        "No busy-spin reads",
+        "Stop completes within one polling interval"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_020.py"
+    },
+    {
+      "id": "AT-021",
+      "title": "Truncation and same-size replacement",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Known file identity/offset; valid bridge hello.",
+      "steps": [
+        "Truncate",
+        "Replace file with same-size different identity",
+        "Write new hello and event"
+      ],
+      "expected": [
+        "Reset decoder/offset/epoch",
+        "No stale NPC replay",
+        "New valid namespaced event processed once"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_021.py"
+    },
+    {
+      "id": "AT-022",
+      "title": "Partial UTF-8 and incomplete line",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-003",
+        "R-LOG-002"
+      ],
+      "applicability": "CORE",
+      "given": "Binary tailer at end of complete previous line.",
+      "steps": [
+        "Append first bytes of accented name",
+        "Append remaining bytes without LF",
+        "Append LF"
+      ],
+      "expected": [
+        "No early event",
+        "One correctly decoded event after complete LF",
+        "No character silently dropped"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_022.py"
+    },
+    {
+      "id": "AT-023",
+      "title": "Unrelated and malformed records",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-002",
+        "R-LOG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Strict namespaced mode.",
+      "steps": [
+        "Append unrelated plugin line, malformed JSON, wrong version, invalid sequence, then valid record"
+      ],
+      "expected": [
+        "Only valid current namespaced record affects context",
+        "Error counts bounded",
+        "No unrelated line used as NPC"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_023.py"
+    },
+    {
+      "id": "AT-024",
+      "title": "Oversized log line and resynchronization",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-003"
+      ],
+      "applicability": "CORE",
+      "given": "16 KiB line limit.",
+      "steps": [
+        "Append 100 KiB without LF then LF then valid hello/event"
+      ],
+      "expected": [
+        "No unbounded buffer",
+        "Oversized line discarded through LF",
+        "Parser resumes on later valid records"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_024.py"
+    },
+    {
+      "id": "AT-025",
+      "title": "Attach at EOF in middle of line",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-LOG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Application attaches while log contains half of an old record.",
+      "steps": [
+        "Append remainder/LF",
+        "Append fresh complete hello/event"
+      ],
+      "expected": [
+        "Remainder of preexisting partial line is ignored",
+        "Fresh valid sequence works",
+        "Old log history is not replayed"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_025.py"
+    },
+    {
+      "id": "AT-026",
+      "title": "No invented bridge capability",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-LOG-001",
+        "R-SCP-003"
+      ],
+      "applicability": "CORE",
+      "given": "Current documented Lua API and authorized optional probe.",
+      "steps": [
+        "Record exposed capabilities",
+        "Remove bridge during reading setup"
+      ],
+      "expected": [
+        "No unsupported quest-text or game-event claim",
+        "Manual/visual mode remains available",
+        "Missing API is recorded"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_026.py"
+    },
+    {
+      "id": "AT-027",
+      "title": "Bridge installation preserves neighbors",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-LOG-002",
+        "R-PKG-002"
+      ],
+      "applicability": "CORE",
+      "given": "Redirected Documents; existing unrelated plugin and user-edited owned file.",
+      "steps": [
+        "Install authorized bridge",
+        "Attempt repair over modified file"
+      ],
+      "expected": [
+        "Only owned namespace changed",
+        "Modified file requires displayed conflict choice",
+        "Unrelated plugin unchanged"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_027.py"
+    },
+    {
+      "id": "AT-028",
+      "title": "NPC hint expiration and ambiguity",
+      "layer": "PURE",
+      "requirements": [
+        "R-DAT-002",
+        "R-LOG-002",
+        "R-TTS-002"
+      ],
+      "applicability": "CORE",
+      "given": "Unassociated target hint older than 2000 ms and two NPCs sharing a name.",
+      "steps": [
+        "Open new page",
+        "Attempt global mapping"
+      ],
+      "expected": [
+        "Expired hint cannot assign new interaction",
+        "Ambiguous name does not merge unique identities",
+        "Narrator/session-local fallback is labeled"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_028.py"
+    },
+    {
+      "id": "AT-029",
+      "title": "Qt capture stalls on unchanged content",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-DAT-003",
+        "R-OBS-001",
+        "R-OBS-003"
+      ],
+      "applicability": "CORE",
+      "given": "Selected visible unchanged window; capture backend emits no new frame.",
+      "steps": [
+        "Perform health checks",
+        "Change geometry epoch"
+      ],
+      "expected": [
+        "No false failure solely from lack of new identical frame",
+        "Geometry change requires actual newly acquired frame before acceptance"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_029.py"
+    },
+    {
+      "id": "AT-030",
+      "title": "Digits, Ore and negation preserved",
+      "layer": "PURE",
+      "requirements": [
+        "R-TXT-001",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Original input: Bring 10 Ore. Do not trade 1.",
+      "steps": [
+        "Normalize accepted display text"
+      ],
+      "expected": [
+        "Output exactly equals input",
+        "No digit-to-letter or Ore-to-Orc replacement"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_030.py"
+    },
+    {
+      "id": "AT-031",
+      "title": "Lowercase opening preserved",
+      "layer": "PURE",
+      "requirements": [
+        "R-TXT-001"
+      ],
+      "applicability": "CORE",
+      "given": "Original input: after dawn, I will return.",
+      "steps": [
+        "Normalize text with no geometry-proven icon intrusion"
+      ],
+      "expected": [
+        "Output exactly equals input",
+        "Lowercase prefix is not deleted"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_031.py"
+    },
+    {
+      "id": "AT-032",
+      "title": "REWARDS inside a sentence",
+      "layer": "PURE",
+      "requirements": [
+        "R-TXT-001",
+        "R-TXT-003"
+      ],
+      "applicability": "CORE",
+      "given": "Body: The sign says REWARDS are delayed. Geometry separately labels actual rewards area.",
+      "steps": [
+        "Extract and normalize body"
+      ],
+      "expected": [
+        "Sentence remains complete",
+        "Only actual excluded reward region is omitted"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_032.py"
+    },
+    {
+      "id": "AT-033",
+      "title": "Clipped lines not completed",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-TXT-003",
+        "R-OBS-004"
+      ],
+      "applicability": "CORE",
+      "given": "Fixture has a full first line and a half-visible last line.",
+      "steps": [
+        "Recognize and Preview",
+        "Auto-read qualified spans"
+      ],
+      "expected": [
+        "No invented ending",
+        "Clipped span excluded and indicated",
+        "Full preceding span remains eligible"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_033.py"
+    },
+    {
+      "id": "AT-034",
+      "title": "OCR pass disagreement on protected token",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-TXT-002"
+      ],
+      "applicability": "CORE",
+      "given": "Two OCR passes disagree between 10 and 18 with high raw scores.",
+      "steps": [
+        "Validate automatic reading"
+      ],
+      "expected": [
+        "TEXT_UNCERTAIN",
+        "No automatic speech",
+        "Exact user-confirmed Preview remains possible"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_034.py"
+    },
+    {
+      "id": "AT-035",
+      "title": "Scroll forward, backward and duplicate sentence",
+      "layer": "REPLAY",
+      "requirements": [
+        "R-TXT-004"
+      ],
+      "applicability": "CORE",
+      "given": "Unique >=12-token overlap; a repeated sentence appears at two positions.",
+      "steps": [
+        "Read top",
+        "Scroll forward",
+        "Scroll back",
+        "Scroll to second genuine occurrence"
+      ],
+      "expected": [
+        "Only new complete forward suffix appended",
+        "No automatic backward replay",
+        "Second positional occurrence is not globally suppressed"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_035.py"
+    },
+    {
+      "id": "AT-036",
+      "title": "Near-title wrong-section corpus",
+      "layer": "PURE",
+      "requirements": [
+        "R-COR-002"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "Optional authorized synthetic corpus with similar titles and different stages.",
+      "steps": [
+        "Run visible-span match"
+      ],
+      "expected": [
+        "Incorrect candidate rejected",
+        "No whole-section expansion"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_036.py"
+    },
+    {
+      "id": "AT-037",
+      "title": "Corpus quantity and negation contradiction",
+      "layer": "PURE",
+      "requirements": [
+        "R-COR-002"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "OCR says do not trade 10; candidate says trade 1.",
+      "steps": [
+        "Run correction with otherwise high overlap"
+      ],
+      "expected": [
+        "Hard contradiction rejects match irrespective of composite score"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_037.py"
+    },
+    {
+      "id": "AT-038",
+      "title": "Duplicate corpus candidates",
+      "layer": "PURE",
+      "requirements": [
+        "R-COR-002"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "Two candidates with identical normalized title and margin below 0.08.",
+      "steps": [
+        "Retrieve and rank"
+      ],
+      "expected": [
+        "Both candidates retained",
+        "Ambiguity causes abstention"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_038.py"
+    },
+    {
+      "id": "AT-039",
+      "title": "Corpus off and short passage",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-COR-001",
+        "R-COR-002"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "Corpus disabled, then optional mode enabled with a 19-token passage.",
+      "steps": [
+        "Read with corpus disabled",
+        "Match short passage"
+      ],
+      "expected": [
+        "Disabled mode never loads corpus",
+        "Short passage not automatically corrected",
+        "Unknown rights block pack activation"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_039.py"
+    },
+    {
+      "id": "AT-040",
+      "title": "Binding prevents other-window reading",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-OBS-001",
+        "R-DAT-001",
+        "R-SEC-002"
+      ],
+      "applicability": "CORE",
+      "given": "Two windows with identical titles and different PID/start times.",
+      "steps": [
+        "Select first",
+        "Replace/reuse handle or close it",
+        "Place private text in second"
+      ],
+      "expected": [
+        "Second window never becomes implicit target",
+        "Binding mismatch suspends reading"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_040.py"
+    },
+    {
+      "id": "AT-041",
+      "title": "Mixed DPI and independent UI scales",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-OBS-002",
+        "R-SCP-001",
+        "R-OBS-003"
+      ],
+      "applicability": "CORE",
+      "given": "Actual recorded monitors/DPI/game scale.",
+      "steps": [
+        "Move window",
+        "Change window size",
+        "Change game global and panel scales independently"
+      ],
+      "expected": [
+        "Geometry epoch changes",
+        "Stale OCR discarded",
+        "Current crop within actual capture bounds"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_041.py"
+    },
+    {
+      "id": "AT-042",
+      "title": "Focus, minimize, sleep and stale frame",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-OBS-001",
+        "R-CTL-002",
+        "R-DAT-003"
+      ],
+      "applicability": "CORE",
+      "given": "Live-panel reading and current frame.",
+      "steps": [
+        "Alt-tab/minimize",
+        "Sleep/resume",
+        "Deliver pre-suspend frame"
+      ],
+      "expected": [
+        "Live reading fenced",
+        "No unrelated application text",
+        "Fresh reacquisition and explicit reading required"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_042.py"
+    },
+    {
+      "id": "AT-043",
+      "title": "Manual crop and explicit correction",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-OBS-004",
+        "R-UX-002"
+      ],
+      "applicability": "CORE",
+      "given": "Unqualified panel but selected verified game window.",
+      "steps": [
+        "Select crop",
+        "Preview uncertain text",
+        "Confirm exact corrected passage"
+      ],
+      "expected": [
+        "No full-desktop capture",
+        "Provenance USER_EDITED/USER_CONFIRMED_OCR",
+        "Confirmation does not lower future Auto thresholds"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_043.py"
+    },
+    {
+      "id": "AT-044",
+      "title": "Strict IPC schema and byte limits",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-001",
+        "R-SEC-001"
+      ],
+      "applicability": "CORE",
+      "given": "Fake child transport.",
+      "steps": [
+        "Send unknown fields, wrong version, oversized/no-LF output, invalid enum, then stderr flood"
+      ],
+      "expected": [
+        "Malformed worker fenced/terminated",
+        "Buffers stay bounded",
+        "GUI remains responsive",
+        "No shell/eval execution"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_044.py"
+    },
+    {
+      "id": "AT-045",
+      "title": "Wrong nonce, role and instance",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-002",
+        "R-IPC-001"
+      ],
+      "applicability": "CORE",
+      "given": "Host expects known worker UUID and manifest hash.",
+      "steps": [
+        "Send mismatched hello/ready",
+        "Send old worker result after restart"
+      ],
+      "expected": [
+        "Worker not admitted",
+        "No request dispatched to mismatched runtime",
+        "Old worker output cannot satisfy new request"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_045.py"
+    },
+    {
+      "id": "AT-046",
+      "title": "Spool traversal and malformed audio",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-003",
+        "R-SEC-001",
+        "R-TTS-005"
+      ],
+      "applicability": "CORE",
+      "given": "Fake completed descriptor and sandbox files.",
+      "steps": [
+        "Try ../ path, symlink, mismatched hash, wrong frame count, NaN source, silent nonempty-text clip"
+      ],
+      "expected": [
+        "All invalid clips rejected",
+        "No read outside spool",
+        "No audio admitted"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_046.py"
+    },
+    {
+      "id": "AT-047",
+      "title": "Cancellation acknowledgment is not completion",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-IPC-004",
+        "R-CTL-004"
+      ],
+      "applicability": "CORE",
+      "given": "Child acknowledges cancel but hangs in inference.",
+      "steps": [
+        "Stop",
+        "Receive cancel_ack",
+        "Wait through terminal deadline"
+      ],
+      "expected": [
+        "Audio remains fenced immediately",
+        "Child tree terminated after configured grace",
+        "Acknowledgment does not release slot as completed success"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_047.py"
+    },
+    {
+      "id": "AT-048",
+      "title": "Restart breaker and no automatic fallback",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-004",
+        "R-ERR-001"
+      ],
+      "applicability": "CORE",
+      "given": "Repeated premium failures under virtual time.",
+      "steps": [
+        "Trigger three restart-worthy failures within five minutes"
+      ],
+      "expected": [
+        "At most two automatic restarts",
+        "Circuit breaker opens",
+        "CPU switch and resumed speech require explicit action"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_048.py"
+    },
+    {
+      "id": "AT-049",
+      "title": "Heartbeat cannot extend job deadline",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-004"
+      ],
+      "applicability": "CORE",
+      "given": "Stuck job sends healthy heartbeats.",
+      "steps": [
+        "Advance beyond warm-unit deadline"
+      ],
+      "expected": [
+        "Request times out at job deadline",
+        "No unlimited extension from heartbeat activity"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_049.py"
+    },
+    {
+      "id": "AT-050",
+      "title": "Real CPU and GPU runtime isolation",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-TTS-001",
+        "R-SCP-004",
+        "R-ARC-001"
+      ],
+      "applicability": "CORE",
+      "given": "Clean host/CPU bundle; GPU runtime separately available for qualification.",
+      "steps": [
+        "Run CPU without CUDA",
+        "Inspect loaded host modules",
+        "Attempt missing premium initialization"
+      ],
+      "expected": [
+        "Real CPU speech works",
+        "Host does not load ML stack",
+        "Premium failure does not disable CPU controls"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_050.py"
+    },
+    {
+      "id": "AT-051",
+      "title": "Stable casting across new packs",
+      "layer": "PURE",
+      "requirements": [
+        "R-TTS-002"
+      ],
+      "applicability": "CORE",
+      "given": "Persisted NPC mapping and fixed approved pool.",
+      "steps": [
+        "Install a new pack",
+        "Restart",
+        "Remove mapped realization"
+      ],
+      "expected": [
+        "Existing mapping unchanged while valid",
+        "Missing voice yields explicit replacement/narrator notice",
+        "No silent mid-reading recast"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_051.py"
+    },
+    {
+      "id": "AT-052",
+      "title": "Chunk conservation and long token",
+      "layer": "PURE",
+      "requirements": [
+        "R-TTS-003"
+      ],
+      "applicability": "CORE",
+      "given": "Text includes decimals, abbreviations, Unicode names, long sentences and a >280-codepoint unbroken token.",
+      "steps": [
+        "Split permitted text",
+        "Reconstruct using separators",
+        "Attempt oversized token"
+      ],
+      "expected": [
+        "Reconstruction exactly equals speech-normalized input",
+        "No word split or omitted text",
+        "Oversized unbroken token returns TEXT_TOO_LONG"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_052.py"
+    },
+    {
+      "id": "AT-053",
+      "title": "Lexicon boundaries and precedence",
+      "layer": "PURE",
+      "requirements": [
+        "R-TTS-004",
+        "R-DAT-002"
+      ],
+      "applicability": "CORE",
+      "given": "Reviewed word/phrase entries and conflicting equal-priority entries.",
+      "steps": [
+        "Apply longest phrase",
+        "Test name substring inside longer word",
+        "Import ambiguous overlap"
+      ],
+      "expected": [
+        "Display text unchanged",
+        "Correct exact-boundary speech mapping",
+        "Ambiguous import rejected"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_053.py"
+    },
+    {
+      "id": "AT-054",
+      "title": "Quality screen rejects bad output",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-TTS-005",
+        "R-IPC-003"
+      ],
+      "applicability": "CORE",
+      "given": "Empty, >30sec, silent, clipped/invalid-format audio fixtures.",
+      "steps": [
+        "Validate each clip",
+        "Check approved gain/limiter on valid clip"
+      ],
+      "expected": [
+        "Invalid technical audio rejected",
+        "No arbitrary volume explosion",
+        "Protected-text fidelity requires separate listening evidence"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_054.py"
+    },
+    {
+      "id": "AT-055",
+      "title": "Device disconnect does not leak to speakers",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-AUD-OUT-003",
+        "R-CTL-005"
+      ],
+      "applicability": "CORE",
+      "given": "Explicit headset selected; speakers also present.",
+      "steps": [
+        "Disconnect headset while playing",
+        "Reconnect it"
+      ],
+      "expected": [
+        "No automatic speaker route",
+        "Reading interrupted",
+        "Explicit boundary restart required"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_055.py"
+    },
+    {
+      "id": "AT-056",
+      "title": "Persistent sink, underrun and hotkey Stop",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-AUD-OUT-001",
+        "R-AUD-OUT-002",
+        "R-UX-001"
+      ],
+      "applicability": "CORE",
+      "given": "Audio service isolated from slow UI/storage task.",
+      "steps": [
+        "Starve a unit temporarily",
+        "Open settings",
+        "Press Stop"
+      ],
+      "expected": [
+        "Underrun not completion",
+        "Stop route remains responsive",
+        "Old sink buffers reset"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_056.py"
+    },
+    {
+      "id": "AT-057",
+      "title": "Cache key changes on relevant inputs",
+      "layer": "PURE",
+      "requirements": [
+        "R-STO-002"
+      ],
+      "applicability": "CORE",
+      "given": "Same display text with different speech normalization, voice, model or lexicon.",
+      "steps": [
+        "Compute keys for each version",
+        "Change only an unrelated UI preference"
+      ],
+      "expected": [
+        "Relevant audio changes produce different keys",
+        "Unrelated UI change leaves audio key unchanged"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_057.py"
+    },
+    {
+      "id": "AT-058",
+      "title": "Disk-full and cache crash consistency",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-STO-002",
+        "R-STO-001"
+      ],
+      "applicability": "CORE",
+      "given": "Fault-injected filesystem and cache index.",
+      "steps": [
+        "Crash before/after rename/index commit",
+        "Simulate low free space"
+      ],
+      "expected": [
+        "No corrupt cache hit",
+        "Orphans reconciled",
+        "Free-space/spool floor enforced",
+        "Valid prior state remains usable"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_058.py"
+    },
+    {
+      "id": "AT-059",
+      "title": "SQLite migration rollback and interruption",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-STO-003",
+        "R-PKG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Initial supported schema and verified backup.",
+      "steps": [
+        "Fail migration mid-change",
+        "Roll back",
+        "Attempt old app against newer schema"
+      ],
+      "expected": [
+        "Matching old app/state restored",
+        "Newer data retained separately",
+        "Incompatible schema rejected, not overwritten"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_059.py"
+    },
+    {
+      "id": "AT-060",
+      "title": "Asset rights and hash gate",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-SEC-003",
+        "R-AUD-002",
+        "R-PKG-002"
+      ],
+      "applicability": "CORE",
+      "given": "Manifest with one unknown-rights or modified artifact.",
+      "steps": [
+        "Build public package candidate"
+      ],
+      "expected": [
+        "Unknown/invalid artifact not included",
+        "Public activation blocked",
+        "No invented rights approval"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_060.py"
+    },
+    {
+      "id": "AT-061",
+      "title": "Offline narration and launch",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-SEC-002",
+        "R-UX-002"
+      ],
+      "applicability": "CORE",
+      "given": "All approved assets installed; network blocked.",
+      "steps": [
+        "Launch",
+        "Capture/read/stop/replay",
+        "Observe attempted outbound connections"
+      ],
+      "expected": [
+        "Normal CPU operation succeeds",
+        "No model/package/update fetch on startup or reading"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_061.py"
+    },
+    {
+      "id": "AT-062",
+      "title": "Clean relocatable runtime bundle",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-PKG-001",
+        "R-SCP-004",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Fresh standard user, no Python/Git/Tesseract/CUDA toolkit installed.",
+      "steps": [
+        "Install in path with spaces/Unicode",
+        "Move supported staged bundle to second root",
+        "Run smoke tests"
+      ],
+      "expected": [
+        "Host/vision/CPU work with vendored dependencies",
+        "No absolute developer-venv dependency",
+        "Real DLL/model imports tested"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_062.py"
+    },
+    {
+      "id": "AT-063",
+      "title": "Update interrupted at every stage",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-PKG-003"
+      ],
+      "applicability": "CORE",
+      "given": "Known-good version and original user state.",
+      "steps": [
+        "Interrupt download, verification, extraction, migration and activation in separate runs"
+      ],
+      "expected": [
+        "Active known-good version remains/restores",
+        "No unsigned fallback",
+        "No half-activated runtime"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_063.py"
+    },
+    {
+      "id": "AT-064",
+      "title": "Repair/uninstall ownership",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-PKG-002",
+        "R-UX-003"
+      ],
+      "applicability": "CORE",
+      "given": "Installed app, custom settings and unrelated neighboring files.",
+      "steps": [
+        "Repair",
+        "Uninstall without content deletion",
+        "Reinstall"
+      ],
+      "expected": [
+        "User content survives default operations",
+        "Unrelated files and LOTRO untouched",
+        "Explicit content deletion required"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_064.py"
+    },
+    {
+      "id": "AT-065",
+      "title": "Privacy and log retention",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-SEC-002",
+        "R-UX-002"
+      ],
+      "applicability": "CORE",
+      "given": "Synthetic private name/text and >50 snapshots/log limits.",
+      "steps": [
+        "Exercise error paths",
+        "Export default diagnostics",
+        "Clear History separately from cache"
+      ],
+      "expected": [
+        "No private text in default logs/export",
+        "Retention caps enforced",
+        "Content deletion scopes explained and correct"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_065.py"
+    },
+    {
+      "id": "AT-066",
+      "title": "Legacy import is previewed and idempotent",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-UX-003",
+        "R-STO-001"
+      ],
+      "applicability": "CORE",
+      "given": "Synthetic legacy settings with unknown keys, conflicting user override and executable-looking path.",
+      "steps": [
+        "Preview/import twice",
+        "Modify local override",
+        "Import again"
+      ],
+      "expected": [
+        "No legacy source mutation/execution",
+        "No duplicate mappings",
+        "Local override not silently replaced",
+        "Calibration remains unqualified"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_066.py"
+    },
+    {
+      "id": "AT-067",
+      "title": "Hotkey conflicts and accessibility",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-UX-001",
+        "R-UX-002"
+      ],
+      "applicability": "CORE",
+      "given": "Another app owns proposed shortcut; keyboard-only test.",
+      "steps": [
+        "Register hotkey",
+        "Navigate all controls",
+        "Trigger model error"
+      ],
+      "expected": [
+        "Conflict visible, buttons remain usable",
+        "All controls named/focusable",
+        "No focus-stealing error popup during play"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_067.py"
+    },
+    {
+      "id": "AT-068",
+      "title": "Archive traversal and prompt-like content",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-SEC-001",
+        "R-SCP-003"
+      ],
+      "applicability": "CORE",
+      "given": "Malicious filenames and original passage saying ignore instructions.",
+      "steps": [
+        "Install malformed pack",
+        "Process passage as reading input"
+      ],
+      "expected": [
+        "Archive cannot escape staging",
+        "Text never becomes command or agent instruction",
+        "No gameplay input emitted"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_068.py"
+    },
+    {
+      "id": "AT-069",
+      "title": "Corpus-free, bridge-free base scope",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-SCP-002",
+        "R-COR-001",
+        "R-LOG-001"
+      ],
+      "applicability": "CORE",
+      "given": "No bridge, corpus or GPU; installed approved CPU voice.",
+      "steps": [
+        "Manual Read/Stop",
+        "Use qualified visual Auto profile"
+      ],
+      "expected": [
+        "Core works without optional systems",
+        "Unknown NPC uses narrator",
+        "No fallback scrape/cloud call"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_069.py"
+    },
+    {
+      "id": "AT-070",
+      "title": "Fence and semantics mutation detection",
+      "layer": "PURE",
+      "requirements": [
+        "R-TST-002",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Working regression tests and disposable mutant worktree.",
+      "steps": [
+        "Remove final generation check",
+        "Expire tombstone early",
+        "Alter digit",
+        "Skip terminal",
+        "Treat idle as complete"
+      ],
+      "expected": [
+        "Each mutation fails its named regression",
+        "Mutation report maps failures",
+        "No mutants merged"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_070.py"
+    },
+    {
+      "id": "AT-071",
+      "title": "Independent fixture labels and holdout",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-TST-001",
+        "R-TST-003",
+        "R-GOV-002"
+      ],
+      "applicability": "CORE",
+      "given": "Labeled original/private fixture manifests.",
+      "steps": [
+        "Audit split by quest/session family",
+        "Run candidate frozen before heldout",
+        "Inspect labels"
+      ],
+      "expected": [
+        "No duplicate family leakage",
+        "Labels not derived from candidate outputs",
+        "Every metric traceable to fixtures"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_071.py"
+    },
+    {
+      "id": "AT-072",
+      "title": "Generated schedule invariants",
+      "layer": "PURE",
+      "requirements": [
+        "R-TST-002",
+        "R-IPC-005",
+        "R-CTL-001"
+      ],
+      "applicability": "CORE",
+      "given": "Independent reference oracle, virtual clock, seeded schedules.",
+      "steps": [
+        "Run 1000 quick and 10000 extended schedules up to 200 events"
+      ],
+      "expected": [
+        "Zero stale writes/duplicate terminals/cap violations",
+        "Seeds and minimized failures preserved"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_072.py"
+    },
+    {
+      "id": "AT-073",
+      "title": "Timing and game-impact qualification",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-REL-002",
+        "R-REL-003",
+        "R-SCP-001"
+      ],
+      "applicability": "CORE",
+      "given": "Actual recorded Windows/game/audio environment.",
+      "steps": [
+        "Run required timing counts and paired gameplay measurements"
+      ],
+      "expected": [
+        "All declared gates reported with start/end definitions and denominators",
+        "No mock metrics or excluded failures hidden"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_073.py"
+    },
+    {
+      "id": "AT-074",
+      "title": "CI and dependency boundary audit",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-TST-004",
+        "R-PKG-001",
+        "R-SEC-003",
+        "R-AUD-002"
+      ],
+      "applicability": "CORE",
+      "given": "Candidate workflows, manifests and lockfiles.",
+      "steps": [
+        "Inspect triggers/tokens/runners/actions",
+        "Run clean checks",
+        "Force a test failure"
+      ],
+      "expected": [
+        "No untrusted self-hosted personal-PC execution",
+        "Exact dependencies recorded",
+        "Failed/zero/required-skipped tests make QA fail"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_074.py"
+    },
+    {
+      "id": "AT-075",
+      "title": "AI packet evidence is not fabricated",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-GOV-001",
+        "R-GOV-002",
+        "R-GOV-003",
+        "R-GOV-005",
+        "R-DEV-001",
+        "R-DEV-002",
+        "R-DEV-003"
+      ],
+      "applicability": "CORE",
+      "given": "Selected task and reviewable report.",
+      "steps": [
+        "Compare claimed commands/files/results to raw outputs and commit",
+        "Inspect blockers"
+      ],
+      "expected": [
+        "No unexplained requirement waivers",
+        "Unavailable hardware stays BLOCKED",
+        "Pure local work can continue",
+        "No unsupported flawless/superior claims"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_075.py"
+    },
+    {
+      "id": "AT-076",
+      "title": "Local adoption and remote permission boundary",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-GOV-004",
+        "R-REP-001",
+        "R-REP-002",
+        "R-REP-003"
+      ],
+      "applicability": "CORE",
+      "given": "Empty explicit workspace or nonempty conflict; no public-write approval.",
+      "steps": [
+        "Dry-run bootstrap",
+        "Test existing-directory conflict",
+        "Inspect remotes/base",
+        "Attempt unapproved publish path"
+      ],
+      "expected": [
+        "No destructive overwrite or public write",
+        "Upstream push disabled",
+        "Exact base preserved",
+        "Owner/visibility approval required"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_076.py"
+    },
+    {
+      "id": "AT-077",
+      "title": "Source reuse and architecture review",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-AUD-001",
+        "R-REP-004",
+        "R-ARC-001",
+        "R-ARC-003",
+        "R-SCP-004"
+      ],
+      "applicability": "CORE",
+      "given": "Pinned source and module dependency map.",
+      "steps": [
+        "Audit source observations",
+        "Inspect new imports and process ownership"
+      ],
+      "expected": [
+        "Legacy facts distinguished from reproduction",
+        "Core imports no UI/ML stack",
+        "No giant rewrite/startup-engine import into host"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_077.py"
+    },
+    {
+      "id": "AT-078",
+      "title": "Configuration and normative package consistency",
+      "layer": "PURE",
+      "requirements": [
+        "R-CFG-001",
+        "R-GOV-001"
+      ],
+      "applicability": "CORE",
+      "given": "Defaults, schema, task and requirement catalogs.",
+      "steps": [
+        "Validate every file",
+        "Inject unknown/unsafe config key",
+        "Check references"
+      ],
+      "expected": [
+        "All IDs resolve",
+        "Unsafe key rejected",
+        "Conflicting normative settings block affected work rather than being guessed"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_078.py"
+    },
+    {
+      "id": "AT-079",
+      "title": "Soak, quit and no orphan processes",
+      "layer": "WINDOWS",
+      "requirements": [
+        "R-REL-003",
+        "R-IPC-005",
+        "R-STO-001"
+      ],
+      "applicability": "CORE",
+      "given": "Candidate on real recorded target.",
+      "steps": [
+        "Run eight-hour soak and thirty startup/quit cycles"
+      ],
+      "expected": [
+        "No crash/deadlock/orphan/unbounded growth",
+        "Host sustained growth below gate excluding disclosed caches",
+        "No automatic restart speech"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_079.py"
+    },
+    {
+      "id": "AT-080",
+      "title": "Final candidate evidence and extension flags",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-REL-001",
+        "R-REL-004",
+        "R-DEV-003",
+        "R-TST-004"
+      ],
+      "applicability": "CORE",
+      "given": "Exact clean release SHA, all required reports, feature flags.",
+      "steps": [
+        "Evaluate G0-G4 and enabled conditional gates",
+        "Compare packaged manifests to reports"
+      ],
+      "expected": [
+        "Missing evidence blocks affected release/profile",
+        "Disabled optional capabilities not falsely counted as passed",
+        "Tested and shipped hashes agree"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_080.py"
+    },
+    {
+      "id": "AT-081",
+      "title": "OmniVoice real hardware qualification",
+      "layer": "GPU",
+      "requirements": [
+        "R-TTS-001",
+        "R-REL-004"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "Approved premium assets and recorded GPU/driver.",
+      "steps": [
+        "Run real allocation/load/synthesis/unload and shared control suite",
+        "Measure premium gates"
+      ],
+      "expected": [
+        "Adapter works or reports honest failure",
+        "Activation only after all premium gates and rights pass"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_081.py"
+    },
+    {
+      "id": "AT-082",
+      "title": "Optional corpus heldout gate",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-COR-002",
+        "R-REL-004"
+      ],
+      "applicability": "CONDITIONAL",
+      "given": "Authorized corpus and independent heldout matches.",
+      "steps": [
+        "Evaluate >=3000 accepted distinct section matches with frozen thresholds"
+      ],
+      "expected": [
+        "Zero wrong substitutions required",
+        "Missing/insufficient evidence leaves corpus disabled"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_082.py"
+    },
+    {
+      "id": "AT-083",
+      "title": "Voice fidelity and original reference rights",
+      "layer": "RELEASE",
+      "requirements": [
+        "R-TTS-002",
+        "R-TTS-004",
+        "R-TTS-005",
+        "R-SEC-003",
+        "R-REL-003"
+      ],
+      "applicability": "CORE",
+      "given": "Approved references and original/lawfully available labeled passages.",
+      "steps": [
+        "Run blinded matched-text listening and ASR-assisted review",
+        "Audit references"
+      ],
+      "expected": [
+        "No unapproved actor reference bundled",
+        "Protected-content errors fail profile",
+        "Preference is separate from fidelity"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_083.py"
+    },
+    {
+      "id": "AT-084",
+      "title": "Bounded window inventory and observed payload",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-IPC-001",
+        "R-IPC-002",
+        "R-OBS-001"
+      ],
+      "applicability": "CORE",
+      "given": "Fake vision inventory and detection output.",
+      "steps": [
+        "Request inventory",
+        "Reject unverified candidate",
+        "Receive oversized OCR-token record"
+      ],
+      "expected": [
+        "No capture before explicit selection",
+        "Unverified identity not attached",
+        "Oversized payload fails rather than being truncated as complete text"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_084.py"
+    },
+    {
+      "id": "AT-085",
+      "title": "Persistence failure does not fabricate completion",
+      "layer": "CONTRACT",
+      "requirements": [
+        "R-STO-001",
+        "R-ERR-001",
+        "R-CTL-006"
+      ],
+      "applicability": "CORE",
+      "given": "Storage writer busy/failing while unit plays.",
+      "steps": [
+        "Inject SQLite busy/error",
+        "Complete or stop audio independently"
+      ],
+      "expected": [
+        "Audio safety controls remain usable",
+        "Persistent completion reflects valid sink only",
+        "Storage error surfaced, not swallowed"
+      ],
+      "evidence_status": "NOT_RUN",
+      "implementation_test_path": "tests/v2/test_at_085.py"
+    }
+  ]
+}

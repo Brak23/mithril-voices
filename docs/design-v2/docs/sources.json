@@ -1,0 +1,155 @@
+{
+  "retrieved_on": "2026-10-14",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Khazad audited commit",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/commit/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+      "supports": "Pinned audit base; commit metadata checked through GitHub connector."
+    },
+    {
+      "id": "S02",
+      "title": "GitHub: forks and visibility",
+      "url": "https://docs.github.com/en/pull-requests/reference/forks",
+      "supports": "Public-fork visibility and repository-network implications."
+    },
+    {
+      "id": "S03",
+      "title": "GitHub CLI: gh repo fork",
+      "url": "https://cli.github.com/manual/gh_repo_fork",
+      "supports": "Fork flags and origin/upstream behavior."
+    },
+    {
+      "id": "S04",
+      "title": "Khazad retail startup",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/src/engine_startup.py#L108-L163",
+      "supports": "Synchronous retail callback and same-NPC cooldown."
+    },
+    {
+      "id": "S05",
+      "title": "Khazad narration engine",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/src/engine.py#L410-L540",
+      "supports": "Shared cancellation/queue and producer terminal path; initialization also inspected in prior review."
+    },
+    {
+      "id": "S06",
+      "title": "Khazad log watcher",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/src/utils.py#L605-L646",
+      "supports": "Idle loop, file-size tailing, decoding, untyped records."
+    },
+    {
+      "id": "S07",
+      "title": "Khazad OCR cleanup",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/src/ocr.py#L99-L180",
+      "supports": "Global substitutions, prefix cleanup and REWARDS splitting."
+    },
+    {
+      "id": "S08",
+      "title": "Khazad database matching",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/src/db_sqlite.py#L512-L636",
+      "supports": "Title candidate/normalization and body threshold."
+    },
+    {
+      "id": "S09",
+      "title": "Khazad streaming test",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/tests/test_engine.py#L157-L181",
+      "supports": "Object-only test assertions without actual streaming invocation."
+    },
+    {
+      "id": "S10",
+      "title": "Qt for Python documentation",
+      "url": "https://doc.qt.io/qtforpython-6/",
+      "supports": "PySide6 application foundation; exact package version remains a clean-build gate."
+    },
+    {
+      "id": "S11",
+      "title": "Qt QProcess",
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QProcess.html",
+      "supports": "Asynchronous process/channel APIs and event-loop blocking cautions."
+    },
+    {
+      "id": "S12",
+      "title": "Qt QAudioSink",
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtMultimedia/QAudioSink.html",
+      "supports": "Reset, suspend, buffer, format and state behavior; validate actual hardware."
+    },
+    {
+      "id": "S13",
+      "title": "Qt QWindowCapture",
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtMultimedia/QWindowCapture.html",
+      "supports": "Window capture candidate, backend requirements and unchanged-content behavior."
+    },
+    {
+      "id": "S14",
+      "title": "Khazad LICENSE",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/LICENSE",
+      "supports": "Apache 2.0 text; not blanket asset permission."
+    },
+    {
+      "id": "S15",
+      "title": "Khazad project metadata",
+      "url": "https://github.com/Thelukepet/Khazad-Voice-TTS/blob/1c4c23f092fde34ce527ebb27309f57a8c5ec5bb/pyproject.toml",
+      "supports": "MIT metadata, version 2.2.0 and dependency declarations."
+    },
+    {
+      "id": "S16",
+      "title": "Microsoft Windows screen capture",
+      "url": "https://learn.microsoft.com/en-us/windows/apps/develop/media-authoring-processing/screen-capture",
+      "supports": "OS capture capabilities; no assumption that a Qt picker is the Windows system picker."
+    },
+    {
+      "id": "S17",
+      "title": "LOTRO U49.6 release notes",
+      "url": "https://www.lotro.com/update-notes/lotro-update-49-6-release-notes-en",
+      "supports": "September 2026 Lua scaling additions; not proof of a complete quest-text API."
+    },
+    {
+      "id": "S18",
+      "title": "SQLite online backup API",
+      "url": "https://www.sqlite.org/backup.html",
+      "supports": "Supported coherent backup approach."
+    },
+    {
+      "id": "S19",
+      "title": "Python 3.12 on Windows: embeddable package",
+      "url": "https://docs.python.org/3.12/using/windows.html#the-embeddable-package",
+      "supports": "Embedding/distribution constraints; relocatability still requires packaging tests."
+    },
+    {
+      "id": "S20",
+      "title": "PyInstaller operating mode",
+      "url": "https://pyinstaller.org/en/stable/operating-mode.html",
+      "supports": "Onedir distribution model; explicit dependencies remain necessary."
+    },
+    {
+      "id": "S21",
+      "title": "GitHub Actions secure use",
+      "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+      "supports": "Workflow privileges, untrusted code, and runner security."
+    },
+    {
+      "id": "S22",
+      "title": "Qt for Python licenses",
+      "url": "https://doc.qt.io/qtforpython-6/licenses.html",
+      "supports": "Separate binding, Qt and bundled dependency licensing considerations."
+    },
+    {
+      "id": "S23",
+      "title": "OpenAI Codex repository instructions",
+      "url": "https://developers.openai.com/codex/guides/agents-md",
+      "supports": "AGENTS.md usage; retrieved page may redirect to current official documentation."
+    },
+    {
+      "id": "S24",
+      "title": "OpenAI Codex best practices",
+      "url": "https://developers.openai.com/codex/learn/best-practices",
+      "supports": "Focused tasks, repository context and verification."
+    },
+    {
+      "id": "S25",
+      "title": "Microsoft Windows Job Objects",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects",
+      "supports": "Process grouping, descendant behavior, nesting and termination."
+    }
+  ]
+}

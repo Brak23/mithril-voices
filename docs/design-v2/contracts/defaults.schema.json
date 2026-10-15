@@ -1,0 +1,536 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "spec_version": {
+      "const": "2.0"
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "const": "windows11_x64"
+        },
+        "locale": {
+          "const": "en"
+        },
+        "capture": {
+          "const": "selected_window"
+        },
+        "corpus_enabled": {
+          "const": false
+        },
+        "bridge_enabled": {
+          "const": false
+        }
+      },
+      "required": [
+        "platform",
+        "locale",
+        "capture",
+        "corpus_enabled",
+        "bridge_enabled"
+      ],
+      "additionalProperties": false
+    },
+    "control": {
+      "type": "object",
+      "properties": {
+        "auto_on_launch": {
+          "const": false
+        },
+        "on_new_page": {
+          "const": "replace"
+        },
+        "on_panel_close": {
+          "const": "stop"
+        },
+        "suspend_on_focus_loss": {
+          "const": true
+        },
+        "automatic_resume": {
+          "const": false
+        },
+        "page_backlog": {
+          "const": 0
+        },
+        "max_domain_events": {
+          "const": 256
+        },
+        "max_events_per_drain": {
+          "const": 32
+        },
+        "max_drain_ms": {
+          "const": 5
+        }
+      },
+      "required": [
+        "auto_on_launch",
+        "on_new_page",
+        "on_panel_close",
+        "suspend_on_focus_loss",
+        "automatic_resume",
+        "page_backlog",
+        "max_domain_events",
+        "max_events_per_drain",
+        "max_drain_ms"
+      ],
+      "additionalProperties": false
+    },
+    "capture": {
+      "type": "object",
+      "properties": {
+        "idle_hz": {
+          "const": 2
+        },
+        "changing_hz": {
+          "const": 8
+        },
+        "stable_ms": {
+          "const": 300
+        },
+        "close_confirmation_checks": {
+          "const": 2
+        },
+        "close_min_interval_ms": {
+          "const": 125
+        },
+        "max_frames": {
+          "const": 2
+        },
+        "max_active_ocr": {
+          "const": 1
+        },
+        "max_latest_observations": {
+          "const": 1
+        }
+      },
+      "required": [
+        "idle_hz",
+        "changing_hz",
+        "stable_ms",
+        "close_confirmation_checks",
+        "close_min_interval_ms",
+        "max_frames",
+        "max_active_ocr",
+        "max_latest_observations"
+      ],
+      "additionalProperties": false
+    },
+    "ocr": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "tesseract"
+        },
+        "agreement_passes": {
+          "const": 2
+        },
+        "minimum_word_confidence": {
+          "const": 40
+        },
+        "minimum_median_confidence": {
+          "const": 85
+        },
+        "title_reading": {
+          "const": false
+        },
+        "minimum_scroll_overlap_tokens": {
+          "const": 12
+        },
+        "profile_id": {
+          "const": null
+        }
+      },
+      "required": [
+        "engine",
+        "agreement_passes",
+        "minimum_word_confidence",
+        "minimum_median_confidence",
+        "title_reading",
+        "minimum_scroll_overlap_tokens",
+        "profile_id"
+      ],
+      "additionalProperties": false
+    },
+    "bridge": {
+      "type": "object",
+      "properties": {
+        "prefix": {
+          "const": "LVC1|"
+        },
+        "max_line_bytes": {
+          "const": 16384
+        },
+        "max_name_codepoints": {
+          "const": 200
+        },
+        "hint_ttl_ms": {
+          "const": 2000
+        },
+        "read_bytes_per_tick": {
+          "const": 65536
+        },
+        "present_poll_hz": {
+          "const": 4
+        },
+        "missing_poll_hz": {
+          "const": 0.5
+        },
+        "legacy_mode": {
+          "const": false
+        }
+      },
+      "required": [
+        "prefix",
+        "max_line_bytes",
+        "max_name_codepoints",
+        "hint_ttl_ms",
+        "read_bytes_per_tick",
+        "present_poll_hz",
+        "missing_poll_hz",
+        "legacy_mode"
+      ],
+      "additionalProperties": false
+    },
+    "worker": {
+      "type": "object",
+      "properties": {
+        "startup_ms": {
+          "const": 120000
+        },
+        "observation_ms": {
+          "const": 3000
+        },
+        "cpu_unit_ms": {
+          "const": 8000
+        },
+        "premium_unit_ms": {
+          "const": 15000
+        },
+        "heartbeat_ms": {
+          "const": 1000
+        },
+        "unresponsive_ms": {
+          "const": 5000
+        },
+        "cancel_ack_ms": {
+          "const": 250
+        },
+        "cancel_terminal_ms": {
+          "const": 1000
+        },
+        "shutdown_ms": {
+          "const": 2000
+        },
+        "restart_limit": {
+          "const": 2
+        },
+        "restart_window_ms": {
+          "const": 300000
+        }
+      },
+      "required": [
+        "startup_ms",
+        "observation_ms",
+        "cpu_unit_ms",
+        "premium_unit_ms",
+        "heartbeat_ms",
+        "unresponsive_ms",
+        "cancel_ack_ms",
+        "cancel_terminal_ms",
+        "shutdown_ms",
+        "restart_limit",
+        "restart_window_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ipc": {
+      "type": "object",
+      "properties": {
+        "major": {
+          "const": 1
+        },
+        "minor": {
+          "const": 0
+        },
+        "max_line_bytes_including_lf": {
+          "const": 262144
+        },
+        "max_pending_stdout_bytes": {
+          "const": 1048576
+        },
+        "max_stderr_tail_bytes": {
+          "const": 1048576
+        },
+        "max_messages_per_drain": {
+          "const": 32
+        },
+        "max_drain_ms": {
+          "const": 5
+        }
+      },
+      "required": [
+        "major",
+        "minor",
+        "max_line_bytes_including_lf",
+        "max_pending_stdout_bytes",
+        "max_stderr_tail_bytes",
+        "max_messages_per_drain",
+        "max_drain_ms"
+      ],
+      "additionalProperties": false
+    },
+    "speech": {
+      "type": "object",
+      "properties": {
+        "default_engine": {
+          "const": "kokoro_cpu"
+        },
+        "premium_enabled": {
+          "const": false
+        },
+        "default_voice_realization": {
+          "const": null
+        },
+        "unit_max_codepoints": {
+          "const": 280
+        },
+        "unit_max_seconds": {
+          "const": 30
+        },
+        "max_active_synthesis": {
+          "const": 1
+        },
+        "max_prepared_next_units": {
+          "const": 1
+        },
+        "unit_max_file_bytes": {
+          "const": 16777216
+        },
+        "max_admitted_spool_bytes": {
+          "const": 33554432
+        },
+        "max_admitted_spool_seconds": {
+          "const": 60
+        },
+        "gain_abs_max_db": {
+          "const": 12
+        },
+        "silence_peak_threshold": {
+          "const": 0.0001
+        }
+      },
+      "required": [
+        "default_engine",
+        "premium_enabled",
+        "default_voice_realization",
+        "unit_max_codepoints",
+        "unit_max_seconds",
+        "max_active_synthesis",
+        "max_prepared_next_units",
+        "unit_max_file_bytes",
+        "max_admitted_spool_bytes",
+        "max_admitted_spool_seconds",
+        "gain_abs_max_db",
+        "silence_peak_threshold"
+      ],
+      "additionalProperties": false
+    },
+    "audio": {
+      "type": "object",
+      "properties": {
+        "rate_hz": {
+          "const": 48000
+        },
+        "channels": {
+          "const": 1
+        },
+        "format": {
+          "const": "s16le"
+        },
+        "requested_sink_buffer_ms": {
+          "const": 50
+        },
+        "decoded_ring_ms": {
+          "const": 500
+        },
+        "pump_ms": {
+          "const": 10
+        },
+        "follow_system_default": {
+          "const": false
+        },
+        "device_id": {
+          "const": null
+        }
+      },
+      "required": [
+        "rate_hz",
+        "channels",
+        "format",
+        "requested_sink_buffer_ms",
+        "decoded_ring_ms",
+        "pump_ms",
+        "follow_system_default",
+        "device_id"
+      ],
+      "additionalProperties": false
+    },
+    "cache": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "const": true
+        },
+        "max_bytes": {
+          "const": 5368709120
+        },
+        "minimum_free_bytes": {
+          "const": 2147483648
+        }
+      },
+      "required": [
+        "enabled",
+        "max_bytes",
+        "minimum_free_bytes"
+      ],
+      "additionalProperties": false
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "persist_screenshots": {
+          "const": false
+        },
+        "telemetry": {
+          "const": false
+        },
+        "cloud_inference": {
+          "const": false
+        },
+        "history_enabled": {
+          "const": true
+        },
+        "history_max_snapshots": {
+          "const": 50
+        },
+        "log_max_days": {
+          "const": 7
+        },
+        "log_max_bytes": {
+          "const": 52428800
+        },
+        "log_full_text": {
+          "const": false
+        },
+        "manual_updates_only": {
+          "const": true
+        }
+      },
+      "required": [
+        "persist_screenshots",
+        "telemetry",
+        "cloud_inference",
+        "history_enabled",
+        "history_max_snapshots",
+        "log_max_days",
+        "log_max_bytes",
+        "log_full_text",
+        "manual_updates_only"
+      ],
+      "additionalProperties": false
+    },
+    "hotkeys": {
+      "type": "object",
+      "properties": {
+        "read": {
+          "const": "Ctrl+Alt+R"
+        },
+        "stop": {
+          "const": "Ctrl+Alt+S"
+        },
+        "pause": {
+          "const": "Ctrl+Alt+P"
+        }
+      },
+      "required": [
+        "read",
+        "stop",
+        "pause"
+      ],
+      "additionalProperties": false
+    },
+    "corpus": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "const": false
+        },
+        "title_candidates": {
+          "const": 5
+        },
+        "title_min": {
+          "const": 0.95
+        },
+        "body_min": {
+          "const": 0.97
+        },
+        "coverage_min": {
+          "const": 0.95
+        },
+        "margin_min": {
+          "const": 0.08
+        },
+        "title_weight": {
+          "const": 0.25
+        },
+        "body_weight": {
+          "const": 0.75
+        },
+        "minimum_body_tokens": {
+          "const": 20
+        },
+        "minimum_heldout_accepted_cases": {
+          "const": 3000
+        }
+      },
+      "required": [
+        "enabled",
+        "title_candidates",
+        "title_min",
+        "body_min",
+        "coverage_min",
+        "margin_min",
+        "title_weight",
+        "body_weight",
+        "minimum_body_tokens",
+        "minimum_heldout_accepted_cases"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "spec_version",
+    "scope",
+    "control",
+    "capture",
+    "ocr",
+    "bridge",
+    "worker",
+    "ipc",
+    "speech",
+    "audio",
+    "cache",
+    "privacy",
+    "hotkeys",
+    "corpus"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LVC initial defaults snapshot",
+  "description": "Validates the shipped initial configuration, not all runtime user preferences. Implement typed runtime-setting validation separately under R-CFG-001."
+}

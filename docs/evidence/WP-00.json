@@ -1,0 +1,22 @@
+{
+  "scope": "PLANNING_ADOPTION_PARTIAL_WP00",
+  "status": "PARTIAL_NOT_G0",
+  "code_base_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "completed": [
+    "Existing fork verified/reused",
+    "Complete v2 text/JSON package read and catalog/integrity checks performed",
+    "Source audit, reuse map, partial rights inventory and execution plan recorded"
+  ],
+  "not_run": [
+    "Guarded bootstrap implementation/tests",
+    "Baseline worktree/tag setup",
+    "Legacy pytest collection/execution/classification",
+    "Qualified rights audit",
+    "Windows/game/device/GPU qualification"
+  ],
+  "acceptance_cases": {
+    "AT-076": "NOT_RUN",
+    "AT-077": "PARTIAL_SOURCE_REVIEW_ONLY"
+  },
+  "next_task": "Complete bounded WP-00 obligations on a scoped branch after owner review; no application changes in this planning PR"
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "REVIEWED_SOURCE_PACKAGE_VALIDATOR_ONLY",
+  "status": "BLOCKED",
+  "command": "python3 source-package/LOTRO_Voice_Companion_AI_Implementation_Pack_v2/verification/validate_handoff.py",
+  "exit_code": 2,
+  "stdout": "BLOCKED: jsonschema is required for package schema checks. No dependencies were installed.",
+  "validator_sha256": "1bb0fb79f510b2fb383b4cdc7748440cd0202c9e704ce7aa2564424e2efe0afc",
+  "code_base_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "environment": {
+    "platform": "Darwin",
+    "python": "3.14.7",
+    "jsonschema_available": false
+  },
+  "source_author_report": {
+    "status": "PASSED",
+    "passed_checks": 625,
+    "failed_checks": 0,
+    "scope": "REQUIREMENTS_PACKAGE_ONLY_NOT_APPLICATION_TESTS",
+    "independently_reexecuted": false
+  },
+  "independent_source_integrity": {
+    "zip_sha256": "aa7aa49998515bb4291bb557d436f4782d85bdf7fed7fb62bcf9e864abc66127",
+    "manifest_digests_verified": 19,
+    "catalog_counts": {
+      "requirements": 78,
+      "acceptance_cases": 85,
+      "behavior_events": 31,
+      "work_packets": 18
+    },
+    "docx_requirement_ids": 78,
+    "docx_acceptance_ids": 85
+  },
+  "application_tests_executed": 0,
+  "note": "Source validator reviewed before execution: file reads, jsonschema checks, local report write only, no install/network/subprocess/eval. It exited before report writing. Original source-author report was preserved separately and not republished as our result."
+}

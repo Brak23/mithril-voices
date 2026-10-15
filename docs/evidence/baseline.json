@@ -1,0 +1,153 @@
+{
+  "scope": "STATIC_SOURCE_PLANNING_ONLY",
+  "status": "PARTIAL",
+  "code_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "observed_upstream_head": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "dirty_tree_at_audit": true,
+  "environment": {
+    "platform": "Darwin",
+    "machine": "arm64",
+    "python": "3.14.7"
+  },
+  "source_files": 255,
+  "legacy_test_inventory": [
+    {
+      "path": "tests/test_engine.py",
+      "static_test_definitions": 15,
+      "names": [
+        "test_engine_initialization",
+        "test_stop_method",
+        "test_resolve_voice_known_npc",
+        "test_resolve_voice_unknown_npc",
+        "test_resolve_voice_caching",
+        "test_build_quest_text",
+        "test_quest_text_with_offline_db_source",
+        "test_start_streaming_basic",
+        "test_voice_selection_attributes",
+        "test_quest_text_line_numbering",
+        "test_quest_text_empty_lines",
+        "test_mixed_source_types",
+        "test_build_quest_from_db",
+        "test_tag_quoted_lines_detects_leading_quotes",
+        "test_tag_quoted_lines_state_machine"
+      ],
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "path": "tests/test_manual_npc_tracking.py",
+      "static_test_definitions": 29,
+      "names": [
+        "test_initial_state",
+        "test_callback_updates_name",
+        "test_callback_updates_time",
+        "test_callback_overwrites_previous",
+        "test_multiple_callbacks_track_latest",
+        "test_recent_npc_name_returned",
+        "test_no_npc_name_returns_manual",
+        "test_stale_npc_name_returns_manual",
+        "test_exactly_at_boundary_is_valid",
+        "test_just_past_boundary_is_stale",
+        "test_one_second_before_boundary_is_valid",
+        "test_manual_sentinel_never_treated_as_valid",
+        "test_recent_npc_passed_to_engine",
+        "test_stale_npc_passes_manual_to_engine",
+        "test_no_npc_passes_manual_to_engine",
+        "test_unknown_npc_still_passed_to_engine",
+        "test_sequence_of_npcs",
+        "test_npc_name_max_age_is_positive",
+        "test_npc_name_max_age_default",
+        "test_trigger_mode_exists",
+        "test_trigger_key_exists",
+        "test_quest_window_mode_exists",
+        "test_quest_window_box_exists",
+        "test_full_flow_recent_npc",
+        "test_full_flow_no_npc_at_all",
+        "test_full_flow_stale_npc",
+        "test_full_flow_npc_replaced_by_newer",
+        "test_full_flow_npc_expired_then_renewed",
+        "test_no_img_does_not_call_engine"
+      ],
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "path": "tests/test_models.py",
+      "static_test_definitions": 17,
+      "names": [
+        "test_npc_creation",
+        "test_npc_unknown",
+        "test_npc_repr",
+        "test_quest_text_line_creation",
+        "test_quest_text_line_offline_db_source",
+        "test_quest_text_line_quoted",
+        "test_quest_text_creation",
+        "test_quest_text_get_line",
+        "test_quest_text_get_full_text",
+        "test_quest_text_get_quoted_lines",
+        "test_quest_text_get_narrator_lines",
+        "test_quest_text_repr",
+        "test_voice_selection_creation",
+        "test_voice_selection_default",
+        "test_voice_selection_repr",
+        "test_enum_values",
+        "test_enum_comparison"
+      ],
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "path": "tests/test_text_splitter.py",
+      "static_test_definitions": 11,
+      "names": [
+        "test_standalone_dialogue",
+        "test_standalone_narration",
+        "test_mixed_content",
+        "test_empty_string",
+        "test_whitespace_only",
+        "test_curly_quotes",
+        "test_single_quotes",
+        "test_multiple_dialogues",
+        "test_dialogue_only",
+        "test_narration_only",
+        "test_complex_mixed"
+      ],
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "path": "tests/test_utils.py",
+      "static_test_definitions": 10,
+      "names": [
+        "test_get_memory_file_path",
+        "test_get_file_paths",
+        "test_save_and_load_npc_memory",
+        "test_load_empty_memory",
+        "test_save_memory_creates_file",
+        "test_load_user_templates_retail",
+        "test_load_user_templates_echoes",
+        "test_load_user_config",
+        "test_file_paths_retail",
+        "test_file_paths_echoes"
+      ],
+      "execution_status": "NOT_RUN"
+    }
+  ],
+  "static_test_definitions": 82,
+  "pytest_collected": null,
+  "application_tests_executed": 0,
+  "runtime_failures_reproduced": 0,
+  "baseline_worktree_created": false,
+  "baseline_tag_created": false,
+  "guarded_bootstrap_implemented": false,
+  "g0_status": "NOT_PASSED",
+  "blocking_inputs": [
+    "Task is planning-only; baseline execution and bootstrap implementation remain future scoped WP-00 work",
+    "Windows/game/GPU/audio qualification environment absent"
+  ],
+  "source_checks": [
+    "git rev-parse HEAD",
+    "git status --short",
+    "git remote -v",
+    "git ls-tree -r --name-only HEAD",
+    "AST parse of tests/test_*.py without imports",
+    "Source file reads and rg searches"
+  ],
+  "note": "No upstream code or tests executed; no installation or game file changes. Static test inventory is not runtime collection or coverage."
+}

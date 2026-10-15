@@ -1,0 +1,433 @@
+{
+  "spec_version": "2.0",
+  "authority": "Normative event policy; more specific guards in specification apply. Unlisted impossible transitions produce typed internal diagnostic; harmless duplicate/stale events are no-ops.",
+  "rules": [
+    {
+      "event": "STOP",
+      "guard": "any state",
+      "observation_next": "current or WATCHING; AUTO_HELD_UNKNOWN when identity absent",
+      "playback_next": "STOPPED",
+      "ordered_effects": [
+        "Increment intent and generation.",
+        "Mark older requests canceled.",
+        "Queue priority Fence and clear pending/prepared work.",
+        "Record page tombstone or unknown-page hold.",
+        "Cancel workers asynchronously."
+      ],
+      "must_not": [
+        "Wait for inference.",
+        "Replay unchanged content after elapsed time."
+      ]
+    },
+    {
+      "event": "READ_CURRENT",
+      "guard": "verified binding exists; otherwise explicit CAPTURE_UNAVAILABLE",
+      "observation_next": "STABILIZING",
+      "playback_next": "PREPARING",
+      "ordered_effects": [
+        "Increment intent/generation.",
+        "Fence and cancel previous reading.",
+        "Request current fresh capture/validation.",
+        "Begin current visible scope after validation."
+      ],
+      "must_not": [
+        "Append a page backlog.",
+        "Reuse a stale crop after geometry change."
+      ]
+    },
+    {
+      "event": "PREVIEW",
+      "guard": "verified binding exists",
+      "observation_next": "STABILIZING then VALIDATING",
+      "playback_next": "unchanged except actual panel-transition safety",
+      "ordered_effects": [
+        "Cancel older preview request only.",
+        "Request and display crop/text/provenance."
+      ],
+      "must_not": [
+        "Start speech merely because Preview succeeded."
+      ]
+    },
+    {
+      "event": "REPLAY_LAST",
+      "guard": "saved accepted snapshot and valid realization",
+      "observation_next": "unchanged",
+      "playback_next": "PREPARING",
+      "ordered_effects": [
+        "Increment generation.",
+        "Fence all earlier audio.",
+        "Plan saved immutable snapshot with history origin."
+      ],
+      "must_not": [
+        "Capture game or infer fresh text."
+      ]
+    },
+    {
+      "event": "VOICE_PREVIEW",
+      "guard": "approved selected realization",
+      "observation_next": "unchanged",
+      "playback_next": "PREPARING",
+      "ordered_effects": [
+        "Increment generation.",
+        "Fence earlier audio.",
+        "Submit fixed original sample with voice_preview origin."
+      ],
+      "must_not": [
+        "Use separate audio device path."
+      ]
+    },
+    {
+      "event": "AUTO_ENABLE",
+      "guard": "explicit user action",
+      "observation_next": "STABILIZING if binding available",
+      "playback_next": "unchanged until eligible auto reading",
+      "ordered_effects": [
+        "Clear unknown-page hold caused by previous Auto rearm cycle.",
+        "Validate current panel if available."
+      ],
+      "must_not": [
+        "Narrate from a raw NPC hint."
+      ]
+    },
+    {
+      "event": "AUTO_DISABLE",
+      "guard": "any",
+      "observation_next": "WATCHING if bound",
+      "playback_next": "STOPPED only if current origin auto; otherwise unchanged",
+      "ordered_effects": [
+        "Disable automatic dispatch.",
+        "Cancel pending auto work.",
+        "Fence current auto reading only."
+      ],
+      "must_not": [
+        "Stop unrelated manual/history speech."
+      ]
+    },
+    {
+      "event": "CONFIRMED_NEW_PAGE",
+      "guard": "different qualified page/interaction evidence",
+      "observation_next": "STABILIZING or VALIDATING",
+      "playback_next": "STOPPED until new accepted reading",
+      "ordered_effects": [
+        "Advance intent, page revision and generation.",
+        "Fence old live-panel work before replacement OCR.",
+        "Clear old page tombstone only for genuinely new page.",
+        "Validate replacement."
+      ],
+      "must_not": [
+        "Keep obsolete A speaking because B is unreadable."
+      ]
+    },
+    {
+      "event": "VALIDATED_TEXT",
+      "guard": "current session/binding/intent/geometry/page and approved automatic or manual authorization",
+      "observation_next": "READY",
+      "playback_next": "PREPARING if authorized; otherwise unchanged",
+      "ordered_effects": [
+        "Preserve raw/accepted/speech/provenance separately.",
+        "Suppress already-read or stopped automatic occurrence.",
+        "Create immutable ordered units."
+      ],
+      "must_not": [
+        "Treat confidence as probability.",
+        "Clear unknown Stop hold on late result."
+      ]
+    },
+    {
+      "event": "VALIDATION_FAILED",
+      "guard": "current request",
+      "observation_next": "READY with uncertainty diagnostic",
+      "playback_next": "FAILED for pending reading; unrelated replay unchanged",
+      "ordered_effects": [
+        "Display Preview/reason.",
+        "Keep superseded work fenced."
+      ],
+      "must_not": [
+        "Invent a canonical correction."
+      ]
+    },
+    {
+      "event": "DUPLICATE_OBSERVATION",
+      "guard": "same accepted page occurrence",
+      "observation_next": "unchanged",
+      "playback_next": "unchanged",
+      "ordered_effects": [
+        "Coalesce/count duplicate."
+      ],
+      "must_not": [
+        "Start another automatic reading."
+      ]
+    },
+    {
+      "event": "SCROLL_FORWARD",
+      "guard": "same section and unique ordered >=12-token overlap with protected-token agreement",
+      "observation_next": "READY",
+      "playback_next": "unchanged; append eligible suffix",
+      "ordered_effects": [
+        "Retain positional accepted ledger.",
+        "Add unseen complete suffix only."
+      ],
+      "must_not": [
+        "Drop a legitimate repeated occurrence.",
+        "Automatically scroll the game."
+      ]
+    },
+    {
+      "event": "SCROLL_BACKWARD",
+      "guard": "confirmed previously accepted scope",
+      "observation_next": "READY",
+      "playback_next": "unchanged",
+      "ordered_effects": [
+        "Update visible scope for explicit Read."
+      ],
+      "must_not": [
+        "Automatically replay old span."
+      ]
+    },
+    {
+      "event": "SCROLL_AMBIGUOUS",
+      "guard": "overlap has multiple placements or uncertain section",
+      "observation_next": "READY with TEXT_UNCERTAIN",
+      "playback_next": "pause new append; current valid accepted unit may finish",
+      "ordered_effects": [
+        "Show recapture/Preview."
+      ],
+      "must_not": [
+        "Splice guessed suffix."
+      ]
+    },
+    {
+      "event": "PANEL_CLOSED",
+      "guard": "two qualifying absence checks at least 125ms apart",
+      "observation_next": "WATCHING",
+      "playback_next": "STOPPED for live-panel origin; history/voice_preview unchanged",
+      "ordered_effects": [
+        "End interaction.",
+        "Fence/cancel live-panel reading."
+      ],
+      "must_not": [
+        "Infer close from an invalid frame as a normal page transition."
+      ]
+    },
+    {
+      "event": "CAPTURE_LOST_OR_MINIMIZED",
+      "guard": "current live binding",
+      "observation_next": "SUSPENDED",
+      "playback_next": "STOPPED for live-panel origin",
+      "ordered_effects": [
+        "Invalidate intent/geometry.",
+        "Fence and cancel live-panel work."
+      ],
+      "must_not": [
+        "Capture another window."
+      ]
+    },
+    {
+      "event": "GAME_FOCUS_LOST",
+      "guard": "current live binding",
+      "observation_next": "SUSPENDED",
+      "playback_next": "STOPPED for live-panel origin; explicit history/voice_preview unchanged",
+      "ordered_effects": [
+        "Fence live-panel work.",
+        "Discard pending observations."
+      ],
+      "must_not": [
+        "Auto-resume reading on focus return."
+      ]
+    },
+    {
+      "event": "LOCK_OR_SLEEP",
+      "guard": "any active session",
+      "observation_next": "SUSPENDED",
+      "playback_next": "STOPPED for live-panel; PAUSED for history/voice_preview",
+      "ordered_effects": [
+        "Fence live-panel work.",
+        "Suspend explicit playback if endpoint remains valid."
+      ],
+      "must_not": [
+        "Automatically speak on wake."
+      ]
+    },
+    {
+      "event": "RESUME_OR_FOCUS_RETURN",
+      "guard": "window identity reverified",
+      "observation_next": "WATCHING",
+      "playback_next": "unchanged until explicit action",
+      "ordered_effects": [
+        "Invalidate old frame/geometry.",
+        "Acquire fresh frame before new live Read.",
+        "Preserve an explicit recovery hold for interrupted occurrence."
+      ],
+      "must_not": [
+        "Clear a Stop tombstone.",
+        "Replay interrupted page automatically."
+      ]
+    },
+    {
+      "event": "PAUSE",
+      "guard": "PLAYING or PREPARING",
+      "observation_next": "unchanged",
+      "playback_next": "PAUSED",
+      "ordered_effects": [
+        "Suspend sink and halt next dispatch.",
+        "Allow one active synthesis to finish into bounded next slot."
+      ],
+      "must_not": [
+        "Increment generation for ordinary valid pause."
+      ]
+    },
+    {
+      "event": "RESUME",
+      "guard": "PAUSED with unchanged context/endpoint/sink",
+      "observation_next": "unchanged",
+      "playback_next": "PLAYING or PREPARING as appropriate",
+      "ordered_effects": [
+        "Resume same sink position."
+      ],
+      "must_not": [
+        "Pretend exact resume survives a reset or device loss."
+      ]
+    },
+    {
+      "event": "RESTART_CURRENT_SENTENCE",
+      "guard": "explicit recovery choice; accepted snapshot still available",
+      "observation_next": "unchanged",
+      "playback_next": "PREPARING",
+      "ordered_effects": [
+        "Increment generation.",
+        "Fence old sink.",
+        "Start from last fully renderer-completed unit boundary.",
+        "Disclose possible partial-unit repetition."
+      ],
+      "must_not": [
+        "Guess unheard word position."
+      ]
+    },
+    {
+      "event": "WORKER_COMPLETED",
+      "guard": "current request; exact immutable context; schema and file valid",
+      "observation_next": "according to request kind",
+      "playback_next": "PREPARING/PLAYING as appropriate",
+      "ordered_effects": [
+        "Apply exactly one terminal outcome.",
+        "Verify artifact outside GUI/audio thread.",
+        "Admit current/next unit only with reserved capacity."
+      ],
+      "must_not": [
+        "Bypass fence on cache/prepared audio."
+      ]
+    },
+    {
+      "event": "STALE_RESULT",
+      "guard": "retired worker or superseded context/request",
+      "observation_next": "unchanged",
+      "playback_next": "unchanged",
+      "ordered_effects": [
+        "Discard result and schedule owned temp cleanup."
+      ],
+      "must_not": [
+        "Kill healthy replacement worker for old queued callback.",
+        "Reopen terminal request."
+      ]
+    },
+    {
+      "event": "WORKER_FAILED_OR_TIMEOUT",
+      "guard": "current active request",
+      "observation_next": "unchanged",
+      "playback_next": "FAILED if reading affected",
+      "ordered_effects": [
+        "Fence reading.",
+        "Record one failure.",
+        "Enforce process deadline and bounded restart.",
+        "Restore readiness without speech."
+      ],
+      "must_not": [
+        "Skip failed unit.",
+        "Silently switch model."
+      ]
+    },
+    {
+      "event": "CANCEL_ACK",
+      "guard": "request already canceling",
+      "observation_next": "unchanged",
+      "playback_next": "unchanged",
+      "ordered_effects": [
+        "Record receipt only.",
+        "Keep terminal deadline active."
+      ],
+      "must_not": [
+        "Treat acknowledgment as worker stopped or request successful."
+      ]
+    },
+    {
+      "event": "DEVICE_LOST",
+      "guard": "selected endpoint",
+      "observation_next": "unchanged",
+      "playback_next": "FAILED/interrupted",
+      "ordered_effects": [
+        "Fence and invalidate sink instance.",
+        "Cancel scheduled work.",
+        "Offer endpoint selection and explicit boundary restart."
+      ],
+      "must_not": [
+        "Route to speakers automatically."
+      ]
+    },
+    {
+      "event": "SINK_IDLE",
+      "guard": "same sink and unit",
+      "observation_next": "unchanged",
+      "playback_next": "COMPLETED only when last frames submitted and no pending reading units",
+      "ordered_effects": [
+        "If bytes remain classify underrun.",
+        "If current unit drained advance unit cursor.",
+        "If final unit drained mark reading complete."
+      ],
+      "must_not": [
+        "Complete on old reset idle event."
+      ]
+    },
+    {
+      "event": "QUEUE_OVERFLOW",
+      "guard": "cannot safely coalesce ordinary events",
+      "observation_next": "unchanged",
+      "playback_next": "FAILED",
+      "ordered_effects": [
+        "Priority fence.",
+        "Cancel work.",
+        "Report INTERNAL_OVERLOAD."
+      ],
+      "must_not": [
+        "Drop Stop or silently ignore terminal outcome."
+      ]
+    },
+    {
+      "event": "ARTIFACT_OR_SETTING_CHANGE",
+      "guard": "capture/voice/profile/lexicon/device affects pending work",
+      "observation_next": "invalidate affected observation",
+      "playback_next": "STOPPED/unchanged according to affected reading",
+      "ordered_effects": [
+        "Fence affected generation.",
+        "Validate new setting/artifact before next Read."
+      ],
+      "must_not": [
+        "Mutate a playing request in place."
+      ]
+    },
+    {
+      "event": "QUIT",
+      "guard": "any",
+      "observation_next": "UNBOUND",
+      "playback_next": "STOPPED",
+      "ordered_effects": [
+        "Stop dispatch.",
+        "Fence audio.",
+        "Bounded worker shutdown then tree termination.",
+        "Close storage safely."
+      ],
+      "must_not": [
+        "Block GUI indefinitely waiting for GPU."
+      ]
+    }
+  ]
+}
