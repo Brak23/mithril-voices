@@ -11,7 +11,7 @@ from uuid import UUID
 
 Origin: TypeAlias = Literal["auto", "manual"]
 Observation: TypeAlias = Literal["WATCHING", "STABILIZING", "READY"]
-Playback: TypeAlias = Literal["IDLE", "PREPARING", "STOPPED"]
+Playback: TypeAlias = Literal["IDLE", "PREPARING", "PLAYING", "COMPLETED", "STOPPED", "FAILED"]
 
 
 @dataclass(frozen=True)
@@ -62,6 +62,7 @@ class State:
     auto_read_pages: frozenset[PageIdentity] = frozenset()
     observation: Observation = "WATCHING"
     playback: Playback = "IDLE"
+    failure_code: str | None = None
     stale_results: int = 0
 
 
@@ -104,7 +105,26 @@ class WorkerCompleted:
     artifact: str
 
 
-Event: TypeAlias = AutoEnable | AutoDisable | Stop | ReadCurrent | ConfirmedPage | ValidatedText | WorkerCompleted
+@dataclass(frozen=True)
+class WorkerFailed:
+    token: RequestToken
+    code: str
+
+
+@dataclass(frozen=True)
+class RendererStarted:
+    token: RequestToken
+    artifact: str
+
+
+@dataclass(frozen=True)
+class RendererDrained:
+    token: RequestToken
+    artifact: str
+
+
+Event: TypeAlias = (AutoEnable | AutoDisable | Stop | ReadCurrent | ConfirmedPage |
+                    ValidatedText | WorkerCompleted | WorkerFailed | RendererStarted | RendererDrained)
 
 
 def _cancel_effects(state: State) -> tuple[Effect, ...]:
@@ -119,7 +139,7 @@ def _fence(state: State, *, page: PageIdentity | None = None) -> tuple[State, tu
     effects = (Effect("fence", next_generation), *_cancel_effects(state))
     return replace(state, generation=next_generation, intent=state.intent + 1,
                    pending=None, synthesis=None, prepared=None, prepared_token=None, page=page,
-                   playback="STOPPED"), effects
+                   playback="STOPPED", failure_code=None), effects
 
 
 def _capture(state: State, request_id: UUID, origin: Origin) -> tuple[State, tuple[Effect, ...]]:
@@ -214,5 +234,24 @@ def reduce(state: State, event: Event, now_ms: int) -> tuple[State, tuple[Effect
         return replace(state, synthesis=None, prepared=event.artifact, prepared_token=token), (
             Effect("prepare_audio", state.generation, token.request_id, token, event.artifact),
         )
+
+    if isinstance(event, WorkerFailed):
+        token = event.token
+        if state.synthesis != token or not event.code:
+            return replace(state, stale_results=state.stale_results + 1), ()
+        next_state, effects = _fence(state, page=state.page)
+        return replace(next_state, playback="FAILED", failure_code=event.code), effects
+
+    if isinstance(event, RendererStarted):
+        if (state.prepared_token != event.token or state.prepared != event.artifact
+                or state.playback != "PREPARING"):
+            return replace(state, stale_results=state.stale_results + 1), ()
+        return replace(state, playback="PLAYING"), ()
+
+    if isinstance(event, RendererDrained):
+        if (state.prepared_token != event.token or state.prepared != event.artifact
+                or state.playback != "PLAYING"):
+            return replace(state, stale_results=state.stale_results + 1), ()
+        return replace(state, playback="COMPLETED", prepared=None, prepared_token=None), ()
 
     raise TypeError(f"Unsupported v2 core event: {type(event).__name__}")

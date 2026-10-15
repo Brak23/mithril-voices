@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 import time
+from copy import deepcopy
 from pathlib import Path
 from uuid import UUID
 
@@ -20,6 +21,8 @@ sys.path.insert(0, str(ROOT))
 
 from lvc.core import PageIdentity, RequestToken
 from lvc.safeguards import WorkerLedger
+from lvc.synthetic_flow import AcceptedUnit, SyntheticFlow
+from tests.v2.support import RecordingSink
 from tools.validate_contracts import ContractError, validate_ipc
 from tools.windows_job_probe import (
     PROCESS_QUERY_LIMITED_INFORMATION,
@@ -54,6 +57,29 @@ def reject_constant(_: str) -> None:
     raise ValueError("nonfinite")
 
 
+class ProbeWorkerPort:
+    """Send the flow's actual synthetic command over this QProcess channel."""
+
+    def __init__(self, probe: Probe):
+        self.probe = probe
+
+    def submit(self, token: RequestToken, text: str) -> None:
+        flow = self.probe.flow
+        if flow is None:
+            raise RuntimeError("Flow must exist before submission")
+        message = deepcopy(EXAMPLES[2])
+        message["payload"]["request_id"] = str(token.request_id)
+        message["payload"]["context"] = flow._context(token)
+        message["payload"]["speech_text"] = text
+        self.probe.send_wire(message)
+
+    def cancel(self, token: RequestToken) -> None:
+        message = deepcopy(EXAMPLES[5])
+        message["payload"]["request_id"] = str(token.request_id)
+        message["payload"]["generation"] = token.generation
+        self.probe.send_wire(message)
+
+
 class Probe:
     def __init__(self, case: str):
         self.case = case
@@ -71,6 +97,8 @@ class Probe:
         self.started_at = time.monotonic()
         self.cancel_at: float | None = None
         self.ledger = WorkerLedger(SESSION)
+        self.flow: SyntheticFlow | None = None
+        self.fake_sink: RecordingSink | None = None
         self.result = {
             "case": case, "status": "BLOCKED", "outcome": None,
             "job_assigned": False, "descendant_spawned": False,
@@ -79,6 +107,7 @@ class Probe:
             "cancel_ack_after_ms": None,
             "running_after_ack": False, "termination_requested_after_ms": None,
             "stale_terminals": 0, "effective_terminal_count": 0,
+            "synthetic_flow_completed": False, "fake_sink_write_count": 0,
             "other_processes_targeted": False,
             "limits": "Synthetic gated worker only; production launch race and LOTRO unqualified",
         }
@@ -99,14 +128,16 @@ class Probe:
     def ms(self) -> int:
         return int((time.monotonic() - self.started_at) * 1000)
 
-    def send(self, example_index: int) -> None:
-        msg = EXAMPLES[example_index]
+    def send_wire(self, msg: dict) -> None:
         assert msg["seq"] == self.host_seq
         validate_ipc(msg)
         wire = json.dumps(msg, separators=(",", ":"), allow_nan=False).encode() + b"\n"
         if len(wire) > MAX_LINE or self.proc.write(wire) != len(wire):
             raise RuntimeError("outgoing IPC write rejected")
         self.host_seq += 1
+
+    def send(self, example_index: int) -> None:
+        self.send_wire(EXAMPLES[example_index])
 
     def started(self) -> None:
         try:
@@ -189,7 +220,21 @@ class Probe:
                 REQUEST, SESSION, 1, 1, "manual",
                 PageIdentity(UUID("00000000-0000-4000-8000-000000000011"), 1,
                              "quest_body", "synthetic")), WORKER, self.ms())
-            self.send(2)
+            if self.case == "success":
+                self.fake_sink = RecordingSink()
+                self.flow = SyntheticFlow(
+                    SESSION, WORKER, UUID("00000000-0000-4000-8000-000000000010"),
+                    1, ProbeWorkerPort(self), self.fake_sink,
+                    lambda result: AcceptedUnit("original-synthetic-no-file", result["unit_id"], 5),
+                    validate_ipc,
+                )
+                self.flow.read_current(REQUEST, self.ms())
+                self.flow.text_accepted(REQUEST, PageIdentity(
+                    UUID("00000000-0000-4000-8000-000000000011"), 1,
+                    "quest_body", "synthetic"), "Original synthetic speech.", self.ms())
+                self.flow.acknowledge_fence(1, 1)
+            else:
+                self.send(2)
         elif kind == "accepted" and self.seq == 3:
             if payload["request_id"] != str(REQUEST):
                 raise ValueError("request")
@@ -215,6 +260,19 @@ class Probe:
             if admitted is None:
                 self.result["stale_terminals"] += 1
             # A stale terminal cannot release the physical slot or stop escalation.
+        elif kind == "completed" and self.seq == 4 and self.case == "success":
+            if self.flow is None or self.fake_sink is None:
+                raise ValueError("synthetic flow missing")
+            if not self.flow.receive_terminal(msg, self.ms()):
+                raise ValueError("synthetic completion rejected")
+            if not self.flow.pump(5):
+                raise ValueError("synthetic sink write rejected")
+            self.flow.drain(5)
+            self.result["synthetic_flow_completed"] = self.flow.sink_idle()
+            self.result["fake_sink_write_count"] = sum(
+                call.kind == "write" for call in self.fake_sink.calls)
+            self.ledger, _ = self.ledger.terminal(REQUEST, WORKER, "completed", self.ms())
+            self.result["outcome"] = "SYNTHETIC_COMPLETED"
         else:
             raise ValueError("unexpected message")
 
@@ -244,6 +302,7 @@ class Probe:
                     self.fail("CANCELED")
 
     def finished(self, _code: int, _status: QProcess.ExitStatus) -> None:
+        self.read_stdout()
         self.read_stderr()
         self.ledger = self.ledger.tree_exit(WORKER, self.ms())
         if self.result["outcome"] is None:
@@ -280,7 +339,8 @@ class Probe:
         expected = {"startup_failure": "STARTUP_FAILED", "containment_failure": "CONTAINMENT_FAILED",
                     "startup_timeout": "STARTUP_TIMEOUT",
                     "malformed": "PROTOCOL_INVALID", "wrong_sequence": "PROTOCOL_INVALID",
-                    "cancel_hang": "CANCELED", "late_canceled": "CANCELED"}[self.case]
+                    "cancel_hang": "CANCELED", "late_canceled": "CANCELED",
+                    "success": "SYNTHETIC_COMPLETED"}[self.case]
         good = self.result["outcome"] == expected
         if self.case != "startup_failure":
             good = good and self.result["parent_reclaimed"]
@@ -296,6 +356,9 @@ class Probe:
             good = good and self.result["stale_terminals"] == 1
             good = good and self.result["cancel_ack_after_ms"] <= 250
             good = good and self.result["termination_requested_after_ms"] >= 1000
+        if self.case == "success":
+            good = good and self.result["synthetic_flow_completed"]
+            good = good and self.result["fake_sink_write_count"] == 1
         self.result["status"] = "PASSED" if good else "FAILED"
         return self.result, 0 if good else 1
 
@@ -304,7 +367,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--case", required=True, choices=[
         "startup_failure", "containment_failure", "startup_timeout", "malformed", "wrong_sequence",
-        "cancel_hang", "late_canceled"])
+        "cancel_hang", "late_canceled", "success"])
     args = parser.parse_args()
     result, status = Probe(args.case).run()
     print(json.dumps(result, sort_keys=True))

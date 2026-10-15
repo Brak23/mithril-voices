@@ -28,7 +28,7 @@ def wait_finite() -> None:
 
 def main() -> int:
     if len(sys.argv) != 2 or sys.argv[1] not in {
-        "startup_timeout", "malformed", "wrong_sequence", "cancel_hang", "late_canceled"
+        "startup_timeout", "malformed", "wrong_sequence", "cancel_hang", "late_canceled", "success"
     }:
         return 2
     mode = sys.argv[1]
@@ -59,6 +59,16 @@ def main() -> int:
         return 5
     request_id = request["payload"]["request_id"]
     emit("accepted", init, 2, {"request_id": request_id})
+    if mode == "success":
+        emit("completed", init, 3, {"request_id": request_id,
+                                    "context": request["payload"]["context"],
+                                    "result": {"kind": "audio",
+                                               "unit_id": request["payload"]["unit_id"],
+                                               "filename": f"{request_id}.wav",
+                                               "sha256": "e" * 64, "bytes": 54,
+                                               "sample_rate": 48000, "channels": 1,
+                                               "sample_format": "s16le", "frame_count": 5}})
+        return 0
     if mode == "malformed":
         sys.stdout.buffer.write(b'{"type":\n')
         sys.stdout.buffer.flush()

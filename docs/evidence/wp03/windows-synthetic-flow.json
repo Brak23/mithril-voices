@@ -1,0 +1,47 @@
+{
+  "scope": "WP03_SINGLE_UNIT_SYNTHETIC_TEXT_TO_PLAYBACK_CONTROLLER_FLOW",
+  "status": "PASSED",
+  "code_sha": "7eab3dc290b03be76252b2517db9168f8fd2c23e",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite synthetic-flow",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_synthetic_playback_flow.py",
+    "tests/v2/test_windows_qprocess_supervisor.py"
+  ],
+  "collected": 15,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 15,
+  "input_sha256": {
+    "tests/v2/test_synthetic_playback_flow.py": "1d705300a639c31ba423fbf6ec5b6432c08697bd4c3a5404ec09a0fec4f00da5",
+    "tests/v2/test_windows_qprocess_supervisor.py": "d6d1d7f909b96c25253bd8ce61ebb0b1974c6bc6d713825c857c88bef5dd4b3c",
+    "tools/qa.py": "ac60379c165a387fb2d4fd1f283bfe1c9ca8ba3a62c16b6a8881284dfe14e12f",
+    "lvc/core.py": "fcbeeb0e99d96ebef3a6006b34fcb7769e1ecf1555ced2d020e34e07fbe6ff13",
+    "lvc/safeguards.py": "4d86faadf66b33e7053944c5716bc9da3e89e5a7fb063f2804e3056b93d1ce59",
+    "lvc/synthetic_flow.py": "2aedec90d5e5532080ef457ca56ff933f119de700e7d35d0325b6059ad335689",
+    "tests/v2/support.py": "f94026ea20531d936bf380632c94a0f2896575c2f226cb8ea125f94e9c8c91c2",
+    "tools/validate_contracts.py": "10c1aa0ac5746fecf6e28fd74c4f18f52466cb4caffc5eb58fa1d2e3f04b25a4",
+    "tools/windows_job_probe.py": "146a43529cb1580c99d49b95b3bf4a40ce921dcfaa46bc4992b4602e4791c17c",
+    "tools/fixtures/qprocess_worker.py": "13c0156b2827c7296d0066539817a31cc7e6098cfa8ad42a0d3207a0d32ab932",
+    "tools/windows_qprocess_supervisor_probe.py": "cab8a794a0385b71936678e58561ff24f68e2f9ddbcbd3cab04509fa23e5bbc9",
+    "docs/design-v2/contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "docs/design-v2/contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 through WP-04 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-synthetic-flow.xml"
+  ]
+}

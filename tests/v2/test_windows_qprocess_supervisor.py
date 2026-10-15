@@ -19,6 +19,7 @@ PROBE = ROOT / "tools" / "windows_qprocess_supervisor_probe.py"
     ("wrong_sequence", "PROTOCOL_INVALID"),
     ("cancel_hang", "CANCELED"),
     ("late_canceled", "CANCELED"),
+    ("success", "SYNTHETIC_COMPLETED"),
 ])
 def test_controlled_windows_qprocess_lifecycle(case, outcome):
     assert sys.platform == "win32", "This lane requires the selected Windows runner"
@@ -45,3 +46,6 @@ def test_controlled_windows_qprocess_lifecycle(case, outcome):
         assert report["cancel_ack_after_ms"] <= 250
         assert report["effective_terminal_count"] == 1
         assert report["termination_requested_after_ms"] >= 1000
+    if case == "success":
+        assert report["synthetic_flow_completed"]
+        assert report["fake_sink_write_count"] == 1

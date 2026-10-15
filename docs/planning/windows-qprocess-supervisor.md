@@ -36,6 +36,10 @@ release, capture, model rights, LOTRO behavior, all IPC edge cases, 120-second
 readiness limit, and long-running soak remain unqualified. WP-03 and G1 are
 incomplete; LOTRO was not launched and no game files or settings were changed.
 
+The later [single-unit synthetic flow](synthetic-flow-integration.md) extends
+this fixture with an eighth `success` case. The seven-case report linked above
+remains the evidence for this earlier probe commit.
+
 Run the bounded Windows lane from the repository with the isolated Python
 environment: `.venv\Scripts\python.exe tools\qa.py --suite qprocess-supervisor`.
 The tests invoke the separately isolated `qt-dev-venv` PySide6 interpreter.
