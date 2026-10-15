@@ -49,3 +49,4 @@ def test_controlled_windows_qprocess_lifecycle(case, outcome):
     if case == "success":
         assert report["synthetic_flow_completed"]
         assert report["fake_sink_write_count"] == 1
+        assert report["verified_pcm_bytes"] == 10

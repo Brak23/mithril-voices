@@ -40,7 +40,9 @@ class FakeVerifier:
     calls: int = 0
     reject: bool = False
 
-    def __call__(self, result: dict) -> AcceptedUnit:
+    def __call__(self, token: RequestToken, result: dict, text: str,
+                 current) -> AcceptedUnit:
+        assert token.request_id and text and current()
         self.calls += 1
         if self.reject:
             raise ValueError("fake invalid audio")

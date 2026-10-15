@@ -1,10 +1,14 @@
 """Original synthetic wire worker; no capture, model, or audio output."""
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import struct
 import subprocess
 import sys
 import time
+import wave
 from pathlib import Path
 
 CHILD = Path(__file__).resolve().parent / "windows_job_child.py"
@@ -60,12 +64,24 @@ def main() -> int:
     request_id = request["payload"]["request_id"]
     emit("accepted", init, 2, {"request_id": request_id})
     if mode == "success":
+        # Original generated samples only; no model, corpus, or game content.
+        root = Path(payload["spool_root"])
+        part = root / f"{request_id}.part"
+        final = root / f"{request_id}.wav"
+        with wave.open(str(part), "wb") as output:
+            output.setnchannels(1)
+            output.setsampwidth(2)
+            output.setframerate(48_000)
+            output.writeframes(struct.pack("<5h", 1000, -1000, 500, -500, 250))
+        os.replace(part, final)
+        raw = final.read_bytes()
         emit("completed", init, 3, {"request_id": request_id,
                                     "context": request["payload"]["context"],
                                     "result": {"kind": "audio",
                                                "unit_id": request["payload"]["unit_id"],
                                                "filename": f"{request_id}.wav",
-                                               "sha256": "e" * 64, "bytes": 54,
+                                               "sha256": hashlib.sha256(raw).hexdigest(),
+                                               "bytes": len(raw),
                                                "sample_rate": 48000, "channels": 1,
                                                "sample_format": "s16le", "frame_count": 5}})
         return 0
