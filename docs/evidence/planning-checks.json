@@ -225,8 +225,8 @@
     "WP-15 overlay preserves normative references",
     "WP-16 overlay preserves normative references",
     "WP-17 overlay preserves normative references",
-    "Current authorization is scoped to the requested fork and planning PR",
-    "Diff contains only planning documentation and its checker"
+    "Current authorization is scoped to the requested fork and bounded baseline/contract work",
+    "Diff contains only authorized documentation, setup/contract tooling and focused tests"
   ],
   "requirements": 78,
   "acceptance_cases": 85,
@@ -234,6 +234,6 @@
   "packets": 18,
   "application_tests_executed": 0,
   "application_cases_status": "ALL_NOT_RUN",
-  "full_schema_validation": "BLOCKED_MISSING_JSONSCHEMA",
+  "full_schema_validation": "NOT_PERFORMED_BY_THIS_CATALOG_CHECKER_SEE_CURRENT_REPORTS",
   "note": "Read-only catalog/hash/reference checks; not the source author's 625 checks or any G0-G4 gate."
 }

@@ -24,10 +24,12 @@ execution, gaming-PC access, game/plugin changes or private capture upload.
 Mature official PyPI development dependencies may be installed only in the
 separate task virtual environment; no global Python or ML/model installation.
 
-Validation: `python3 docs/planning/check_plan.py` checks planning data only.
-The separately reviewed source validator needs `jsonschema`; do not install it
-implicitly. `tools/qa.py` does not exist yet and is a future WP-01 deliverable.
-Do not claim its suites or any application acceptance cases passed.
+Validation: use the task development venv's Python. `python tools/qa.py --suite
+contract` runs the first 29-case contract-data lane; it is not the full product
+contract suite. Other QA suites return BLOCKED until implemented. Ruff and Pyright
+must check new tooling. `python docs/planning/check_plan.py` checks catalogs only;
+`python docs/design-v2/verification/validate_handoff.py` checks the adopted handoff.
+Neither passes application lifecycle/device acceptance. No Windows claim from Mac.
 
 For future authorized packets, use one bounded branch, independent desired-behavior
 tests and explicit evidence. Missing Windows/game/GPU evidence is BLOCKED. Preserve
