@@ -1,7 +1,7 @@
-"""One Qt event-loop audio owner with an injected synthetic backend only.
+"""One Qt event-loop audio owner with a guarded injected backend.
 
-No QAudioSink or device is constructed here. The backend is deliberately
-restricted to synthetic implementations until endpoint qualification is done.
+No QAudioSink or device is constructed here; physical output requires an
+explicit service opt-in and exact selected endpoint identity.
 """
 # pyright: reportMissingImports=false
 from __future__ import annotations
@@ -19,6 +19,7 @@ from lvc.synthetic_flow import AcceptedUnit
 
 PUMP_INTERVAL_MS = 10
 PUMP_FRAMES = 480  # Ten milliseconds at 48 kHz.
+PHYSICAL_PREFILL_FRAMES = 2_400  # Bound first write to the selected sink's 50 ms buffer.
 MAX_PREPARED_FRAMES = 24_000  # 500 ms of accepted, not-yet-drained PCM.
 
 
@@ -31,6 +32,10 @@ class SyntheticBackend(Protocol):
         ...
 
     def reset(self) -> None: ...
+
+    def poll_drain(self) -> tuple[int, bool]:
+        """Return newly consumed frames and whether the renderer is idle."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -142,11 +147,27 @@ class _AudioOwner(QObject):
         chunk = submission.unit.pcm[offset:offset + frames * 2]
         accepted_bytes = backend.write(chunk)
         if type(accepted_bytes) is not int or not 0 <= accepted_bytes <= len(chunk) or accepted_bytes % 2:
-            raise ValueError("Synthetic backend returned invalid byte count")
+            raise ValueError("Audio backend returned invalid byte count")
         return accepted_bytes // 2
 
     @Slot()
     def pump(self) -> None:
+        backend = self.backend
+        if (backend is not None and self.current is not None and self.available
+                and self.floor.permits(self.current.token.generation)):
+            try:
+                drained_frames, renderer_idle = backend.poll_drain()
+                if drained_frames:
+                    if self.gate.unit is None or drained_frames > self.gate.unit.outstanding_frames:
+                        raise ValueError("Renderer drain exceeded accepted frames")
+                    self.drained(self.gate.sink_epoch, drained_frames)
+                if renderer_idle and self.gate.unit is not None:
+                    unit = self.gate.unit
+                    if unit.written_frames == unit.total_frames and unit.outstanding_frames == 0:
+                        self.idle(self.gate.sink_epoch)
+            except (OSError, RuntimeError, ValueError):
+                self.lose_device()
+                return
         submission, gate_unit = self.current, self.gate.unit
         if submission is None or gate_unit is None or not self.available:
             return
@@ -154,7 +175,8 @@ class _AudioOwner(QObject):
             return
         remaining = submission.unit.frames - gate_unit.written_frames
         capacity = MAX_PREPARED_FRAMES - gate_unit.outstanding_frames
-        frames = min(PUMP_FRAMES, remaining, capacity)
+        frames = min(PUMP_FRAMES if backend is None or backend.synthetic
+                     else PHYSICAL_PREFILL_FRAMES, remaining, capacity)
         if frames <= 0:
             return
         try:
@@ -232,7 +254,7 @@ class QtAudioService(QObject):
                  *, allow_physical: bool = False):
         super().__init__()
         if not selected_device_id:
-            raise ValueError("Explicit synthetic endpoint identity required")
+            raise ValueError("Explicit audio endpoint identity required")
         self.physical_enabled = allow_physical
         self.floor = FenceFloor()
         self.thread = QThread()

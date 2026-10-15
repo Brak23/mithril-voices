@@ -27,6 +27,7 @@ class FakeSink:
     def __init__(self) -> None:
         self.io = FakeIO()
         self.reset_count = 0
+        self.consumed_bytes = 0
 
     def start(self) -> FakeIO:
         return self.io
@@ -45,7 +46,11 @@ class FakeSink:
         return 4800
 
     def bytesFree(self) -> int:
-        return 4800
+        return 4800 - len(self.io.written) + self.consumed_bytes
+
+    def state(self) -> QtAudio.State:
+        return (QtAudio.State.IdleState if self.consumed_bytes == len(self.io.written)
+                else QtAudio.State.ActiveState)
 
     def reset(self) -> None:
         self.reset_count += 1
@@ -65,12 +70,21 @@ def main() -> int:
     backend.last_write_ns = None
     backend.last_reset_ns = None
     backend.accepted_bytes = 0
+    backend.reported_drained_bytes = 0
     backend.reset_count = 0
     backend.error_names = []
     accepted = backend.write(b"\x01\x00\x02\x00")
     sink = backend.sink
+    before = backend.poll_drain()
+    sink.consumed_bytes = 4
+    after = backend.poll_drain()
+    repeated = backend.poll_drain()
+    backend.reset()
+    post_reset = backend.poll_drain()
     ok = (accepted == 4 and sink.io.written == b"\x01\x00\x02\x00"
           and backend.accepted_bytes == 4 and backend.actual_buffer_bytes == 4800
+          and before == (0, False) and after == (2, True)
+          and repeated == (0, True) and post_reset == (0, False)
           and not backend.error_names)
     print(json.dumps({"status": "PASSED" if ok else "FAILED",
                       "accepted_bytes": accepted, "physical_device_opened": False}))

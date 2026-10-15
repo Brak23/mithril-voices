@@ -70,6 +70,9 @@ class FakeBackend:
             raise RuntimeError("Backend reset outside its owner thread")
         self.reset_count += 1
 
+    def poll_drain(self) -> tuple[int, bool]:
+        return 0, False
+
 
 def validated_submission(spool_root: Path, pcm: bytes | None = None) -> AudioSubmission:
     if pcm is None:
