@@ -12,6 +12,9 @@ added guarded bootstrap and the first contract-data slice. On Windows, see
 The [WP-01 foundation report](docs/evidence/wp01/windows-foundation-summary.json)
 records the next bounded development slice. These results do not complete
 WP-01/G1 or game, model, audio and capture gates.
+The [WP-02 Stop core note](docs/planning/windows-core-stop.md) and
+[synthetic Windows report](docs/evidence/wp02/windows-core-stop.json) cover a
+pure reducer slice only; WP-02 remains incomplete.
 
 Read these in order:
 

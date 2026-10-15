@@ -28,7 +28,8 @@ global Python or unapproved model/API subscription installation.
 
 Validation: use the task development venv's Python. `python tools/qa.py --suite
 contract` runs the 43-case bounded data lane; `--suite foundation` runs five
-test-control and fixture checks. Neither is product acceptance. Other QA suites
+test-control and fixture checks; `--suite core-stop` runs seven pure reducer
+tests. None is product acceptance. Other QA suites
 return BLOCKED until implemented. Ruff and Pyright
 must check new tooling. `python docs/planning/check_plan.py` checks catalogs only;
 `python docs/design-v2/verification/validate_handoff.py` checks the adopted handoff.

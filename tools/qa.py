@@ -1,4 +1,4 @@
-"""Bounded WP-01 contract and test-foundation lanes; product suites stay BLOCKED."""
+"""Bounded contract, fixture and reducer lanes; full product suites stay BLOCKED."""
 from __future__ import annotations
 
 import argparse
@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,7 @@ INVENTORIES = {
     "contract": ["tests/v2/test_contract_validation.py", "tests/v2/test_qa_contract_lane.py",
                  "tests/v2/test_runtime_preferences.py"],
     "foundation": ["tests/v2/test_support.py", "tests/v2/test_fixture_manifest.py"],
+    "core-stop": ["tests/v2/test_core_stop.py"],
 }
 INPUTS = {
     "contract": ["tools/validate_contracts.py", "docs/design-v2/contracts/defaults.json",
@@ -25,6 +27,8 @@ INPUTS = {
                  "docs/design-v2/contracts/ipc.examples.json", "contracts/runtime-preferences.schema.json"],
     "foundation": ["tests/v2/support.py", "tests/v2/fixtures/desired-outcomes.json",
                    "tests/v2/fixtures/manifest.json"],
+    "core-stop": ["lvc/core.py", "lvc/__init__.py", "pyproject.toml", "tests/v2/support.py",
+                  "docs/design-v2/contracts/behavior-matrix.json"],
 }
 
 
@@ -55,8 +59,10 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())
         inputs = [*inventory, "tools/qa.py", *INPUTS[suite]]
-        report = {"scope": ("WP01_CONTRACT_DATA_SLICE_NOT_COMPLETE_APPLICATION_CONTRACT_SUITE"
-                            if suite == "contract" else "WP01_SYNTHETIC_TEST_FOUNDATION_NOT_APPLICATION_ACCEPTANCE"),
+        scope = {"contract": "WP01_CONTRACT_DATA_SLICE_NOT_COMPLETE_APPLICATION_CONTRACT_SUITE",
+                 "foundation": "WP01_SYNTHETIC_TEST_FOUNDATION_NOT_APPLICATION_ACCEPTANCE",
+                 "core-stop": "WP02_PURE_STOP_REDUCER_SLICE_NOT_RENDERER_ACCEPTANCE"}[suite]
+        report = {"scope": scope,
                   "status": "PASSED" if ok else "FAILED", "code_sha": sha, "dirty_tree": dirty,
                   "command": f"python tools/qa.py --suite {suite}", "pytest_exit_code": result.returncode,
                   "exit_code": 0 if ok else 1, "environment": {"platform": platform.system(), "python": platform.python_version()},
@@ -64,12 +70,13 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
                   "inventory": inventory, **counts, "passed": counts["collected"] - counts["failed"] - counts["skipped"],
                   "input_sha256": {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in inputs},
                   "application_runtime_acceptance_status": "NOT_RUN", "fixture_provenance": "ORIGINAL_SYNTHETIC",
-                  "limitations": ["Syntax validation is not lifecycle/authorization validation", "This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01 and G1 remain incomplete"]}
+                  "limitations": ["This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01, WP-02 and G1 remain incomplete"]}
         if report_path:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             if junit.exists():
                 raw = report_path.with_suffix(".xml")
-                raw.write_text(junit.read_text().replace(str(ROOT), "REPO_ROOT"), encoding="utf-8")
+                sanitized = junit.read_text().replace(str(ROOT), "REPO_ROOT")
+                raw.write_text(re.sub(r'hostname="[^"]*"', 'hostname="REDACTED"', sanitized), encoding="utf-8")
                 report["raw_reports"] = [raw.name]
             report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         if not ok:
@@ -79,12 +86,12 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "replay", "windows", "gpu", "package", "release"])
+    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "replay", "windows", "gpu", "package", "release"])
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     if args.suite not in INVENTORIES:
         print(json.dumps({"status": "BLOCKED", "suite": args.suite,
-                          "reason": "Not implemented or qualified in this first bounded WP-01 slice"}))
+                          "reason": "Not implemented or qualified in the current bounded slices"}))
         return 2
     try:
         report, code = run_suite(args.suite, args.report)

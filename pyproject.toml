@@ -14,7 +14,7 @@ name = "khazad-voice-tts"
 version = "2.2.0"
 description = "Immersive AI Narrator for The Lord of the Rings Online"
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [{ name = "Thelukepet" }]
 keywords = ["tts", "lotro", "ocr", "ai", "narration"]
@@ -88,7 +88,7 @@ khazad = "main:main"
 # automatic discovery to keep things simple.
 # ---------------------------------------------------------------------------
 [tool.setuptools.packages.find]
-include = ["src*"]
+include = ["src*", "lvc*"]
 
 # Non-Python data folders that must be included in the install.
 [tool.setuptools.package-data]
