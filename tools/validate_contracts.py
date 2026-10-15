@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
 DESIGN = Path(__file__).resolve().parents[1] / "docs/design-v2"
+ROOT = DESIGN.parents[1]
 MAX_JSON_BYTES = 1_048_576
 
 
@@ -50,11 +51,16 @@ def load_json(path: Path, *, max_bytes: int = MAX_JSON_BYTES) -> dict[str, Any]:
         raise ContractError("Unreadable or malformed JSON") from exc
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=3)
 def _validator(name: str) -> Draft202012Validator:
-    if name not in {"defaults.schema.json", "ipc.schema.json"}:
+    locations = {
+        "defaults.schema.json": DESIGN / "contracts/defaults.schema.json",
+        "ipc.schema.json": DESIGN / "contracts/ipc.schema.json",
+        "runtime-preferences.schema.json": ROOT / "contracts/runtime-preferences.schema.json",
+    }
+    if name not in locations:
         raise ContractError("Schema not allowlisted")
-    schema = load_json(DESIGN / "contracts" / name)
+    schema = load_json(locations[name])
     try:
         Draft202012Validator.check_schema(schema)
     except SchemaError as exc:
@@ -79,6 +85,11 @@ def validate_defaults(value: dict[str, Any]) -> None:
 def validate_ipc(value: dict[str, Any]) -> None:
     """Validate wire syntax only, without execution or lifecycle admission."""
     _validate(value, "ipc.schema.json")
+
+
+def validate_runtime_preferences(value: dict[str, Any]) -> None:
+    """Validate an editable preference delta, not a complete runtime config."""
+    _validate(value, "runtime-preferences.schema.json")
 
 
 def validate_snapshot() -> dict[str, int]:

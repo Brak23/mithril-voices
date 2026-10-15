@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "provenance": "ORIGINAL_SYNTHETIC",
+  "split": "development",
+  "cases": [
+    {
+      "id": "stop-late-a",
+      "family": "stop-race-a-b",
+      "acceptance_case": "AT-001",
+      "stimuli": [
+        "READ_CURRENT A",
+        "VALIDATED_TEXT A",
+        "hold WORKER_COMPLETED A",
+        "STOP and acknowledge audio fence",
+        "READ_CURRENT B",
+        "VALIDATED_TEXT B",
+        "release WORKER_COMPLETED A",
+        "release WORKER_COMPLETED B"
+      ],
+      "expected": {
+        "post_fence_audio_from_A": 0,
+        "admitted_request_ids": ["B"],
+        "terminal_A": "canceled"
+      }
+    },
+    {
+      "id": "stop-before-ocr",
+      "family": "unknown-page-stop",
+      "acceptance_case": "AT-002",
+      "stimuli": [
+        "AUTO_ENABLE",
+        "hold first VALIDATED_TEXT A",
+        "STOP with no accepted page identity",
+        "release late VALIDATED_TEXT A",
+        "advance manual clock 60000 ms"
+      ],
+      "expected": {
+        "automatic_synthesis_count": 0,
+        "auto_held_unknown": true
+      }
+    },
+    {
+      "id": "same-npc-new-page",
+      "family": "same-npc-pages",
+      "acceptance_case": "AT-010",
+      "stimuli": [
+        "CONFIRMED_NEW_PAGE A with NPC Rowan",
+        "VALIDATED_TEXT A while playback starts",
+        "CONFIRMED_NEW_PAGE B with NPC Rowan",
+        "VALIDATED_TEXT B"
+      ],
+      "expected": {
+        "new_page_B_observed_while_A_playing": true,
+        "old_page_A_fenced_before_B": true,
+        "page_backlog": 0
+      }
+    }
+  ]
+}

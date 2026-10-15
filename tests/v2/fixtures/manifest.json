@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "synthetic-core-outcomes-v1",
+      "path": "desired-outcomes.json",
+      "sha256": "70dcac28352c9ac61ac035246af28edb5fa72fe3aada345b855fc5faf31d0944",
+      "provenance": "ORIGINAL_SYNTHETIC",
+      "permitted_use": "public development tests",
+      "environment": "pure deterministic; no LOTRO/device/model",
+      "split": "development",
+      "labels_source": "hand-written v2 AT-001/002/010 expected outcomes before coordinator implementation",
+      "candidate_output_used_for_labels": false
+    }
+  ]
+}

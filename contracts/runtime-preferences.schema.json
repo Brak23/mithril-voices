@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mithril Voices editable preferences, initial bounded subset",
+  "description": "A closed delta applied only after host authorization; this does not change fixed defaults or admit audio.",
+  "type": "object",
+  "required": ["schema_version"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "audio": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "follow_system_default": {"type": "boolean"}
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "history_enabled": {"type": "boolean"}
+      }
+    }
+  }
+}
