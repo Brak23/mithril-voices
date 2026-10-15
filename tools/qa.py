@@ -29,6 +29,7 @@ INVENTORIES = {
                          "tests/v2/test_windows_qprocess_supervisor.py"],
     "qt-audio-owner": ["tests/v2/test_qt_audio_owner.py",
                        "tests/v2/test_safeguards.py"],
+    "vision-prep": ["tests/v2/test_selected_window_prep.py"],
 }
 INPUTS = {
     "contract": ["tools/validate_contracts.py", "docs/design-v2/contracts/defaults.json",
@@ -65,6 +66,8 @@ INPUTS = {
                        "tools/qt_audio_owner_probe.py", "tools/validate_contracts.py",
                        "docs/design-v2/contracts/ipc.schema.json",
                        "docs/design-v2/contracts/ipc.examples.json"],
+    "vision-prep": ["lvc/vision/__init__.py", "lvc/vision/binding.py",
+                    "lvc/vision/text_gate.py", "lvc/vision/pipeline.py"],
 }
 
 
@@ -102,7 +105,8 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
                  "qprocess-supervisor": "WP03_SYNTHETIC_WINDOWS_QPROCESS_SUPERVISION_SLICE",
                  "synthetic-flow": "WP03_SINGLE_UNIT_SYNTHETIC_TEXT_TO_PLAYBACK_CONTROLLER_FLOW",
                  "spool-validation": "WP03_WINDOWS_GENERATED_WAV_SPOOL_AND_SYNTHETIC_FLOW_SLICE",
-                 "qt-audio-owner": "WP04_SYNTHETIC_QT_THREAD_AUDIO_OWNER_NO_PHYSICAL_PLAYBACK"}[suite]
+                 "qt-audio-owner": "WP04_SYNTHETIC_QT_THREAD_AUDIO_OWNER_NO_PHYSICAL_PLAYBACK",
+                 "vision-prep": "WP05_SYNTHETIC_WINDOW_IDENTITY_AND_OCR_ADMISSION_ONLY"}[suite]
         report = {"scope": scope,
                   "status": "PASSED" if ok else "FAILED", "code_sha": sha, "dirty_tree": dirty,
                   "command": f"python tools/qa.py --suite {suite}", "pytest_exit_code": result.returncode,
@@ -111,7 +115,9 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
                   "inventory": inventory, **counts, "passed": counts["collected"] - counts["failed"] - counts["skipped"],
                   "input_sha256": {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in inputs},
                   "application_runtime_acceptance_status": "NOT_RUN", "fixture_provenance": "ORIGINAL_SYNTHETIC",
-                  "limitations": ["This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01 through WP-04 and G1 remain incomplete"]}
+                  "limitations": ["This lane does not qualify the Windows game, audio, capture or model runtime",
+                                  "WP-01 through WP-05 and G1 remain incomplete" if suite == "vision-prep"
+                                  else "WP-01 through WP-04 and G1 remain incomplete"]}
         if report_path:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             if junit.exists():
@@ -127,7 +133,7 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "safeguards", "qprocess-supervisor", "synthetic-flow", "spool-validation", "qt-audio-owner", "replay", "windows", "gpu", "package", "release"])
+    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "safeguards", "qprocess-supervisor", "synthetic-flow", "spool-validation", "qt-audio-owner", "vision-prep", "replay", "windows", "gpu", "package", "release"])
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     if args.suite not in INVENTORIES:
