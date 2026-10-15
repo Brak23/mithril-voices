@@ -46,6 +46,7 @@ class QtSinkBackend:
         self.last_write_ns: int | None = None
         self.last_reset_ns: int | None = None
         self.accepted_bytes = 0
+        self.reported_drained_bytes = 0
         self.reset_count = 0
         self.error_names: list[str] = []
 
@@ -72,7 +73,7 @@ class QtSinkBackend:
                     or self.actual_channel_count != 1
                     or actual_format.sampleFormat() != QAudioFormat.SampleFormat.Int16):
                 raise RuntimeError("QAudioSink format changed after validation")
-        if self.sink.error() != QtAudio.Error.NoError:
+        if self.sink.error() not in (QtAudio.Error.NoError, QtAudio.Error.UnderrunError):
             self.error_names.append(str(self.sink.error()))
             raise RuntimeError("Selected QAudioSink reported an error")
         free_bytes = self.sink.bytesFree() & ~1
@@ -92,6 +93,27 @@ class QtSinkBackend:
         self.last_reset_ns = perf_counter_ns()
         self.reset_count += 1
         self.io = None
+        self.reported_drained_bytes = self.accepted_bytes
+
+    def poll_drain(self) -> tuple[int, bool]:
+        self._on_owner_thread()
+        if self.io is None:
+            return 0, False
+        error = self.sink.error()
+        if error not in (QtAudio.Error.NoError, QtAudio.Error.UnderrunError):
+            self.error_names.append(str(error))
+            raise RuntimeError("Selected QAudioSink reported an error while draining")
+        capacity = self.sink.bufferSize()
+        free = self.sink.bytesFree()
+        if capacity <= 0 or not 0 <= free <= capacity:
+            raise RuntimeError("Selected QAudioSink reported invalid buffer accounting")
+        queued = capacity - free
+        consumed = max(self.reported_drained_bytes, self.accepted_bytes - queued)
+        delta = consumed - self.reported_drained_bytes
+        if delta % FRAME_BYTES:
+            raise RuntimeError("Selected QAudioSink reported a partial frame")
+        self.reported_drained_bytes = consumed
+        return delta // FRAME_BYTES, self.sink.state() == QtAudio.State.IdleState
 
     def report(self) -> dict[str, object]:
         """Read after the owner thread has stopped."""
