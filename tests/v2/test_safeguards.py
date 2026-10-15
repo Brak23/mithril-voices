@@ -66,11 +66,16 @@ def test_late_completed_and_duplicate_terminals_never_resurrect_canceled_a():
     ledger, _ = ledger.cancel(token.request_id, 0)
     ledger, effective = ledger.terminal(token.request_id, WORKER_A, "completed", 100)
     assert effective is None and ledger.outcome(token.request_id) == "canceled"
-    ledger, effective = ledger.terminal(token.request_id, WORKER_A, "failed", 101)
+    assert not ledger.record(token.request_id).reclaimed
+    with pytest.raises(ValueError, match="busy"):
+        ledger.submit(replace(token, request_id=UUID(int=99)), WORKER_A, 100)
+    ledger, effects = ledger.tick(1000)
+    assert [effect.kind for effect in effects] == ["cancel_ack_timeout", "terminate_tree"]
+    ledger, effective = ledger.terminal(token.request_id, WORKER_A, "failed", 1001)
     assert effective is None and ledger.record(token.request_id).worker_terminal == "completed"
     _, fresh_token = prepared(State(session_id=SESSION, bound=True), 4)
-    ledger = ledger.submit(fresh_token, WORKER_B, 101)
-    ledger, effective = ledger.terminal(fresh_token.request_id, WORKER_B, "completed", 102)
+    ledger = ledger.submit(fresh_token, WORKER_B, 1001)
+    ledger, effective = ledger.terminal(fresh_token.request_id, WORKER_B, "completed", 1002)
     assert effective == "completed" and ledger.outcome(fresh_token.request_id) == "completed"
 
 
@@ -244,6 +249,8 @@ def test_worker_ledger_bounds_active_records_and_ignores_evicted_late_terminal()
     old_request = UUID(int=1000)
     ledger, effective = ledger.terminal(old_request, old_request, "completed", 1)
     assert effective == "completed"
+    assert not ledger.record(old_request).reclaimed
+    ledger = ledger.tree_exit(old_request, 1)
     ledger = ledger.submit(replace(token, request_id=UUID(int=2000)), UUID(int=2000), 1)
     assert len(ledger.records) <= MAX_LEDGER_RECORDS
     ledger, effective = ledger.terminal(old_request, old_request, "completed", 2)

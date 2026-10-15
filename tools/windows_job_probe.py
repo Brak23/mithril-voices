@@ -74,6 +74,8 @@ def kernel32() -> Any:
     api.TerminateJobObject.restype = wintypes.BOOL
     api.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
     api.OpenProcess.restype = wintypes.HANDLE
+    api.GetProcessId.argtypes = [wintypes.HANDLE]
+    api.GetProcessId.restype = wintypes.DWORD
     api.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
     api.WaitForSingleObject.restype = wintypes.DWORD
     api.CloseHandle.argtypes = [wintypes.HANDLE]
@@ -98,17 +100,25 @@ class OwnedJob:
             self.close()
             raise error
 
+    def assign_owned_handle(self, pid: int, handle: int) -> None:
+        """Caller must supply a live handle for its own newly spawned child."""
+        if self.assigned_pid is not None or pid <= 0 or pid == os.getpid() or not handle:
+            raise ValueError("Only one owned child may be assigned")
+        if self.api.GetProcessId(handle) != pid:
+            raise ValueError("Process handle does not match the owned child PID")
+        if not self.api.AssignProcessToJobObject(self.handle, handle):
+            raise JobApiError("AssignProcessToJobObject")
+        self.assigned_pid = pid
+        if not self.contains(handle):
+            raise RuntimeError("Assigned child is not observable in its new job")
+
     def assign_owned_child(self, child: subprocess.Popen[str]) -> None:
-        if self.assigned_pid is not None or child.pid == os.getpid() or child.poll() is not None:
-            raise ValueError("Only one live child created by this probe may be assigned")
+        if child.poll() is not None:
+            raise ValueError("Owned child already exited")
         handle = getattr(child, "_handle", None)
         if handle is None:
             raise RuntimeError("Popen child process handle unavailable")
-        if not self.api.AssignProcessToJobObject(self.handle, handle):
-            raise JobApiError("AssignProcessToJobObject")
-        self.assigned_pid = child.pid
-        if not self.contains(handle):
-            raise RuntimeError("Assigned child is not observable in its new job")
+        self.assign_owned_handle(child.pid, handle)
 
     def contains(self, process_handle: int) -> bool:
         result = wintypes.BOOL()

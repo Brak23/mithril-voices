@@ -1,0 +1,42 @@
+{
+  "scope": "WP03_SYNTHETIC_WINDOWS_QPROCESS_SUPERVISION_SLICE",
+  "status": "PASSED",
+  "code_sha": "34495f9c79fa76c7e03ab1ea1cde7a12300940cf",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite qprocess-supervisor",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_windows_qprocess_supervisor.py"
+  ],
+  "collected": 7,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 7,
+  "input_sha256": {
+    "tests/v2/test_windows_qprocess_supervisor.py": "a810cc5766d43aabb85863e480597ffd9d248e0711539616047530166f7323da",
+    "tools/qa.py": "0894c2deec73803890df3a809ec2ec0626b1e20bd0f91e3d26de5a91c9662437",
+    "lvc/safeguards.py": "4d86faadf66b33e7053944c5716bc9da3e89e5a7fb063f2804e3056b93d1ce59",
+    "tools/windows_job_probe.py": "146a43529cb1580c99d49b95b3bf4a40ce921dcfaa46bc4992b4602e4791c17c",
+    "tools/windows_qprocess_supervisor_probe.py": "a00f470d9c9736825971f72c1f01ade1af015f400a55ef329a5ecc61328a3c5c",
+    "tools/fixtures/qprocess_worker.py": "fbfae7317216f083a0ba73f06cdd6b256d5443bcc9e0f0af0fc2f3ab428638a9",
+    "tools/fixtures/windows_job_child.py": "14b8ff12a6a1026fa507166ef81c60cd172868d59db5f8440862837d3fe6c4de",
+    "docs/design-v2/contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "docs/design-v2/contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 through WP-04 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-qprocess-supervisor.xml"
+  ]
+}
