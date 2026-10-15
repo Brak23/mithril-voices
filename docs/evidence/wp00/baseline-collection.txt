@@ -1,0 +1,92 @@
+tests/test_manual_npc_tracking.py::TestNPCTrackingCallback::test_initial_state
+tests/test_manual_npc_tracking.py::TestNPCTrackingCallback::test_callback_updates_name
+tests/test_manual_npc_tracking.py::TestNPCTrackingCallback::test_callback_updates_time
+tests/test_manual_npc_tracking.py::TestNPCTrackingCallback::test_callback_overwrites_previous
+tests/test_manual_npc_tracking.py::TestNPCTrackingCallback::test_multiple_callbacks_track_latest
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_recent_npc_name_returned
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_no_npc_name_returns_manual
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_stale_npc_name_returns_manual
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_exactly_at_boundary_is_valid
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_just_past_boundary_is_stale
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_one_second_before_boundary_is_valid
+tests/test_manual_npc_tracking.py::TestStalenessCheck::test_manual_sentinel_never_treated_as_valid
+tests/test_manual_npc_tracking.py::TestManualModeEngineIntegration::test_recent_npc_passed_to_engine
+tests/test_manual_npc_tracking.py::TestManualModeEngineIntegration::test_stale_npc_passes_manual_to_engine
+tests/test_manual_npc_tracking.py::TestManualModeEngineIntegration::test_no_npc_passes_manual_to_engine
+tests/test_manual_npc_tracking.py::TestManualModeEngineIntegration::test_unknown_npc_still_passed_to_engine
+tests/test_manual_npc_tracking.py::TestManualModeEngineIntegration::test_sequence_of_npcs
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_npc_name_max_age_is_positive
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_npc_name_max_age_default
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_trigger_mode_exists
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_trigger_key_exists
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_quest_window_mode_exists
+tests/test_manual_npc_tracking.py::TestConfigConstants::test_quest_window_box_exists
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_full_flow_recent_npc
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_full_flow_no_npc_at_all
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_full_flow_stale_npc
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_full_flow_npc_replaced_by_newer
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_full_flow_npc_expired_then_renewed
+tests/test_manual_npc_tracking.py::TestManualModeCaptureLoopSimulation::test_no_img_does_not_call_engine
+tests/test_models.py::TestNPC::test_npc_creation
+tests/test_models.py::TestNPC::test_npc_unknown
+tests/test_models.py::TestNPC::test_npc_repr
+tests/test_models.py::TestQuestTextLine::test_quest_text_line_creation
+tests/test_models.py::TestQuestTextLine::test_quest_text_line_offline_db_source
+tests/test_models.py::TestQuestTextLine::test_quest_text_line_quoted
+tests/test_models.py::TestQuestText::test_quest_text_creation
+tests/test_models.py::TestQuestText::test_quest_text_get_line
+tests/test_models.py::TestQuestText::test_quest_text_get_full_text
+tests/test_models.py::TestQuestText::test_quest_text_get_quoted_lines
+tests/test_models.py::TestQuestText::test_quest_text_get_narrator_lines
+tests/test_models.py::TestQuestText::test_quest_text_repr
+tests/test_models.py::TestVoiceSelection::test_voice_selection_creation
+tests/test_models.py::TestVoiceSelection::test_voice_selection_default
+tests/test_models.py::TestVoiceSelection::test_voice_selection_repr
+tests/test_models.py::TestTextSourceType::test_enum_values
+tests/test_models.py::TestTextSourceType::test_enum_comparison
+
+==================================== ERRORS ====================================
+____________________ ERROR collecting tests/test_engine.py _____________________
+ImportError while importing test module '<TASK>/baseline-probe/tests/test_engine.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_engine.py:13: in <module>
+    from src.engine import NarratorEngine
+src/engine.py:10: in <module>
+    import nltk
+E   ModuleNotFoundError: No module named 'nltk'
+_________________ ERROR collecting tests/test_text_splitter.py _________________
+ImportError while importing test module '<TASK>/baseline-probe/tests/test_text_splitter.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_text_splitter.py:5: in <module>
+    from src.tts.text_splitter import split_text, TextSegment
+src/tts/__init__.py:7: in <module>
+    from ..utils import setup_logger
+src/utils.py:13: in <module>
+    import cv2
+E   ModuleNotFoundError: No module named 'cv2'
+_____________________ ERROR collecting tests/test_utils.py _____________________
+ImportError while importing test module '<TASK>/baseline-probe/tests/test_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_utils.py:16: in <module>
+    from src.utils import (
+src/utils.py:13: in <module>
+    import cv2
+E   ModuleNotFoundError: No module named 'cv2'
+=========================== short test summary info ============================
+ERROR tests/test_engine.py
+ERROR tests/test_text_splitter.py
+ERROR tests/test_utils.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+46 tests collected, 3 errors in 0.16s
