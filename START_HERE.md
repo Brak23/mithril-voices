@@ -21,6 +21,9 @@ qualify actual QAudioSink or worker process containment.
 The [Windows Job Object probe](docs/planning/windows-job-probe.md) is the next
 local WP-03 experiment with controlled test processes; it does not qualify the
 production worker launcher or real LOTRO.
+The [synthetic single-unit flow](docs/planning/synthetic-flow-integration.md)
+connects the reducer, supervised fake worker, and fake playback controller;
+artifact and physical audio qualification remain open.
 
 Read these in order:
 

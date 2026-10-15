@@ -22,6 +22,8 @@ INVENTORIES = {
     "core-stop": ["tests/v2/test_core_stop.py"],
     "safeguards": ["tests/v2/test_safeguards.py"],
     "qprocess-supervisor": ["tests/v2/test_windows_qprocess_supervisor.py"],
+    "synthetic-flow": ["tests/v2/test_synthetic_playback_flow.py",
+                       "tests/v2/test_windows_qprocess_supervisor.py"],
 }
 INPUTS = {
     "contract": ["tools/validate_contracts.py", "docs/design-v2/contracts/defaults.json",
@@ -39,6 +41,13 @@ INPUTS = {
                             "tools/fixtures/windows_job_child.py",
                             "docs/design-v2/contracts/ipc.schema.json",
                             "docs/design-v2/contracts/ipc.examples.json"],
+    "synthetic-flow": ["lvc/core.py", "lvc/safeguards.py", "lvc/synthetic_flow.py",
+                       "tests/v2/support.py", "tools/validate_contracts.py",
+                       "tools/windows_job_probe.py",
+                       "tools/fixtures/qprocess_worker.py",
+                       "tools/windows_qprocess_supervisor_probe.py",
+                       "docs/design-v2/contracts/ipc.schema.json",
+                       "docs/design-v2/contracts/ipc.examples.json"],
 }
 
 
@@ -73,7 +82,8 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
                  "foundation": "WP01_SYNTHETIC_TEST_FOUNDATION_NOT_APPLICATION_ACCEPTANCE",
                  "core-stop": "WP02_PURE_STOP_REDUCER_SLICE_NOT_RENDERER_ACCEPTANCE",
                  "safeguards": "WP02_TO_WP04_SYNTHETIC_CANCELLATION_AND_ADMISSION_SLICE",
-                 "qprocess-supervisor": "WP03_SYNTHETIC_WINDOWS_QPROCESS_SUPERVISION_SLICE"}[suite]
+                 "qprocess-supervisor": "WP03_SYNTHETIC_WINDOWS_QPROCESS_SUPERVISION_SLICE",
+                 "synthetic-flow": "WP03_SINGLE_UNIT_SYNTHETIC_TEXT_TO_PLAYBACK_CONTROLLER_FLOW"}[suite]
         report = {"scope": scope,
                   "status": "PASSED" if ok else "FAILED", "code_sha": sha, "dirty_tree": dirty,
                   "command": f"python tools/qa.py --suite {suite}", "pytest_exit_code": result.returncode,
@@ -98,7 +108,7 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "safeguards", "qprocess-supervisor", "replay", "windows", "gpu", "package", "release"])
+    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "safeguards", "qprocess-supervisor", "synthetic-flow", "replay", "windows", "gpu", "package", "release"])
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     if args.suite not in INVENTORIES:
