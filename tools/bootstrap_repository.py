@@ -54,10 +54,13 @@ def inspect(repo: Path, baseline: Path, base: str = BASE) -> list[list[str]]:
     if tags and git(repo, "rev-parse", f"{TAG}^{{commit}}") != base:
         raise Conflict("Baseline tag collision; never move it")
     registered = git(repo, "worktree", "list", "--porcelain").splitlines()
-    paths = {line.removeprefix("worktree ") for line in registered if line.startswith("worktree ")}
+    # Git emits forward slashes for worktree paths on Windows even when Path.resolve()
+    # uses backslashes. Compare resolved paths so repeat runs remain idempotent.
+    paths = {Path(line.removeprefix("worktree ")).resolve()
+             for line in registered if line.startswith("worktree ")}
     exists = baseline.exists()
     if exists:
-        if str(baseline) not in paths:
+        if baseline not in paths:
             raise Conflict("Baseline path exists but is not this repository's registered worktree")
         if git(baseline, "rev-parse", "HEAD") != base:
             raise Conflict("Existing baseline has the wrong commit")

@@ -1,0 +1,44 @@
+{
+  "scope": "WP01_CONTRACT_DATA_SLICE_NOT_COMPLETE_APPLICATION_CONTRACT_SUITE",
+  "status": "PASSED",
+  "code_sha": "e4f79297070826f2da27a617c6480c743b16d0e9",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite contract",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_contract_validation.py",
+    "tests/v2/test_qa_contract_lane.py"
+  ],
+  "collected": 29,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 29,
+  "input_sha256": {
+    "tests/v2/test_contract_validation.py": "e54ab291032aa2f5c2b80954bcd6eab14c0904ffd2af7a5e574a132e842d0827",
+    "tests/v2/test_qa_contract_lane.py": "536e815e980e1ae47821d9fb2961b817fd3b2b36d80150fa02e2dc6d619cb187",
+    "tools/qa.py": "0d9b1f98149a047ecfb585f230dd8d17478388ca9e5baf97fe2f8f141b98dc0d",
+    "tools/validate_contracts.py": "8d478df6d9ad830a34e184c0aadbff728aa120aa868c48cefc2ae63f535e286b",
+    "docs/design-v2/contracts/defaults.json": "6333aefa42b0529d628c1b86a9ca0be4ab6d3747e9ced16511cc503983b3191f",
+    "docs/design-v2/contracts/defaults.schema.json": "5dcca842413158575cc4b65b404ddc7d3c45a8bfde4e4dbca42467bfceca8a1d",
+    "docs/design-v2/contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "docs/design-v2/contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC_CONTRACT_NEGATIVES",
+  "limitations": [
+    "Syntax validation is not lifecycle/authorization validation",
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-contract.xml"
+  ],
+  "evidence_note": "Windows contract-data lane only; game, audio, capture and model runtime remain unqualified."
+}

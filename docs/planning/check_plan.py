@@ -36,7 +36,7 @@ def main() -> int:
     require((len(reqs), len(cases), len(tasks), len(rules)) == (78, 85, 18, 31),
             "Catalog counts are 78 requirements, 85 cases, 18 packets, 31 events")
     require((len(rids), len(tids), len(wids)) == (78, 85, 18), "Unique catalog IDs")
-    defined = re.findall(r"^### (R-[A-Z0-9-]+) \| .+ \| (?:CORE|CONDITIONAL)$", spec, re.M)
+    defined = re.findall(r"^### (R-[A-Z0-9-]+) \| .+ \| (?:CORE|CONDITIONAL)$", spec, re.MULTILINE)
     require(len(defined) == len(set(defined)) and set(defined) == rids,
             "Specification headings and requirements agree")
     for req in reqs:
@@ -86,12 +86,18 @@ def main() -> int:
     auth = read(ROOT / "docs/planning/authorization.json")
     require(auth["github_owner"] == "Brak23" and auth["target_repo_name"] == "mithril-voices"
             and auth["first_push_approved"] and auth["application_implementation_approved"]
-            and not auth["paid_actions_approved"] and not auth["run_workflows_approved"],
-            "Current authorization is scoped to the requested fork and bounded baseline/contract work")
-    changed = subprocess.check_output(["git", "diff", "--name-only", BASE], cwd=ROOT, text=True).splitlines()
-    new = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
-    require(all(p.startswith(("docs/", "tools/", "tests/v2/")) or p in {"AGENTS.md", "START_HERE.md"} for p in changed + new),
-            "Diff contains only authorized documentation, setup/contract tooling and focused tests")
+            and not auth["paid_actions_approved"] and not auth["run_workflows_approved"]
+            and not auth["merge_policy_approved"] and not auth["publish_release_approved"],
+            "Current authorization retains fork and publication boundaries")
+    if auth["scope"] == "WP00_LOCAL_BASELINE_AND_ONE_PORTABLE_WP01_COMPONENT":
+        changed = subprocess.check_output(["git", "diff", "--name-only", BASE], cwd=ROOT, text=True).splitlines()
+        new = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
+        require(all(p.startswith(("docs/", "tools/", "tests/v2/")) or p in {"AGENTS.md", "START_HERE.md"} for p in changed + new),
+                "Original bounded adoption diff contains only authorized paths")
+    else:
+        require(auth["scope"] == "BOUNDED_WINDOWS_IMPLEMENTATION_WITH_GAME_DEFERRED"
+                and auth["windows_pc_access_approved"] and auth["game_launch_or_interaction_deferred"],
+                "Current Windows implementation scope is recorded")
     print(json.dumps({"scope": "PLANNING_DATA_ONLY_NOT_APPLICATION_QA", "status": "PASSED",
                       "code_base_sha": BASE, "spec_version": "2.0",
                       "spec_sha256": hashlib.sha256((DESIGN / "IMPLEMENTATION_SPEC.md").read_bytes()).hexdigest(),

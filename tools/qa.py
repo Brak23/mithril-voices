@@ -53,7 +53,7 @@ def run_contract(report_path: Path | None) -> tuple[dict[str, Any], int]:
                   "inventory": INVENTORY, **counts, "passed": counts["collected"] - counts["failed"] - counts["skipped"],
                   "input_sha256": {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in inputs},
                   "application_runtime_acceptance_status": "NOT_RUN", "fixture_provenance": "ORIGINAL_SYNTHETIC_CONTRACT_NEGATIVES",
-                  "limitations": ["Syntax validation is not lifecycle/authorization validation", "Python 3.14 Mac probe is not Windows Python 3.12 qualification", "WP-01 and G1 remain incomplete"]}
+                  "limitations": ["Syntax validation is not lifecycle/authorization validation", "This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01 and G1 remain incomplete"]}
         if report_path:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             if junit.exists():

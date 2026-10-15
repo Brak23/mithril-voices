@@ -1,7 +1,8 @@
 """Run reviewed pinned tests in the disposable copy, never the preserved worktree."""
 import os
-from pathlib import Path
+import platform
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 COPY = ROOT / "baseline-probe"
@@ -13,6 +14,10 @@ sys.dont_write_bytecode = True
 from src.config.ConfigManager import ConfigManager
 
 ConfigManager.USER_DATA_DIR = ROOT / "baseline-probe-state"
+
+# Pytest's JUnit writer asks for the host name at teardown. Windows Python may
+# resolve it through a subprocess, so cache it before external effects are denied.
+platform.uname()
 
 
 def audit(event, args):
