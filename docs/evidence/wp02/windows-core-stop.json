@@ -1,0 +1,40 @@
+{
+  "scope": "WP02_PURE_STOP_REDUCER_SLICE_NOT_RENDERER_ACCEPTANCE",
+  "status": "PASSED",
+  "code_sha": "1f3c173d2b9d8f6db60e2b17dede2dec2ce6306a",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite core-stop",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_core_stop.py"
+  ],
+  "collected": 7,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 7,
+  "input_sha256": {
+    "tests/v2/test_core_stop.py": "e8b86bae477326704dd2a4251c9a30b64c86772c67525d5e9a4cd93c95895f8c",
+    "tools/qa.py": "9436238c822bebb17d8141c692b9ee7884c1fa8147f45786608300c46925e439",
+    "lvc/core.py": "053428b524e9b627d97864d743fd74633da010b425c0b8addcc307aac06df99c",
+    "lvc/__init__.py": "fe8b882912c202281be456b8c2fec8c8012871440df7b0ec4578d47dc117c3a6",
+    "pyproject.toml": "20177322032171ae5c5041e8e2a578a2befeeeca8b102ec8cf8ae056257bcf1d",
+    "tests/v2/support.py": "f94026ea20531d936bf380632c94a0f2896575c2f226cb8ea125f94e9c8c91c2",
+    "docs/design-v2/contracts/behavior-matrix.json": "b533a22c950f7b173e006267e1751913c9a39cca05d94f04d0d3fb14da2695f6"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01, WP-02 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-core-stop.xml"
+  ]
+}
