@@ -39,6 +39,28 @@ capture, title-only matching, automatic fallback or raw-frame persistence.
 The binding between returned frames and that HWND still needs a real adapter
 test before this proposal becomes an implementation claim.
 
+An additional local C++/WinRT probe was compiled with the already installed
+Visual Studio Build Tools and Windows SDK. Its only possible target is a
+window created by that probe process with original fixture text; it takes no
+HWND argument. It checks native process ID, process creation time and
+executable path before any capture call. A second same-title probe window,
+an altered process-creation identity, a minimized window, a destroyed window
+and an out-of-bounds crop were rejected. Actual OS handle reuse was not
+forced; the altered creation time is a stale-identity simulation.
+The interop setup follows Microsoft's
+[MIT-licensed Win32 sample](https://github.com/microsoft/Windows.UI.Composition-Win32-Samples/tree/master/cpp/ScreenCaptureforHWND).
+
+The probe stopped at `GraphicsCaptureSession::IsSupported()` with HRESULT
+`0x80070005` (`E_ACCESSDENIED`) in this execution environment. It did not
+call `CreateForWindow`, start a capture session, receive a frame, or save an
+image. The native source is `lvc/platform/windows/owned_capture_probe.cpp`;
+the final local receipt is `../wp05-owned-hwnd-capture-final.json`. This is
+a **BLOCKED** capability probe, not a passed Windows Graphics Capture test.
+It is not wired into the application. A separate execution context that
+allows this exact application-owned WGC support check would be needed before
+continuing live capture qualification. No capture/security permission was
+changed here.
+
 Synthetic tests cover duplicate-title/reused-handle rejection, unknown frame
 source, stale tickets/frames, focus and geometry invalidation, crop bounds,
 zero-OCR-call rejection, preservation-first OCR, clipped lines, confidence
