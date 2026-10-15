@@ -11,6 +11,7 @@ import sys
 import tempfile
 import wave
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from uuid import UUID
 
@@ -21,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 from lvc.core import PageIdentity, RequestToken
 from lvc.qt_audio_owner import AudioSubmission, QtAudioService
+from lvc.safeguards import WorkerLedger
 from lvc.spool import SpoolValidator
 from lvc.synthetic_flow import SyntheticFlow
 from tests.v2.support import RecordingSink
@@ -117,6 +119,9 @@ class Probe(QObject):
         self.spool_root = self.isolated / str(SESSION)
         self.spool_root.mkdir()
         self.submission = validated_submission(self.spool_root)
+        if case == "cache_stop":
+            self.submission = replace(self.submission, ledger=WorkerLedger(SESSION),
+                                      source="cache")
         self.backend: FakeBackend | None = None
         self.factory_calls = 0
         max_bytes = 240 if case == "partial" else 960
@@ -160,7 +165,7 @@ class Probe(QObject):
         if generation == 1:
             self.epoch = epoch
             self.service.admit(self.submission)
-        elif generation == 2 and self.case == "stop":
+        elif generation == 2 and self.case in {"stop", "cache_stop"}:
             self.service.idle(self.epoch)  # Old callback cannot complete.
             self.service.admit(self.submission)  # Old generation must be rejected.
             QTimer.singleShot(70, lambda: self.finish("STOP_FENCED"))
@@ -171,7 +176,7 @@ class Probe(QObject):
             self.finish("WRONG_WRITE_IDENTITY")
             return
         self.written += frames
-        if self.case == "stop" and self.writes_at_fence is None:
+        if self.case in {"stop", "cache_stop"} and self.writes_at_fence is None:
             self.writes_at_fence = self.written
             self.backend_writes_at_fence = len(self.backend.write_bytes) if self.backend else None
             self.service.fence(2)
@@ -252,7 +257,7 @@ class Probe(QObject):
             ok = ok and report["largest_backend_write_bytes"] <= 240 and report["backend_writes"] >= 8
         if self.case == "early_idle":
             ok = ok and self.underruns >= 1
-        if self.case == "stop":
+        if self.case in {"stop", "cache_stop"}:
             ok = ok and self.reason == "STOP_FENCED" and self.writes_at_fence is not None
             ok = ok and self.written == self.writes_at_fence and not self.drained
             ok = ok and report["backend_writes"] == self.backend_writes_at_fence
@@ -276,7 +281,7 @@ class Probe(QObject):
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--case", choices=["normal", "partial", "early_idle",
-                                           "stop", "device_loss", "no_ack",
+                                           "stop", "cache_stop", "device_loss", "no_ack",
                                            "negative_write", "physical_without_opt_in"], required=True)
     args = parser.parse_args()
     app = QCoreApplication([])

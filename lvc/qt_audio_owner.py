@@ -14,7 +14,7 @@ from typing import Protocol
 from PySide6.QtCore import QObject, Qt, QThread, QTimer, Signal, Slot
 
 from lvc.core import RequestToken, State
-from lvc.safeguards import AudioGate, WorkerLedger
+from lvc.safeguards import AudioGate, AudioSource, WorkerLedger
 from lvc.synthetic_flow import AcceptedUnit
 
 PUMP_INTERVAL_MS = 10
@@ -44,6 +44,7 @@ class AudioSubmission:
     ledger: WorkerLedger
     token: RequestToken
     unit: AcceptedUnit
+    source: AudioSource = "worker"
 
 
 class FenceFloor:
@@ -129,7 +130,8 @@ class _AudioOwner(QObject):
         try:
             self.gate = self.gate.start_unit(submission.state, submission.ledger,
                                              submission.token, unit.unit_id, 0,
-                                             unit.frames, self.gate.sink_epoch)
+                                             unit.frames, self.gate.sink_epoch,
+                                             source=submission.source)
         except ValueError:
             self.rejected.emit("UNIT_NOT_CURRENT")
             return
