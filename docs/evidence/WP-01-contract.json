@@ -1,0 +1,43 @@
+{
+  "scope": "WP01_CONTRACT_DATA_SLICE_NOT_COMPLETE_APPLICATION_CONTRACT_SUITE",
+  "status": "PASSED",
+  "code_sha": "f79a1df794cbe1272e54bdabb67eb90ea19dfbcd",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite contract",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Darwin",
+    "python": "3.14.7"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_contract_validation.py",
+    "tests/v2/test_qa_contract_lane.py"
+  ],
+  "collected": 29,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 29,
+  "input_sha256": {
+    "tests/v2/test_contract_validation.py": "3a63ec251900e91bf676663992ddf2f0bbc5946d529828330bcc8f0fb14707e8",
+    "tests/v2/test_qa_contract_lane.py": "2c9497d06a8947e1a4647896fa2df524da65a17041d8dcddd23ecf0dfacbac7c",
+    "tools/qa.py": "69c87c1615c726b6e33bf698c0f77d77fb07d7efb651796b67825dc0089e390a",
+    "tools/validate_contracts.py": "1db93defa42d4a1bffdeffb1a83600bfd2df696a9e36254d6ccc5c36d0d77e6f",
+    "docs/design-v2/contracts/defaults.json": "6333aefa42b0529d628c1b86a9ca0be4ab6d3747e9ced16511cc503983b3191f",
+    "docs/design-v2/contracts/defaults.schema.json": "5dcca842413158575cc4b65b404ddc7d3c45a8bfde4e4dbca42467bfceca8a1d",
+    "docs/design-v2/contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "docs/design-v2/contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC_CONTRACT_NEGATIVES",
+  "limitations": [
+    "Syntax validation is not lifecycle/authorization validation",
+    "Python 3.14 Mac probe is not Windows Python 3.12 qualification",
+    "WP-01 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "WP-01-contract.xml"
+  ]
+}

@@ -85,20 +85,20 @@ def main() -> int:
                 f"{row['packet']} overlay preserves normative references")
     auth = read(ROOT / "docs/planning/authorization.json")
     require(auth["github_owner"] == "Brak23" and auth["target_repo_name"] == "mithril-voices"
-            and auth["first_push_approved"] and not auth["application_implementation_approved"]
+            and auth["first_push_approved"] and auth["application_implementation_approved"]
             and not auth["paid_actions_approved"] and not auth["run_workflows_approved"],
-            "Current authorization is scoped to the requested fork and planning PR")
+            "Current authorization is scoped to the requested fork and bounded baseline/contract work")
     changed = subprocess.check_output(["git", "diff", "--name-only", BASE], cwd=ROOT, text=True).splitlines()
     new = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
-    require(all(p.startswith("docs/") or p in {"AGENTS.md", "START_HERE.md"} for p in changed + new),
-            "Diff contains only planning documentation and its checker")
+    require(all(p.startswith(("docs/", "tools/", "tests/v2/")) or p in {"AGENTS.md", "START_HERE.md"} for p in changed + new),
+            "Diff contains only authorized documentation, setup/contract tooling and focused tests")
     print(json.dumps({"scope": "PLANNING_DATA_ONLY_NOT_APPLICATION_QA", "status": "PASSED",
                       "code_base_sha": BASE, "spec_version": "2.0",
                       "spec_sha256": hashlib.sha256((DESIGN / "IMPLEMENTATION_SPEC.md").read_bytes()).hexdigest(),
                       "passed_planning_checks": len(checks), "checks": checks,
                       "requirements": 78, "acceptance_cases": 85, "behavior_events": 31, "packets": 18,
                       "application_tests_executed": 0, "application_cases_status": "ALL_NOT_RUN",
-                      "full_schema_validation": "BLOCKED_MISSING_JSONSCHEMA",
+                      "full_schema_validation": "NOT_PERFORMED_BY_THIS_CATALOG_CHECKER_SEE_CURRENT_REPORTS",
                       "note": "Read-only catalog/hash/reference checks; not the source author's 625 checks or any G0-G4 gate."}, indent=2))
     return 0
 
