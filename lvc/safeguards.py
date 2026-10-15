@@ -160,7 +160,7 @@ class AudioUnit:
 
 
 class SinkWriter(Protocol):
-    def write(self, generation: int, request_id: str, unit_id: str) -> None: ...
+    def write(self, generation: int, request_id: str, unit_id: str, frames: int) -> int: ...
 
 
 def _generation_current(host: State, token: RequestToken) -> bool:
@@ -218,9 +218,13 @@ class AudioGate:
         unit = self._current_unit(host, ledger, token, unit_id, index, sink_epoch)
         if unit is None or frames <= 0 or unit.written_frames + frames > unit.total_frames:
             return self, False
-        sink.write(token.generation, str(token.request_id), unit_id)
-        return replace(self, unit=replace(unit, written_frames=unit.written_frames + frames,
-                                          outstanding_frames=unit.outstanding_frames + frames)), True
+        accepted = sink.write(token.generation, str(token.request_id), unit_id, frames)
+        if type(accepted) is not int or not 0 <= accepted <= frames:
+            raise ValueError("Sink accepted an invalid frame count")
+        if accepted == 0:
+            return self, False
+        return replace(self, unit=replace(unit, written_frames=unit.written_frames + accepted,
+                                          outstanding_frames=unit.outstanding_frames + accepted)), True
 
     def drain(self, host: State, ledger: WorkerLedger, token: RequestToken, unit_id: str,
               index: int, sink_epoch: int, frames: int) -> AudioGate:

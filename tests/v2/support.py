@@ -54,6 +54,7 @@ class SinkCall:
     generation: int
     request_id: str | None = None
     unit_id: str | None = None
+    frames: int = 0
 
 
 @dataclass
@@ -68,8 +69,9 @@ class RecordingSink:
     def acknowledge_fence(self, generation: int) -> None:
         self.calls.append(SinkCall("fence_ack", generation))
 
-    def write(self, generation: int, request_id: str, unit_id: str) -> None:
-        self.calls.append(SinkCall("write", generation, request_id, unit_id))
+    def write(self, generation: int, request_id: str, unit_id: str, frames: int = 0) -> int:
+        self.calls.append(SinkCall("write", generation, request_id, unit_id, frames))
+        return frames
 
 
 def post_fence_writes(calls: list[SinkCall]) -> list[SinkCall]:
