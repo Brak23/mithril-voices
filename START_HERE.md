@@ -15,6 +15,9 @@ WP-01/G1 or game, model, audio and capture gates.
 The [WP-02 Stop core note](docs/planning/windows-core-stop.md) and
 [synthetic Windows report](docs/evidence/wp02/windows-core-stop.json) cover a
 pure reducer slice only; WP-02 remains incomplete.
+The [Windows safeguards note](docs/planning/windows-safeguards.md) records the
+next local synthetic cancellation and audio-admission slice. It does not
+qualify actual QAudioSink or worker process containment.
 
 Read these in order:
 

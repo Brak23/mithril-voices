@@ -20,6 +20,7 @@ INVENTORIES = {
                  "tests/v2/test_runtime_preferences.py"],
     "foundation": ["tests/v2/test_support.py", "tests/v2/test_fixture_manifest.py"],
     "core-stop": ["tests/v2/test_core_stop.py"],
+    "safeguards": ["tests/v2/test_safeguards.py"],
 }
 INPUTS = {
     "contract": ["tools/validate_contracts.py", "docs/design-v2/contracts/defaults.json",
@@ -29,6 +30,8 @@ INPUTS = {
                    "tests/v2/fixtures/manifest.json"],
     "core-stop": ["lvc/core.py", "lvc/__init__.py", "pyproject.toml", "tests/v2/support.py",
                   "docs/design-v2/contracts/behavior-matrix.json"],
+    "safeguards": ["lvc/core.py", "lvc/safeguards.py", "tests/v2/support.py",
+                   "docs/design-v2/contracts/behavior-matrix.json"],
 }
 
 
@@ -61,7 +64,8 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
         inputs = [*inventory, "tools/qa.py", *INPUTS[suite]]
         scope = {"contract": "WP01_CONTRACT_DATA_SLICE_NOT_COMPLETE_APPLICATION_CONTRACT_SUITE",
                  "foundation": "WP01_SYNTHETIC_TEST_FOUNDATION_NOT_APPLICATION_ACCEPTANCE",
-                 "core-stop": "WP02_PURE_STOP_REDUCER_SLICE_NOT_RENDERER_ACCEPTANCE"}[suite]
+                 "core-stop": "WP02_PURE_STOP_REDUCER_SLICE_NOT_RENDERER_ACCEPTANCE",
+                 "safeguards": "WP02_TO_WP04_SYNTHETIC_CANCELLATION_AND_ADMISSION_SLICE"}[suite]
         report = {"scope": scope,
                   "status": "PASSED" if ok else "FAILED", "code_sha": sha, "dirty_tree": dirty,
                   "command": f"python tools/qa.py --suite {suite}", "pytest_exit_code": result.returncode,
@@ -70,7 +74,7 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
                   "inventory": inventory, **counts, "passed": counts["collected"] - counts["failed"] - counts["skipped"],
                   "input_sha256": {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in inputs},
                   "application_runtime_acceptance_status": "NOT_RUN", "fixture_provenance": "ORIGINAL_SYNTHETIC",
-                  "limitations": ["This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01, WP-02 and G1 remain incomplete"]}
+                  "limitations": ["This lane does not qualify the Windows game, audio, capture or model runtime", "WP-01 through WP-04 and G1 remain incomplete"]}
         if report_path:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             if junit.exists():
@@ -86,7 +90,7 @@ def run_suite(suite: str, report_path: Path | None) -> tuple[dict[str, Any], int
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "replay", "windows", "gpu", "package", "release"])
+    parser.add_argument("--suite", required=True, choices=["quick", "contract", "foundation", "core-stop", "safeguards", "replay", "windows", "gpu", "package", "release"])
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     if args.suite not in INVENTORIES:
