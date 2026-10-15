@@ -104,7 +104,9 @@ class WorkerLedger:
         if item.worker_instance_id != worker_instance_id or item.worker_terminal is not None or item.reclaimed:
             return replace(self, now_ms=now_ms), None
         accepted = item.effective_outcome is None
-        changed = replace(item, worker_terminal=outcome, reclaimed=True,
+        # A terminal IPC message settles the logical result; only observing the
+        # process tree exit releases physical capacity and stops cancel escalation.
+        changed = replace(item, worker_terminal=outcome,
                           effective_outcome=outcome if accepted else item.effective_outcome)
         return self._update(changed, now_ms), outcome if accepted else None
 
