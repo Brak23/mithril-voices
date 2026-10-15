@@ -1,0 +1,49 @@
+{
+  "scope": "WP03_WINDOWS_GENERATED_WAV_SPOOL_AND_SYNTHETIC_FLOW_SLICE",
+  "status": "PASSED",
+  "code_sha": "1148b40259c156526d0f0d0a15027de4372bf56a",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite spool-validation",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_spool_validation.py",
+    "tests/v2/test_synthetic_playback_flow.py",
+    "tests/v2/test_windows_qprocess_supervisor.py"
+  ],
+  "collected": 37,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 37,
+  "input_sha256": {
+    "tests/v2/test_spool_validation.py": "418da8437908a72caf497069fbf52b86932a0cca0505598b1c1b24f8bac14295",
+    "tests/v2/test_synthetic_playback_flow.py": "8ea78890e6903d323d79609cbf33054b131527560bd3212c572e8c965b7fc383",
+    "tests/v2/test_windows_qprocess_supervisor.py": "d9e5e4906b6cef37e009ddff87a8374217ec7ba49abf2b96e3777b6daa4a6d31",
+    "tools/qa.py": "76327738d72a0f9bf80af0735ff42ac9989a4b1adc7c006fbb34edb8b7d917da",
+    "lvc/core.py": "fcbeeb0e99d96ebef3a6006b34fcb7769e1ecf1555ced2d020e34e07fbe6ff13",
+    "lvc/safeguards.py": "4d86faadf66b33e7053944c5716bc9da3e89e5a7fb063f2804e3056b93d1ce59",
+    "lvc/synthetic_flow.py": "de1d1b7da9931679c162c1d3ce812134f0f88abc5bfa66e43582cb0a8a7f1fea",
+    "lvc/spool.py": "103df47e076538dbf0f5e62bb6a6dd11e7342aded769424b235654624e216829",
+    "tools/validate_contracts.py": "10c1aa0ac5746fecf6e28fd74c4f18f52466cb4caffc5eb58fa1d2e3f04b25a4",
+    "tools/windows_job_probe.py": "146a43529cb1580c99d49b95b3bf4a40ce921dcfaa46bc4992b4602e4791c17c",
+    "tools/fixtures/qprocess_worker.py": "555f73ab35e09202cb925291f8bbc4436ff198acd6a54be52d2a0c61c9d20687",
+    "tools/windows_qprocess_supervisor_probe.py": "f8f7b3c0f9f530a4b41db9777ade7e83536288b7522550a7e02116e1f76145a1",
+    "docs/design-v2/contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "docs/design-v2/contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 through WP-04 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-spool-validation.xml"
+  ]
+}

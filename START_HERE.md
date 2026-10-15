@@ -24,6 +24,8 @@ production worker launcher or real LOTRO.
 The [synthetic single-unit flow](docs/planning/synthetic-flow-integration.md)
 connects the reducer, supervised fake worker, and fake playback controller;
 artifact and physical audio qualification remain open.
+The [generated WAV spool slice](docs/planning/windows-spool-validation.md)
+checks actual synthetic file bytes and ownership before fake sink admission.
 
 Read these in order:
 

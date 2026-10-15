@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
+import tempfile
 import time
 from copy import deepcopy
 from pathlib import Path
@@ -21,7 +23,8 @@ sys.path.insert(0, str(ROOT))
 
 from lvc.core import PageIdentity, RequestToken
 from lvc.safeguards import WorkerLedger
-from lvc.synthetic_flow import AcceptedUnit, SyntheticFlow
+from lvc.spool import SpoolValidator
+from lvc.synthetic_flow import SyntheticFlow
 from tests.v2.support import RecordingSink
 from tools.validate_contracts import ContractError, validate_ipc
 from tools.windows_job_probe import (
@@ -99,6 +102,7 @@ class Probe:
         self.ledger = WorkerLedger(SESSION)
         self.flow: SyntheticFlow | None = None
         self.fake_sink: RecordingSink | None = None
+        self.spool_root: Path | None = None
         self.result = {
             "case": case, "status": "BLOCKED", "outcome": None,
             "job_assigned": False, "descendant_spawned": False,
@@ -108,6 +112,7 @@ class Probe:
             "running_after_ack": False, "termination_requested_after_ms": None,
             "stale_terminals": 0, "effective_terminal_count": 0,
             "synthetic_flow_completed": False, "fake_sink_write_count": 0,
+            "verified_pcm_bytes": 0,
             "other_processes_targeted": False,
             "limits": "Synthetic gated worker only; production launch race and LOTRO unqualified",
         }
@@ -150,7 +155,17 @@ class Probe:
                 raise RuntimeError("injected assignment failure")
             self.job.assign_owned_handle(pid, self.parent_handle)
             self.result["job_assigned"] = self.job.contains(self.parent_handle)
-            self.send(0)  # The synthetic worker cannot spawn before init.
+            if self.case == "success":
+                safe_base = ROOT.parent / "test-tmp"
+                safe_base.mkdir(exist_ok=True)
+                isolated = Path(tempfile.mkdtemp(prefix="mithril-spool-", dir=safe_base))
+                self.spool_root = isolated / str(SESSION)
+                self.spool_root.mkdir()
+                init = deepcopy(EXAMPLES[0])
+                init["payload"]["spool_root"] = str(self.spool_root)
+                self.send_wire(init)
+            else:
+                self.send(0)  # The synthetic worker cannot spawn before init.
         except (OSError, RuntimeError, ValueError, ContractError, AssertionError):
             self.fail("CONTAINMENT_FAILED")
 
@@ -221,11 +236,15 @@ class Probe:
                 PageIdentity(UUID("00000000-0000-4000-8000-000000000011"), 1,
                              "quest_body", "synthetic")), WORKER, self.ms())
             if self.case == "success":
+                if self.spool_root is None:
+                    raise ValueError("Owned spool root missing")
                 self.fake_sink = RecordingSink()
                 self.flow = SyntheticFlow(
                     SESSION, WORKER, UUID("00000000-0000-4000-8000-000000000010"),
                     1, ProbeWorkerPort(self), self.fake_sink,
-                    lambda result: AcceptedUnit("original-synthetic-no-file", result["unit_id"], 5),
+                    SpoolValidator(self.spool_root, SESSION,
+                                   UUID(EXAMPLES[2]["payload"]["unit_id"]),
+                                   self.spool_root.parent),
                     validate_ipc,
                 )
                 self.flow.read_current(REQUEST, self.ms())
@@ -265,6 +284,7 @@ class Probe:
                 raise ValueError("synthetic flow missing")
             if not self.flow.receive_terminal(msg, self.ms()):
                 raise ValueError("synthetic completion rejected")
+            self.result["verified_pcm_bytes"] = len(self.flow.unit.pcm) if self.flow.unit else 0
             if not self.flow.pump(5):
                 raise ValueError("synthetic sink write rejected")
             self.flow.drain(5)
@@ -336,6 +356,12 @@ class Probe:
         if self.descendant_handle:
             self.result["descendant_reclaimed"] = self.api.WaitForSingleObject(self.descendant_handle, 2000) == WAIT_OBJECT_0
             self.api.CloseHandle(self.descendant_handle)
+        if self.spool_root is not None:
+            isolated = self.spool_root.parent.resolve()
+            safe_base = (ROOT.parent / "test-tmp").resolve()
+            if not isolated.is_relative_to(safe_base) or not isolated.name.startswith("mithril-spool-"):
+                raise RuntimeError("Refusing spool cleanup outside owned test directory")
+            shutil.rmtree(isolated)
         expected = {"startup_failure": "STARTUP_FAILED", "containment_failure": "CONTAINMENT_FAILED",
                     "startup_timeout": "STARTUP_TIMEOUT",
                     "malformed": "PROTOCOL_INVALID", "wrong_sequence": "PROTOCOL_INVALID",
@@ -359,6 +385,7 @@ class Probe:
         if self.case == "success":
             good = good and self.result["synthetic_flow_completed"]
             good = good and self.result["fake_sink_write_count"] == 1
+            good = good and self.result["verified_pcm_bytes"] == 10
         self.result["status"] = "PASSED" if good else "FAILED"
         return self.result, 0 if good else 1
 

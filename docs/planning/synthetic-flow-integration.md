@@ -41,3 +41,7 @@ adapter with real manifest identity. That work can use original synthetic
 files and needs no LOTRO, model, or audio endpoint. G1 and AUDIO_SLICE are not
 passed. No LOTRO launch, model download, game-file change, physical audio,
 capture, or external service was used here.
+
+The later [generated WAV spool validation](windows-spool-validation.md)
+replaces the fake verifier in the controlled QProcess success case. This page's
+15-case report remains evidence for its original commit.

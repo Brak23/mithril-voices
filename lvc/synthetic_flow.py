@@ -31,6 +31,11 @@ class AcceptedUnit:
     artifact: str
     unit_id: str
     frames: int
+    pcm: bytes = b""
+
+
+class StaleArtifact(ValueError):
+    """A Stop or replacement invalidated a unit while it was being checked."""
 
 
 class WorkerPort(Protocol):
@@ -48,7 +53,8 @@ class SyntheticFlow:
 
     def __init__(self, session: UUID, worker_id: UUID, binding_id: UUID,
                  geometry_epoch: int, worker: WorkerPort, sink: SinkPort,
-                 accept_audio: Callable[[dict[str, Any]], AcceptedUnit],
+                 accept_audio: Callable[[RequestToken, dict[str, Any], str,
+                                         Callable[[], bool]], AcceptedUnit],
                  validate_message: Callable[[dict[str, Any]], None]):
         if geometry_epoch < 1:
             raise ValueError("Geometry epoch must be positive")
@@ -63,6 +69,7 @@ class SyntheticFlow:
         self.accept_audio = accept_audio
         self.validate_message = validate_message
         self.unit: AcceptedUnit | None = None
+        self.speech_text: str | None = None
 
     def _effects(self, effects: tuple, now_ms: int) -> None:
         for effect in effects:
@@ -70,6 +77,7 @@ class SyntheticFlow:
                 self.gate = self.gate.fence(effect.generation)
                 self.sink.fence(effect.generation)
                 self.unit = None
+                self.speech_text = None
             elif effect.kind == "cancel" and effect.token is not None:
                 try:
                     self.ledger, controls = self.ledger.cancel(effect.token.request_id, now_ms)
@@ -92,6 +100,7 @@ class SyntheticFlow:
         for effect in effects:
             if effect.kind == "synthesize" and effect.token is not None:
                 self.ledger = self.ledger.submit(effect.token, self.worker_id, now_ms)
+                self.speech_text = text
                 self.worker.submit(effect.token, text)
 
     def stop(self, now_ms: int) -> None:
@@ -170,12 +179,23 @@ class SyntheticFlow:
             descriptor = payload["result"]
             if descriptor["kind"] != "audio":
                 raise ValueError("Expected audio result")
-            unit = self.accept_audio(descriptor)
+            if self.speech_text is None:
+                raise ValueError("Missing submitted speech text")
+            current = lambda: (self.state.synthesis == token
+                               and self.ledger.outcome(token.request_id) is None)
+            unit = self.accept_audio(token, descriptor, self.speech_text, current)
             if unit.unit_id != descriptor["unit_id"] or unit.frames < 1 or not unit.artifact:
                 raise ValueError("Audio verifier returned mismatched unit")
+        except StaleArtifact:
+            self.state, _ = reduce(self.state, WorkerCompleted(token, "stale"), now_ms)
+            return False
         except (ValueError, KeyError, TypeError, OSError):
+            if self.state.synthesis != token:
+                return False
             self._fail(token, "AUDIO_INVALID", now_ms)
             return False
+        if self.state.synthesis != token:
+            return False  # Stop/replacement during validation cannot admit audio.
         self.ledger, effective = self.ledger.terminal(request_id, self.worker_id,
                                                        "completed", now_ms)
         if effective is None:
@@ -184,6 +204,7 @@ class SyntheticFlow:
         if len(effects) != 1 or effects[0].kind != "prepare_audio":
             return False
         self.unit = unit
+        self.speech_text = None
         # A missing fence acknowledgment keeps the unit staged without writing.
         self._start_unit_if_ready()
         return True
