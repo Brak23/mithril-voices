@@ -1,0 +1,26 @@
+{
+  "scope": "WINDOWS_CONTROLLED_JOB_OBJECT_PROBE_NOT_PRODUCTION_SUPERVISOR",
+  "platform": "Windows",
+  "python": "3.12.10",
+  "code_sha": "8ba97a0e4a253b2c2d43e0de1878d05b7c538644",
+  "dirty_tree": true,
+  "input_sha256": {
+    "tools/windows_job_probe.py": "55d215293294b2267e10a88fec4ed593090f055c063071ffc158c8787ecc07b8",
+    "tools/fixtures/windows_job_child.py": "14b8ff12a6a1026fa507166ef81c60cd172868d59db5f8440862837d3fe6c4de"
+  },
+  "termination_mode": "terminate",
+  "status": "PASSED",
+  "parent_assigned": true,
+  "descendant_assigned": true,
+  "cancel_ack_seen": true,
+  "parent_reclaimed": true,
+  "descendant_reclaimed": true,
+  "other_processes_targeted": false,
+  "limits": [
+    "Only this probe's finite-life Python child tree is used",
+    "Production startup race, inherited jobs, QProcess and LOTRO are not qualified"
+  ],
+  "inherited_job_before_assignment": true,
+  "still_running_after_ack": true,
+  "termination_requested_after_ms": 1000
+}
