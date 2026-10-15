@@ -12,13 +12,16 @@
   "upload_gameplay_data_approved": false,
   "paid_actions_approved": false,
   "install_dependencies_or_models_approved": false,
+  "local_kokoro_audition_approved": true,
+  "local_kokoro_audition_scope": "Free pinned Kokoro CPU dependencies, official model/config and British Emma/Fable voice assets in a separate local environment; generate local unheard synthetic WAVs only. No other model, game interaction, audio playback, package redistribution, merge or release.",
   "run_workflows_approved": false,
   "evidence": [
     "Owner requested creation of a named Khazad fork under the verified GitHub account.",
     "Owner then authorized project-specific planning documentation on the new fork using a planning branch and reviewable PR.",
     "Earlier scope excluded broad implementation and paid services; the later Windows authorization expands bounded implementation only.",
     "Owner approved baseline setup/tests followed by the first small dependency-ready component.",
-    "Owner then granted Windows PC access and requested implementation of the available pieces; owner will run LOTRO when that step is ready."
+    "Owner then granted Windows PC access and requested implementation of the available pieces; owner will run LOTRO when that step is ready.",
+    "Owner explicitly approved the described free pinned Kokoro CPU audition setup and local unheard synthetic WAV generation, with no LOTRO launch or audio playback."
   ],
   "note": "Summarized authority only; no private transcript. Source design permissions.json is the unchanged authoring template, not this scoped grant.",
   "development_dependencies_approved": true,

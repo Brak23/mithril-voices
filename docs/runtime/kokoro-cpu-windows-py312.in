@@ -1,0 +1,10 @@
+kokoro==0.9.4
+misaki[en]==0.9.4
+spacy==3.8.11
+torch==2.14.1
+espeakng-loader==0.2.4
+transformers==4.53.3
+huggingface-hub==0.34.4
+numpy==1.26.4
+click==8.2.1
+scipy==1.16.2
