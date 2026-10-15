@@ -20,6 +20,7 @@ DEFAULT_QT_PYTHON = ROOT.parent / "qt-dev-venv" / "Scripts" / "python.exe"
     ("device_loss", "DEVICE_LOST"),
     ("no_ack", "NO_ACK_REJECTED"),
     ("negative_write", "DEVICE_LOST"),
+    ("physical_without_opt_in", "PHYSICAL_BACKEND_REJECTED"),
 ])
 def test_synthetic_qt_owner_case(case: str, reason: str) -> None:
     qt_python = Path(os.environ.get("MITHRIL_QT_PYTHON", DEFAULT_QT_PYTHON))

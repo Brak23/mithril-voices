@@ -27,16 +27,21 @@ was attempted. These cases establish the fake backend's call ordering and
 generation behavior only. A queued Stop cannot prove physical silence or a
 latency bound; those require endpoint measurement.
 
-The next physical audio batch needs a `QAudioSink` backend owned by this thread,
-an explicit selected device, format negotiation with no default-speaker
-fallback, an approximately 50 ms requested sink buffer, actual drain accounting,
-and measured reset/Stop latency on the selected endpoint. A proposed first
-user-approved test is one 0.25-second generated 440 Hz tone at at most -36 dBFS
-through the selected endpoint, with an immediate Stop control available.
-Before that test, confirm the intended output device and comfortable Windows
-volume. Record the endpoint identity, negotiated format, actual buffer size,
-write/drain counts, and Stop-to-silence observation. Do not open LOTRO for this
-test. The current batch neither enables nor requests that playback.
+A subsequent local `QAudioSink` backend now requires an exact device ID,
+validates the 48 kHz mono Int16 format, and requests a 50 ms sink buffer. It
+can be enabled only by an explicit service opt-in; the physical probe requires
+an additional `--play` argument. The no-playback preflight found the Windows
+default Realtek speaker endpoint, verified the format, and submitted zero
+frames. A separate generated 0.25-second, 440 Hz tone contains exactly 12,000
+frames with a measured -36.005 dBFS digital peak. The physical run is pending
+confirmation that the powered speakers are connected to that Realtek endpoint;
+the headset and two Steam virtual outputs are distinct. No endpoint volume or
+system setting changed.
+
+The first user-approved run will record the endpoint identity, negotiated
+format, actual buffer size, write count and software Stop/reset timing. Actual
+drain accounting and physical Stop-to-silence measurement remain separate
+qualification work. The test will not open LOTRO.
 
 The production worker launch/manifest adapter and in-progress `.part` size and
 deadline limits remain prerequisites before real model output can feed this

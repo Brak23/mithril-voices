@@ -67,12 +67,14 @@ class _AudioOwner(QObject):
     stopped = Signal()
 
     def __init__(self, session, selected_device_id: str, floor: FenceFloor,
-                 backend_factory: Callable[[str], SyntheticBackend]):
+                 backend_factory: Callable[[str], SyntheticBackend],
+                 allow_physical: bool):
         super().__init__()
         self.session = session
         self.selected_device_id = selected_device_id
         self.floor = floor
         self.backend_factory = backend_factory
+        self.allow_physical = allow_physical
         self.backend: SyntheticBackend | None = None
         self.gate = AudioGate(session)
         self.current: AudioSubmission | None = None
@@ -87,7 +89,8 @@ class _AudioOwner(QObject):
             self.rejected.emit("BACKEND_CREATION_FAILED")
             self.stopped.emit()
             return
-        if not backend.synthetic or backend.device_id != self.selected_device_id:
+        if (backend.device_id != self.selected_device_id
+                or (not backend.synthetic and not self.allow_physical)):
             self.rejected.emit("BACKEND_NOT_SYNTHETIC_OR_ENDPOINT_MISMATCH")
             self.stopped.emit()
             return
@@ -215,7 +218,7 @@ class _AudioOwner(QObject):
 
 
 class QtAudioService(QObject):
-    """Thread-safe command facade; physical output cannot be enabled here."""
+    """Thread-safe command facade with an explicit physical-output opt-in."""
 
     _fence = Signal(int)
     _admit = Signal(object)
@@ -225,14 +228,16 @@ class QtAudioService(QObject):
     _close = Signal()
 
     def __init__(self, session, selected_device_id: str,
-                 backend_factory: Callable[[str], SyntheticBackend]):
+                 backend_factory: Callable[[str], SyntheticBackend],
+                 *, allow_physical: bool = False):
         super().__init__()
         if not selected_device_id:
             raise ValueError("Explicit synthetic endpoint identity required")
-        self.physical_enabled = False
+        self.physical_enabled = allow_physical
         self.floor = FenceFloor()
         self.thread = QThread()
-        self.owner = _AudioOwner(session, selected_device_id, self.floor, backend_factory)
+        self.owner = _AudioOwner(session, selected_device_id, self.floor,
+                                 backend_factory, allow_physical)
         self.owner.moveToThread(self.thread)
         self.thread.started.connect(self.owner.start)
         self._fence.connect(self.owner.fence, Qt.QueuedConnection)

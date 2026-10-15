@@ -71,8 +71,11 @@ class FakeBackend:
         self.reset_count += 1
 
 
-def validated_submission(spool_root: Path) -> AudioSubmission:
-    pcm = struct.pack("<960h", *((1000 if i % 2 else -1000) for i in range(960)))
+def validated_submission(spool_root: Path, pcm: bytes | None = None) -> AudioSubmission:
+    if pcm is None:
+        pcm = struct.pack("<960h", *((1000 if i % 2 else -1000) for i in range(960)))
+    if not pcm or len(pcm) % 2:
+        raise ValueError("Synthetic PCM must contain complete Int16 frames")
     path = spool_root / f"{REQUEST}.wav"
     with wave.open(str(path), "wb") as output:
         output.setnchannels(1)
@@ -93,7 +96,7 @@ def validated_submission(spool_root: Path) -> AudioSubmission:
     message["payload"]["context"] = flow._context(token)
     message["payload"]["result"].update({
         "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
-        "frame_count": 960,
+        "frame_count": len(pcm) // 2,
     })
     assert flow.receive_terminal(message, 2)
     assert flow.unit is not None and flow.unit.pcm == pcm
@@ -118,6 +121,8 @@ class Probe(QObject):
         def factory(device_id: str) -> FakeBackend:
             self.factory_calls += 1
             self.backend = FakeBackend(device_id, max_bytes, case == "negative_write")
+            if case == "physical_without_opt_in":
+                self.backend.synthetic = False
             return self.backend
 
         self.service = QtAudioService(SESSION, "synthetic-selected-endpoint", factory)
@@ -196,6 +201,8 @@ class Probe(QObject):
         self.rejections += 1
         if self.case == "no_ack":
             self.finish("NO_ACK_REJECTED")
+        elif self.case == "physical_without_opt_in":
+            self.reason = "PHYSICAL_BACKEND_REJECTED"
 
     @Slot(int)
     def on_device_lost(self, _generation: int) -> None:
@@ -256,6 +263,9 @@ class Probe(QObject):
             ok = ok and self.written == 0
         if self.case == "no_ack":
             ok = ok and self.reason == "NO_ACK_REJECTED" and self.written == 0
+        if self.case == "physical_without_opt_in":
+            ok = ok and self.reason == "PHYSICAL_BACKEND_REJECTED"
+            ok = ok and self.written == 0 and self.rejections == 1
         report["status"] = "PASSED" if ok else "FAILED"
         return report, 0 if ok else 1
 
@@ -264,7 +274,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--case", choices=["normal", "partial", "early_idle",
                                            "stop", "device_loss", "no_ack",
-                                           "negative_write"], required=True)
+                                           "negative_write", "physical_without_opt_in"], required=True)
     args = parser.parse_args()
     app = QCoreApplication([])
     result, code = Probe(args.case).report()
