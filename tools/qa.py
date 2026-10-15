@@ -29,7 +29,8 @@ INVENTORIES = {
                          "tests/v2/test_windows_qprocess_supervisor.py"],
     "qt-audio-owner": ["tests/v2/test_qt_audio_owner.py",
                        "tests/v2/test_safeguards.py"],
-    "vision-prep": ["tests/v2/test_selected_window_prep.py"],
+    "vision-prep": ["tests/v2/test_selected_window_prep.py",
+                    "tests/v2/test_lotro_user_probe.py"],
 }
 INPUTS = {
     "contract": ["tools/validate_contracts.py", "docs/design-v2/contracts/defaults.json",
@@ -67,7 +68,9 @@ INPUTS = {
                        "docs/design-v2/contracts/ipc.schema.json",
                        "docs/design-v2/contracts/ipc.examples.json"],
     "vision-prep": ["lvc/vision/__init__.py", "lvc/vision/binding.py",
-                    "lvc/vision/text_gate.py", "lvc/vision/pipeline.py"],
+                    "lvc/vision/text_gate.py", "lvc/vision/pipeline.py",
+                    "lvc/platform/windows/lotro_user_probe.py",
+                    "lvc/platform/windows/lotro_frame_probe.cpp"],
 }
 
 

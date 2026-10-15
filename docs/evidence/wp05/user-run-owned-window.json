@@ -1,0 +1,25 @@
+{
+  "classification": "USER_REPORTED_EXECUTION",
+  "source": "Owner supplied the normal-PowerShell probe result",
+  "scope": "OWN_PROCESS_SINGLE_HWND_ONLY",
+  "result": {
+    "status": "PASSED",
+    "wgc_supported": true,
+    "frame_received": true,
+    "frame_accepted": true,
+    "native_identity_verified": true,
+    "marker_pixels": 2500,
+    "frame_width": 746,
+    "frame_height": 323,
+    "bad_crop_rejected": true,
+    "wrong_identity_rejected": true,
+    "minimized_rejected": true,
+    "destroyed_rejected": true,
+    "raw_pixels_saved": false,
+    "user_window_captured": false
+  },
+  "managed_context_receipt": "task-root/wp05-owned-hwnd-capture-final.json",
+  "managed_context_status": "BLOCKED_AT_QUERY_WGC_SUPPORT_0x80070005",
+  "interpretation": "The two environments differ; the precise cause of the managed denial is unverified.",
+  "game_capture_status": "NOT_RUN"
+}
