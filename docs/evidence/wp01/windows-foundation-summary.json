@@ -1,0 +1,118 @@
+{
+  "scope": "WP01_WINDOWS_PORTABLE_FOUNDATION_SLICE",
+  "status": "PARTIAL",
+  "date_utc": "2026-10-15",
+  "base_code_sha": "a8e7bd96f3b404e11423fcf731577f057246135f",
+  "dirty_tree_at_report": true,
+  "environment": {
+    "os": "Windows 11 x64",
+    "python": "3.12.10",
+    "qt_probe_python": "3.12.10",
+    "qt_version": "6.12.0"
+  },
+  "implemented": [
+    "Closed runtime preference delta for follow_system_default and history_enabled; fixed defaults remain immutable",
+    "Passive ManualClock, HeldProcess and RecordingSink test controls",
+    "Original synthetic development fixtures and hash/provenance manifest for AT-001/002/010",
+    "Explicit QA foundation inventory with fail-on-zero/error/skip behavior",
+    "Windows QApplication event loop and asynchronous QProcess child smoke"
+  ],
+  "tests": {
+    "contract": {
+      "status": "PASSED",
+      "command": "python tools/qa.py --suite contract",
+      "exit_code": 0,
+      "collected": 43,
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "raw": [
+        "windows-contract.json",
+        "windows-contract.xml"
+      ]
+    },
+    "foundation": {
+      "status": "PASSED",
+      "command": "python tools/qa.py --suite foundation",
+      "exit_code": 0,
+      "collected": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "raw": [
+        "windows-foundation.json",
+        "windows-foundation.xml"
+      ]
+    },
+    "qt_smoke": {
+      "status": "PASSED",
+      "command": "<QT_DEV_PYTHON> tools/windows_qt_smoke.py",
+      "exit_code": 0,
+      "assertions": {
+        "widgets_event_loop": true,
+        "asynchronous_child_started": true,
+        "child_exited_normally": true,
+        "stdout_exact": true,
+        "no_timeout_or_process_error": true
+      },
+      "raw": [
+        "windows-qt-smoke.json"
+      ]
+    },
+    "ruff": {
+      "status": "PASSED",
+      "command": "ruff check tools/validate_contracts.py tools/qa.py tools/windows_qt_smoke.py tests/v2"
+    },
+    "pyright": {
+      "status": "PASSED",
+      "commands": [
+        "pyright --pythonpath <DEV_PYTHON> tools/validate_contracts.py tools/qa.py tests/v2/support.py",
+        "pyright --pythonpath <QT_DEV_PYTHON> tools/windows_qt_smoke.py"
+      ]
+    }
+  },
+  "red_phase": {
+    "status": "FAILED_AS_EXPECTED_BEFORE_IMPLEMENTATION",
+    "command": "<DEV_PYTHON> -m pytest tests/v2/test_runtime_preferences.py -q -o addopts= --tb=short",
+    "exit_code": 2,
+    "result": "Collection rejected missing validate_runtime_preferences import; one collection error. Initial Qt probe also failed exact stdout comparison because Windows text output used CRLF; the fixed probe uses binary output and passes."
+  },
+  "source_sha256": {
+    "contracts/runtime-preferences.schema.json": "11e3cedffbaccbc099054437caefd75edcae50a10a29d80a017d34d1ff32ef21",
+    "tests/v2/fixtures/desired-outcomes.json": "70dcac28352c9ac61ac035246af28edb5fa72fe3aada345b855fc5faf31d0944",
+    "tests/v2/fixtures/manifest.json": "4cbe8def79b7de5c76e6138442c3176e07460fd5f96f5429c819bf4a37cfe75b",
+    "tools/windows_qt_smoke.py": "9474c720557c7c188a6272d1ed779cb3bb02677ad2f01a2b007ccf4d5ef1e6c4",
+    "tools/qa.py": "a9d3126eabba3ae120856c60cf8f070d12fa0143b4290917a4346f4de71cb4c5"
+  },
+  "artifact_sha256": {
+    "windows-contract.json": "ff15ab46ad760b10c6879007c4fc6e17a8b442e1c487ab1eb63b8e018d2bed42",
+    "windows-contract.xml": "099d0b1076fb2ae827cf706e1e8ad1ddeae09d43546ad10e3fb74c80d1d817c0",
+    "windows-foundation.json": "ce823cbf33e5b1dc0df7d20cd8ab7d55bce7e36938b15a849ab56b303bde134e",
+    "windows-foundation.xml": "37eea4e1fcbae21977e88239b2bf5f51ecb02d4341cc1231fc5752cc13454e50",
+    "windows-qt-smoke.json": "fd481aa85490ea572c5c722886f372d77553794fc9f0a0bf26977412a08dd878",
+    "windows-qt-freeze.txt": "01c15a0efcd2a513c6feb5a820c28946cb4287165a33609ec35202a6da7427a0"
+  },
+  "dependency_boundary": "PySide6 6.12.0 and its official PyPI wheels were installed in a separate development probe venv. The metapackage brought PDF/WebEngine wheels; these were not imported by the smoke and are not an approved runtime bundle or redistribution decision.",
+  "workflow_source_observation": "Inherited .github/workflows/build.yml targets main PRs and main/tag pushes, uses floating action major refs, broad legacy test dependency install, installer build, and tag release publishing. It was not executed or changed; AT-074/CI gate remains open.",
+  "traceability": {
+    "R-CFG-001": "PARTIAL",
+    "R-SCP-004": "PARTIAL",
+    "R-ARC-003": "TEST_DOUBLES_ONLY",
+    "R-TST-001": "FOUNDATION_ONLY",
+    "R-TST-003": "SYNTHETIC_DEVELOPMENT_ONLY",
+    "R-TST-004": "PARTIAL",
+    "AT-001": "NOT_RUN_PRODUCT",
+    "AT-002": "NOT_RUN_PRODUCT",
+    "AT-010": "NOT_RUN_PRODUCT",
+    "AT-071": "NOT_RUN_RELEASE",
+    "AT-074": "NOT_RUN_CI",
+    "AT-078": "PARTIAL_SCHEMA_ONLY"
+  },
+  "remaining": [
+    "Full WP-01 exact development/runtime locks and independent core tests",
+    "Quick/replay/windows/gpu/package/release application suites still BLOCKED or NOT_RUN",
+    "Actual capture, audio endpoint, model, process-tree, LOTRO and rights gates not run",
+    "No game launched and no user/game files changed"
+  ],
+  "sanitization": "JUnit hostname replaced with REDACTED. No gameplay or private capture is in the fixtures."
+}

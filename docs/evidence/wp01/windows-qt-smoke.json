@@ -1,0 +1,15 @@
+{
+  "status": "PASSED",
+  "platform": "Windows",
+  "python": "3.12.10",
+  "architecture": "64bit",
+  "qt": "6.12.0",
+  "assertions": {
+    "widgets_event_loop": true,
+    "asynchronous_child_started": true,
+    "child_exited_normally": true,
+    "stdout_exact": true,
+    "no_timeout_or_process_error": true
+  },
+  "limits": "No window capture, audio playback, game process, model or process-tree containment tested"
+}

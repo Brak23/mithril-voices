@@ -1,0 +1,41 @@
+{
+  "scope": "WP01_SYNTHETIC_TEST_FOUNDATION_NOT_APPLICATION_ACCEPTANCE",
+  "status": "PASSED",
+  "code_sha": "a8e7bd96f3b404e11423fcf731577f057246135f",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite foundation",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_support.py",
+    "tests/v2/test_fixture_manifest.py"
+  ],
+  "collected": 5,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 5,
+  "input_sha256": {
+    "tests/v2/test_support.py": "09371680aa544f610092567052cf0c349c66f1b44f3c1dd9390bde646280b622",
+    "tests/v2/test_fixture_manifest.py": "1b3ec13d113fb70be7f30f64a37015a00cdb1ae2f72d2eda40193955f0aa5af4",
+    "tools/qa.py": "a9d3126eabba3ae120856c60cf8f070d12fa0143b4290917a4346f4de71cb4c5",
+    "tests/v2/support.py": "f94026ea20531d936bf380632c94a0f2896575c2f226cb8ea125f94e9c8c91c2",
+    "tests/v2/fixtures/desired-outcomes.json": "70dcac28352c9ac61ac035246af28edb5fa72fe3aada345b855fc5faf31d0944",
+    "tests/v2/fixtures/manifest.json": "4cbe8def79b7de5c76e6138442c3176e07460fd5f96f5429c819bf4a37cfe75b"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "Syntax validation is not lifecycle/authorization validation",
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-foundation.xml"
+  ]
+}

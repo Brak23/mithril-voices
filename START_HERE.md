@@ -9,7 +9,9 @@ The planning PR completed requirements adoption only. Subsequent stacked PRs
 added guarded bootstrap and the first contract-data slice. On Windows, see
 [the baseline report](docs/evidence/wp00/windows-baseline.json) and
 [ADR 0003](docs/decisions/0003-windows-implementation.md) for the current scope.
-These results do not complete WP-01/G1 or game, model, audio and capture gates.
+The [WP-01 foundation report](docs/evidence/wp01/windows-foundation-summary.json)
+records the next bounded development slice. These results do not complete
+WP-01/G1 or game, model, audio and capture gates.
 
 Read these in order:
 

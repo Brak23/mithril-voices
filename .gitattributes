@@ -1,1 +1,2 @@
 docs/design-v2/** text eol=lf
+tests/v2/fixtures/*.json text eol=lf
