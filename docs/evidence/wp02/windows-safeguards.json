@@ -1,0 +1,39 @@
+{
+  "scope": "WP02_TO_WP04_SYNTHETIC_CANCELLATION_AND_ADMISSION_SLICE",
+  "status": "PASSED",
+  "code_sha": "aaed3bb8c159806445d28bbd6f9fa4a7a19ee1d0",
+  "dirty_tree": true,
+  "command": "python tools/qa.py --suite safeguards",
+  "pytest_exit_code": 0,
+  "exit_code": 0,
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10"
+  },
+  "spec_version": "2.0",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "inventory": [
+    "tests/v2/test_safeguards.py"
+  ],
+  "collected": 11,
+  "failed": 0,
+  "skipped": 0,
+  "passed": 11,
+  "input_sha256": {
+    "tests/v2/test_safeguards.py": "fad363dcf8ebf31323817e5ca54d39c2303ee41807dfb5676f9ad0c3b51dcc18",
+    "tools/qa.py": "e8953c18e2473f437b3f13ae9b7ab21d86366d53eb67783a6eddebda26ca6cb5",
+    "lvc/core.py": "053428b524e9b627d97864d743fd74633da010b425c0b8addcc307aac06df99c",
+    "lvc/safeguards.py": "1fd6c7ca9e2dcbd4c5b76b333924e99f5ea7ff07647eccb12ae89de10331d5ec",
+    "tests/v2/support.py": "f94026ea20531d936bf380632c94a0f2896575c2f226cb8ea125f94e9c8c91c2",
+    "docs/design-v2/contracts/behavior-matrix.json": "b533a22c950f7b173e006267e1751913c9a39cca05d94f04d0d3fb14da2695f6"
+  },
+  "application_runtime_acceptance_status": "NOT_RUN",
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "limitations": [
+    "This lane does not qualify the Windows game, audio, capture or model runtime",
+    "WP-01 through WP-04 and G1 remain incomplete"
+  ],
+  "raw_reports": [
+    "windows-safeguards.xml"
+  ]
+}
