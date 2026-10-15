@@ -1,22 +1,67 @@
 {
-  "scope": "PLANNING_ADOPTION_PARTIAL_WP00",
-  "status": "PARTIAL_NOT_G0",
-  "code_base_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
-  "completed": [
-    "Existing fork verified/reused",
-    "Complete v2 text/JSON package read and catalog/integrity checks performed",
-    "Source audit, reuse map, partial rights inventory and execution plan recorded"
-  ],
-  "not_run": [
-    "Guarded bootstrap implementation/tests",
-    "Baseline worktree/tag setup",
-    "Legacy pytest collection/execution/classification",
-    "Qualified rights audit",
-    "Windows/game/device/GPU qualification"
-  ],
-  "acceptance_cases": {
-    "AT-076": "NOT_RUN",
-    "AT-077": "PARTIAL_SOURCE_REVIEW_ONLY"
+  "status": "BLOCKED",
+  "scope": "PINNED_BASELINE_PORTABLE_PROBE_NOT_WINDOWS_QUALIFICATION",
+  "code_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "environment": {
+    "platform": "Darwin",
+    "machine": "arm64",
+    "python": "3.14.7",
+    "target_python_3_12_available": false
   },
-  "next_task": "Complete bounded WP-00 obligations on a scoped branch after owner review; no application changes in this planning PR"
+  "baseline_preserved_clean": true,
+  "tracked_files_verified_identical_in_disposable_copy": 255,
+  "guarded_bootstrap": {
+    "status": "PASSED",
+    "synthetic_tests": 11,
+    "failed": 0,
+    "dry_run_exit": 0,
+    "apply_exit": 0,
+    "repeat_exit": 0
+  },
+  "full_legacy_collection": {
+    "command": "<DEV_PYTHON> baseline_probe.py --collect-only -q -o addopts= --junitxml=baseline-collection.xml",
+    "exit_code": 2,
+    "collected": 46,
+    "collection_errors": 3,
+    "blocked_modules": {
+      "tests/test_engine.py": {
+        "definitions": 15,
+        "reason": "missing nltk"
+      },
+      "tests/test_text_splitter.py": {
+        "definitions": 11,
+        "reason": "missing cv2 through package initializer"
+      },
+      "tests/test_utils.py": {
+        "definitions": 10,
+        "reason": "missing cv2"
+      }
+    }
+  },
+  "portable_legacy_tests": {
+    "command": "<DEV_PYTHON> baseline_probe.py tests/test_models.py tests/test_manual_npc_tracking.py -q -o addopts= --junitxml=baseline-portable.xml",
+    "exit_code": 0,
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "limitations": "29 manual tracking cases mirror helper logic; not real engine integration"
+  },
+  "harness_correction": "Initial network-denial harness replaced socket.socket and broke ssl subclass import (exit 4); replaced with Python audit-event denial before recorded collection/run. Upstream unchanged.",
+  "source_package_checks": {
+    "passed": 625,
+    "failed": 0,
+    "application_cases_executed": 0
+  },
+  "remaining": [
+    "Windows Python 3.12/runtime smoke tests",
+    "36 legacy definitions unexecuted due minimal environment dependencies",
+    "Rights assessment before packaging/release"
+  ],
+  "raw_reports": [
+    "docs/evidence/wp00/baseline-collection.txt",
+    "docs/evidence/wp00/baseline-portable.txt",
+    "docs/evidence/wp00/bootstrap-tests.xml",
+    "docs/evidence/wp00/source-package-validation.json"
+  ],
+  "note": "Local adoption/source inventory/test classification available for portable WP-01 tooling. Full baseline runtime and G1-G4 remain unpassed."
 }

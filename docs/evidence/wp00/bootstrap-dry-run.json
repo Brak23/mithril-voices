@@ -1,0 +1,44 @@
+{
+  "mode": "DRY_RUN",
+  "base": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "actions": [
+    [
+      "config",
+      "--local",
+      "remote.upstream.pushurl",
+      "https://example.invalid/no-push"
+    ],
+    [
+      "config",
+      "--local",
+      "core.hooksPath",
+      "<TASK>/mithril-voices/.git/mithril-disabled-hooks"
+    ],
+    [
+      "config",
+      "--local",
+      "push.default",
+      "nothing"
+    ],
+    [
+      "config",
+      "--local",
+      "remote.pushDefault",
+      "origin"
+    ],
+    [
+      "tag",
+      "baseline/khazad-1c4c23f",
+      "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb"
+    ],
+    [
+      "worktree",
+      "add",
+      "--detach",
+      "<TASK>/khazad-baseline",
+      "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb"
+    ]
+  ],
+  "remote_writes": false,
+  "note": "Baseline is operationally read-only; run experiments in disposable copies."
+}
