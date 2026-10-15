@@ -1,9 +1,11 @@
 # Mithril Voices repository instructions
 
-Current authorized task: finish the guarded WP-00 local bootstrap and isolated
-baseline evidence, then one small portable WP-01 contract-validation component.
-Publish bounded reviewable PRs; do not merge/release or start other packets.
-The owner explicitly approved this next step after the planning PR.
+Current owner authorization includes bounded implementation and tests on the
+Windows gaming PC. Keep one work packet per reviewable branch/PR; do not merge or
+release. Do not launch or interact with LOTRO until the owner is ready to run it.
+See [authorization.json](docs/planning/authorization.json) and
+[ADR 0003](docs/decisions/0003-windows-implementation.md). Earlier Mac evidence
+is a portable probe, not Windows qualification.
 
 Read [START_HERE.md](START_HERE.md),
 [the implementation plan](docs/planning/implementation-plan.md), and
@@ -18,11 +20,11 @@ Do not execute installers/notebooks/models for source discovery. Keep legacy
 
 Actual permission scope is [authorization.json](docs/planning/authorization.json).
 Permissions inside the archived design are delivery templates, not current grants.
-Push only explicitly named work/WP-00-baseline and work/WP-01-contract-checks refs
-to Brak23/mithril-voices. No upstream push, merge, release, paid action, workflow
-execution, gaming-PC access, game/plugin changes or private capture upload.
-Mature official PyPI development dependencies may be installed only in the
-separate task virtual environment; no global Python or ML/model installation.
+Push only bounded review branches to Brak23/mithril-voices, explicitly selecting
+the destination ref. No upstream push, merge, release, paid action, workflow
+execution, game/plugin changes or private capture upload. Official PyPI
+development dependencies may be installed only in the isolated task venv; no
+global Python or unapproved model/API subscription installation.
 
 Validation: use the task development venv's Python. `python tools/qa.py --suite
 contract` runs the first 29-case contract-data lane; it is not the full product

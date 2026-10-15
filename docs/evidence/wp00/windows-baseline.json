@@ -1,0 +1,104 @@
+{
+  "scope": "WP00_WINDOWS_BASELINE_AND_BOOTSTRAP_PORTABILITY",
+  "status": "BASELINE_TESTS_PASSED_RUNTIME_QUALIFICATION_BLOCKED",
+  "date_utc": "2026-10-15",
+  "code_sha": "e4f79297070826f2da27a617c6480c743b16d0e9",
+  "dirty_tree_at_report": true,
+  "upstream_baseline_sha": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "baseline_worktree": "detached clean at pinned SHA; tests ran in disposable baseline-probe",
+  "environment": {
+    "os": "Windows 11 x64",
+    "build": "26200.9711",
+    "python": "3.12.10",
+    "python_architecture": "64bit",
+    "gpu_observed": "NVIDIA GeForce RTX 5080; driver 617.14; no model load or GPU test"
+  },
+  "test_results": {
+    "bootstrap": {
+      "status": "PASSED",
+      "command": "<DEV_PYTHON> -m pytest tools/test_bootstrap_repository.py -q -o addopts= --junitxml=<TASK>/windows-bootstrap.xml",
+      "exit_code": 0,
+      "tests": 11,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "raw": [
+        "windows-bootstrap.txt",
+        "windows-bootstrap.xml"
+      ]
+    },
+    "legacy": {
+      "status": "PASSED",
+      "command": "<DEV_PYTHON> <TASK>/baseline_probe.py -q -o addopts= --junitxml=<TASK>/windows-baseline.xml",
+      "exit_code": 0,
+      "tests": 82,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "raw": [
+        "windows-baseline.txt",
+        "windows-baseline.xml"
+      ],
+      "limitations": [
+        "29 manual tracking cases mirror helpers; they are not real ingestion",
+        "No game, model, capture or output endpoint exercised"
+      ]
+    },
+    "contract_data": {
+      "status": "PASSED",
+      "command": "<DEV_PYTHON> tools/qa.py --suite contract --report <TASK>/windows-contract.json",
+      "exit_code": 0,
+      "tests": 29,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "raw": [
+        "windows-contract.json",
+        "windows-contract.xml"
+      ]
+    },
+    "adopted_package": {
+      "status": "PASSED",
+      "checks": 623,
+      "failed": 0,
+      "application_tests": 0
+    },
+    "planning_catalog": {
+      "status": "PASSED",
+      "checks": 221,
+      "application_tests": 0
+    }
+  },
+  "reproduced_windows_issue": "Guarded bootstrap initially created the pinned worktree but then rejected repeat inspection: Git listed forward slashes and Path.resolve used backslashes. Two of 11 synthetic tests failed before path normalization; 11 pass afterward.",
+  "inputs_sha256": {
+    "windows-baseline.txt": "312dcf71d0823248ae7c392d3f9009ed1922afad365981dc566ee37db5787009",
+    "windows-baseline.xml": "6bbf8a7eb8483979b918c7c4ea9df1829e761568d8057037bae538a3ab266d84",
+    "windows-bootstrap.txt": "87f8536f178cc327d694b0152ebffa55898dc25a4ed619e573ac1885673aa9a6",
+    "windows-bootstrap.xml": "07ba13148f030e8ec961e4799f345a416ac0619e47aa14a37b45baa4f4da05c0",
+    "windows-contract.json": "a0943dce66821fb24ae7708b86f40bdca1ec1380604a2a6a290ab6c36e4b2161",
+    "windows-contract.xml": "306a37c647351ad31260155842bffc23faf2f28d09ca77850dd8957e011f6ce4",
+    "windows-dev-freeze.txt": "44e3047991d1479b8a619405de8ca6f8f0f0891735e7a4c616518d9dff7a0295"
+  },
+  "remaining": [
+    "G0 rights/reuse review and runtime scope remain open",
+    "Windows Qt/process/capture/audio/model smoke not run",
+    "LOTRO interaction requires owner to launch game when a qualified probe is ready",
+    "No public package, release or rights resolution"
+  ],
+  "sanitization": "JUnit hostname replaced with REDACTED; console summaries contain no user paths. Original raw files remain local in the task workspace.",
+  "spec_sha256": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+  "fixture_provenance": "Original upstream unit tests and synthetic fixtures at the pinned baseline SHA",
+  "fixture_sha256": {
+    "tests/conftest.py": "1522b2a4e8cdaab89d3a314c35159f1f0ee7c801435aed157a9514fa8ba42fd0",
+    "tests/test_engine.py": "7598308885b6263c3023f1904e3ee8c7a518df066cc3e7a97bffe664c8161d4e",
+    "tests/test_manual_npc_tracking.py": "31fd3a463d12eefbc3589df072a64544c02ac3daed4a5619117d47327e196fc9",
+    "tests/test_models.py": "754dd25442cd757c05ac7c753a5e0d5dacd05179387091e400e6b5565061b2ec",
+    "tests/test_text_splitter.py": "887542a9512dc36c046ba83e5c4ba2dd0fded32088daca3a3aff1ebc59b1cfa3",
+    "tests/test_utils.py": "f1cd112709ce6c8e54ab335043fbc5b5cb4d5f65be36ffdeb5b8b637dc0dec33"
+  },
+  "source_sha256": {
+    "tools/bootstrap_repository.py": "76294012128f20b12f8102f8a7f53e92c287650920c7b54323623d687bd42d00",
+    "tools/qa.py": "0d9b1f98149a047ecfb585f230dd8d17478388ca9e5baf97fe2f8f141b98dc0d",
+    "docs/evidence/wp00/baseline_probe.py": "3c69a18ff1678bfe0091b93aecb9a79cbcb99840730a6ecda706bb2a9bb3e555"
+  }
+}

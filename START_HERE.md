@@ -5,10 +5,11 @@ The complete text/JSON requirements are retained under [docs/design-v2](docs/des
 The original ZIP remains outside this repository. Personal references were removed
 from the published text; no chat transcript or DOCX metadata is included.
 
-This PR completes requirements adoption and planning only. It does not complete
-WP-00/G0: a tested guarded bootstrap, preserved baseline worktree, full baseline
-test classification and rights inventory still need their own scoped work.
-All 85 application acceptance cases remain NOT_RUN.
+The planning PR completed requirements adoption only. Subsequent stacked PRs
+added guarded bootstrap and the first contract-data slice. On Windows, see
+[the baseline report](docs/evidence/wp00/windows-baseline.json) and
+[ADR 0003](docs/decisions/0003-windows-implementation.md) for the current scope.
+These results do not complete WP-01/G1 or game, model, audio and capture gates.
 
 Read these in order:
 
@@ -24,6 +25,7 @@ checks. This is not application QA. The original package validator is preserved
 for inspection under `docs/design-v2/verification/`; its schema rerun is blocked
 on this environment's missing `jsonschema` dependency.
 
-The next proposed task is a bounded completion of WP-00. Do not repeat fork
-creation, clone over the current checkout, reset user work, install dependencies,
-change the default branch or continue into broad implementation automatically.
+The earlier adoption prompt predates the current Windows authorization. Use the
+current [authorization record](docs/planning/authorization.json) and packet graph
+for subsequent work. Preserve user work, fork history and the existing baseline;
+do not repeat fork creation or change the default branch automatically.
