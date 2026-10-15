@@ -220,6 +220,8 @@ TODO.md
 
 # Generated files
 models/
+/.audition/
+/.audition-venv/
 templates/
 data/npc_memory_retail_omnivoice.json
 data/layout_retail.json
