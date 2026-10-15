@@ -1,0 +1,8 @@
+[
+  {"id":"numbers-negation","text":"Bring 10 blue stones to the watchtower. Do not trade 1 for a silver coin."},
+  {"id":"unicode","text":"Beyond Serevale, the lantern's glow met a naïve cartographer. She whispered, ‘Wait here.’"},
+  {"id":"repeated","text":"The bell rang twice. The bell rang twice. Then the quiet road opened."},
+  {"id":"abbreviation-decimal","text":"Dr. Vale measured 3.5 spans of rope. Mr. Norel recorded the same length."},
+  {"id":"long-clause","text":"At the northern arch, a keeper counted the amber keys, checked the wooden seal, and asked the travelers to return before dusk."},
+  {"id":"line-breaks","text":"The guide read the first map.\nThe guide read the second map; neither showed a shortcut."}
+]

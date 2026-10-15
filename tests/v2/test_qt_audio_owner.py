@@ -17,6 +17,7 @@ DEFAULT_QT_PYTHON = ROOT.parent / "qt-dev-venv" / "Scripts" / "python.exe"
     ("partial", "DRAINED"),
     ("early_idle", "DRAINED"),
     ("stop", "STOP_FENCED"),
+    ("cache_stop", "STOP_FENCED"),
     ("device_loss", "DEVICE_LOST"),
     ("no_ack", "NO_ACK_REJECTED"),
     ("negative_write", "DEVICE_LOST"),
