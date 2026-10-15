@@ -1,11 +1,11 @@
 {
-  "scope": "REQUIREMENTS_ADOPTION_SOURCE_AUDIT_AND_DOCUMENTATION_PR_ONLY",
+  "scope": "WP00_LOCAL_BASELINE_AND_ONE_PORTABLE_WP01_COMPONENT",
   "github_owner": "Brak23",
   "target_repo_name": "mithril-voices",
   "public_fork_approved": true,
   "first_push_approved": true,
-  "allowed_remote_write": "Publish docs/implementation-plan and open documentation-only PR against Brak23/mithril-voices main",
-  "application_implementation_approved": false,
+  "allowed_remote_write": "Publish scoped WP-00 and first WP-01 branches and reviewable PRs on Brak23/mithril-voices; no merge/release",
+  "application_implementation_approved": true,
   "merge_policy_approved": false,
   "publish_release_approved": false,
   "install_lua_bridge_approved": false,
@@ -16,7 +16,10 @@
   "evidence": [
     "Owner requested creation of a named Khazad fork under the verified GitHub account.",
     "Owner then authorized project-specific planning documentation on the new fork using a planning branch and reviewable PR.",
-    "Current scope explicitly excludes broad implementation and paid services."
+    "Current scope explicitly excludes broad implementation and paid services.",
+    "Owner approved baseline setup/tests followed by the first small dependency-ready component. Windows gaming PC remains offline and unauthorized."
   ],
-  "note": "Summarized authority only; no private transcript. Source design permissions.json is the unchanged authoring template, not this scoped grant."
+  "note": "Summarized authority only; no private transcript. Source design permissions.json is the unchanged authoring template, not this scoped grant.",
+  "development_dependencies_approved": true,
+  "implementation_boundary": "Guarded bootstrap, isolated baseline evidence and contract-validation tooling only; no game/runtime/ML implementation"
 }

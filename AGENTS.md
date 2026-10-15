@@ -1,8 +1,9 @@
 # Mithril Voices repository instructions
 
-Current authorized task: adopt and review the v2 requirements, audit source, and
-deliver a documentation-only implementation plan and PR. Do not start application
-implementation from the broad adoption prompt without a new scoped task.
+Current authorized task: finish the guarded WP-00 local bootstrap and isolated
+baseline evidence, then one small portable WP-01 contract-validation component.
+Publish bounded reviewable PRs; do not merge/release or start other packets.
+The owner explicitly approved this next step after the planning PR.
 
 Read [START_HERE.md](START_HERE.md),
 [the implementation plan](docs/planning/implementation-plan.md), and
@@ -17,9 +18,11 @@ Do not execute installers/notebooks/models for source discovery. Keep legacy
 
 Actual permission scope is [authorization.json](docs/planning/authorization.json).
 Permissions inside the archived design are delivery templates, not current grants.
-Push only an explicitly named planning ref to Brak23/mithril-voices. No upstream
-push, merge, release, paid action, workflow execution, game/plugin changes,
-private capture upload or dependency/model installation is authorized by this task.
+Push only explicitly named work/WP-00-baseline and work/WP-01-contract-checks refs
+to Brak23/mithril-voices. No upstream push, merge, release, paid action, workflow
+execution, gaming-PC access, game/plugin changes or private capture upload.
+Mature official PyPI development dependencies may be installed only in the
+separate task virtual environment; no global Python or ML/model installation.
 
 Validation: `python3 docs/planning/check_plan.py` checks planning data only.
 The separately reviewed source validator needs `jsonschema`; do not install it
