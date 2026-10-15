@@ -1,0 +1,19 @@
+{
+  "source_zip": "LOTRO_Voice_Companion_AI_Implementation_Pack_v2.zip",
+  "source_zip_sha256": "aa7aa49998515bb4291bb557d436f4782d85bdf7fed7fb62bcf9e864abc66127",
+  "source_spec_sha256": "530ac32a5c77aeb23cf3f6eaecb05034f7d3470d4c3f7594619e8616842a9768",
+  "source_manifest_files_verified": 19,
+  "adopted_files": 18,
+  "personal_reference_redactions": [
+    "IMPLEMENTATION_SPEC.md"
+  ],
+  "omitted_files": [
+    "IMPLEMENTATION_CONTRACT.docx",
+    "verification/handoff-validation.json",
+    "verification/SHA256SUMS.json"
+  ],
+  "note": "Project requirements only. No chat transcript or DOCX metadata published. Source handoff report claimed 625 checks; our schema rerun is BLOCKED by missing jsonschema. Adopted checksums are a separate manifest; they are not the original ZIP digests. Template permissions remain ungranted; see ../planning/authorization.json for actual scoped authority.",
+  "format_only_changes": [
+    "Trimmed duplicate EOF blank line in docs/FORK_RUNBOOK.md"
+  ]
+}

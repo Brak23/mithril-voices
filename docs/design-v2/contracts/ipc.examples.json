@@ -1,0 +1,130 @@
+{
+  "provenance": "ORIGINAL_SYNTHETIC_SCHEMA_EXAMPLES_NOT_RUNTIME_EVIDENCE",
+  "examples": [
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "init",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 0,
+      "payload": {
+        "nonce": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "role": "tts",
+        "artifact_manifest_path": "C:\\LVC-Test\\manifests\\cpu.json",
+        "artifact_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "spool_root": "C:\\LVC-Test\\temp\\00000000-0000-4000-8000-000000000001"
+      }
+    },
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "hello",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 0,
+      "payload": {
+        "nonce": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "role": "tts",
+        "runtime_id": "synthetic.cpu.runtime",
+        "artifact_manifest_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "synthesize",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 1,
+      "payload": {
+        "request_id": "00000000-0000-4000-8000-000000000003",
+        "context": {
+          "intent_epoch": 1,
+          "generation": 1,
+          "binding_id": "00000000-0000-4000-8000-000000000010",
+          "interaction_id": "00000000-0000-4000-8000-000000000011",
+          "surface_id": "quest_body",
+          "page_revision": 1,
+          "geometry_epoch": 1,
+          "origin": "manual"
+        },
+        "unit_id": "00000000-0000-4000-8000-000000000004",
+        "unit_index": 0,
+        "speech_text": "Bring 10 Ore. Do not trade 1.",
+        "locale": "en",
+        "voice_realization_id": "synthetic.narrator",
+        "voice_manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "speech_plan_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "timeout_ms": 8000
+      }
+    },
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "accepted",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 1,
+      "payload": {
+        "request_id": "00000000-0000-4000-8000-000000000003"
+      }
+    },
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "completed",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 2,
+      "payload": {
+        "request_id": "00000000-0000-4000-8000-000000000003",
+        "context": {
+          "intent_epoch": 1,
+          "generation": 1,
+          "binding_id": "00000000-0000-4000-8000-000000000010",
+          "interaction_id": "00000000-0000-4000-8000-000000000011",
+          "surface_id": "quest_body",
+          "page_revision": 1,
+          "geometry_epoch": 1,
+          "origin": "manual"
+        },
+        "result": {
+          "kind": "audio",
+          "unit_id": "00000000-0000-4000-8000-000000000004",
+          "filename": "00000000-0000-4000-8000-000000000003.wav",
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "bytes": 96044,
+          "sample_rate": 48000,
+          "channels": 1,
+          "sample_format": "s16le",
+          "frame_count": 48000
+        }
+      }
+    },
+    {
+      "protocol": {
+        "major": 1,
+        "minor": 0
+      },
+      "type": "cancel",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "worker_instance_id": "00000000-0000-4000-8000-000000000002",
+      "seq": 2,
+      "payload": {
+        "request_id": "00000000-0000-4000-8000-000000000003",
+        "generation": 1
+      }
+    }
+  ]
+}

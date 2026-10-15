@@ -1,0 +1,21 @@
+{
+  "status": "NOT_RUN",
+  "spec_version": "2.0",
+  "code_sha": null,
+  "dirty_tree": null,
+  "spec_sha256": null,
+  "command": null,
+  "exit_code": null,
+  "environment": null,
+  "artifact_hashes": {},
+  "fixture_ids": [],
+  "fixture_split": null,
+  "collected": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "metrics": {},
+  "raw_reports": [],
+  "blocking_inputs": [],
+  "note": "Template only. Zero tests and missing fields cannot pass an application gate."
+}

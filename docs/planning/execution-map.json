@@ -1,0 +1,693 @@
+{
+  "scope": "PLANNING_OVERLAY_NOT_EXECUTION_STATUS",
+  "source_tasks": "../design-v2/planning/tasks.json",
+  "packets": [
+    {
+      "packet": "WP-00",
+      "depends_on": [],
+      "legacy_paths_to_inspect": [
+        "main.py",
+        "src/",
+        "tests/",
+        "pyproject.toml",
+        "uv.lock",
+        "installer/",
+        "plugins/"
+      ],
+      "planned_paths": [
+        "docs/",
+        "planning/",
+        "AGENTS.md",
+        "START_HERE.md",
+        "tools/bootstrap_repository.py"
+      ],
+      "requirements": [
+        "R-GOV-001",
+        "R-GOV-002",
+        "R-GOV-003",
+        "R-GOV-004",
+        "R-GOV-005",
+        "R-REP-001",
+        "R-REP-002",
+        "R-REP-003",
+        "R-AUD-001",
+        "R-AUD-002",
+        "R-SCP-003"
+      ],
+      "acceptance_tests": [
+        "AT-076",
+        "AT-077"
+      ],
+      "exit_gate": "G0",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-00.json"
+    },
+    {
+      "packet": "WP-01",
+      "depends_on": [
+        "WP-00"
+      ],
+      "legacy_paths_to_inspect": [
+        "tests/conftest.py",
+        "tests/test_models.py",
+        "pyproject.toml"
+      ],
+      "planned_paths": [
+        "contracts/",
+        "tools/",
+        "tests/v2/",
+        "planning/",
+        "docs/",
+        "pyproject.toml"
+      ],
+      "requirements": [
+        "R-SCP-004",
+        "R-REP-004",
+        "R-ARC-003",
+        "R-CFG-001",
+        "R-TST-001",
+        "R-TST-003",
+        "R-TST-004",
+        "R-DEV-003"
+      ],
+      "acceptance_tests": [
+        "AT-071",
+        "AT-074",
+        "AT-078"
+      ],
+      "exit_gate": "LOCAL_FOUNDATION",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-01.json"
+    },
+    {
+      "packet": "WP-02",
+      "depends_on": [
+        "WP-01"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/engine.py",
+        "src/models/"
+      ],
+      "planned_paths": [
+        "lvc/core/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-ARC-002",
+        "R-DAT-001",
+        "R-DAT-002",
+        "R-DAT-003",
+        "R-CTL-001",
+        "R-CTL-002",
+        "R-CTL-003",
+        "R-CTL-004",
+        "R-CTL-005",
+        "R-CTL-006",
+        "R-IPC-005",
+        "R-TST-002"
+      ],
+      "acceptance_tests": [
+        "AT-001",
+        "AT-002",
+        "AT-003",
+        "AT-006",
+        "AT-009",
+        "AT-010",
+        "AT-011",
+        "AT-012",
+        "AT-014",
+        "AT-016",
+        "AT-017",
+        "AT-018",
+        "AT-019",
+        "AT-070",
+        "AT-072"
+      ],
+      "exit_gate": "G1_CORE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-02.json"
+    },
+    {
+      "packet": "WP-03",
+      "depends_on": [
+        "WP-02"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/tts/base.py",
+        "src/engine_startup.py"
+      ],
+      "planned_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-ARC-001",
+        "R-IPC-001",
+        "R-IPC-002",
+        "R-IPC-003",
+        "R-IPC-004",
+        "R-IPC-005",
+        "R-ERR-001"
+      ],
+      "acceptance_tests": [
+        "AT-007",
+        "AT-008",
+        "AT-009",
+        "AT-044",
+        "AT-045",
+        "AT-046",
+        "AT-047",
+        "AT-048",
+        "AT-049",
+        "AT-084"
+      ],
+      "exit_gate": "G1_CONTRACT",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-03.json"
+    },
+    {
+      "packet": "WP-04",
+      "depends_on": [
+        "WP-03"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/audio.py"
+      ],
+      "planned_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-AUD-OUT-001",
+        "R-AUD-OUT-002",
+        "R-AUD-OUT-003",
+        "R-CTL-004",
+        "R-CTL-005",
+        "R-CTL-006"
+      ],
+      "acceptance_tests": [
+        "AT-001",
+        "AT-004",
+        "AT-005",
+        "AT-013",
+        "AT-055",
+        "AT-056"
+      ],
+      "exit_gate": "AUDIO_SLICE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-04.json"
+    },
+    {
+      "packet": "WP-05",
+      "depends_on": [
+        "WP-03"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/utils.py",
+        "src/ocr.py",
+        "src/calibrate_retail.py"
+      ],
+      "planned_paths": [
+        "lvc/vision/",
+        "lvc/platform/windows/",
+        "profiles/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-OBS-001",
+        "R-OBS-002",
+        "R-OBS-003",
+        "R-OBS-004",
+        "R-TXT-001",
+        "R-TXT-002",
+        "R-TXT-003",
+        "R-DAT-003"
+      ],
+      "acceptance_tests": [
+        "AT-029",
+        "AT-030",
+        "AT-031",
+        "AT-032",
+        "AT-033",
+        "AT-034",
+        "AT-040",
+        "AT-041",
+        "AT-042",
+        "AT-043",
+        "AT-084"
+      ],
+      "exit_gate": "VISION_SLICE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-05.json"
+    },
+    {
+      "packet": "WP-06",
+      "depends_on": [
+        "WP-04",
+        "WP-05"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/tts/kokoro.py",
+        "src/tts/text_splitter.py"
+      ],
+      "planned_paths": [
+        "lvc/tts/",
+        "lvc/host/",
+        "assets/manifests/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-SCP-002",
+        "R-TTS-001",
+        "R-TTS-003",
+        "R-TTS-005",
+        "R-IPC-003"
+      ],
+      "acceptance_tests": [
+        "AT-050",
+        "AT-052",
+        "AT-054",
+        "AT-061",
+        "AT-069"
+      ],
+      "exit_gate": "G2",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-06.json"
+    },
+    {
+      "packet": "WP-07",
+      "depends_on": [
+        "WP-03"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/utils.py",
+        "plugins/Dt192/"
+      ],
+      "planned_paths": [
+        "bridge/",
+        "lvc/vision/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-LOG-001",
+        "R-LOG-002",
+        "R-LOG-003"
+      ],
+      "acceptance_tests": [
+        "AT-020",
+        "AT-021",
+        "AT-022",
+        "AT-023",
+        "AT-024",
+        "AT-025",
+        "AT-026",
+        "AT-027",
+        "AT-028"
+      ],
+      "exit_gate": "BRIDGE_OPTIONAL",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-07.json"
+    },
+    {
+      "packet": "WP-08",
+      "depends_on": [
+        "WP-06"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/engine_startup.py",
+        "src/engine.py"
+      ],
+      "planned_paths": [
+        "lvc/core/",
+        "lvc/vision/",
+        "profiles/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-OBS-003",
+        "R-TXT-004",
+        "R-CTL-001",
+        "R-CTL-002",
+        "R-CTL-003",
+        "R-CTL-004"
+      ],
+      "acceptance_tests": [
+        "AT-010",
+        "AT-011",
+        "AT-012",
+        "AT-016",
+        "AT-017",
+        "AT-019",
+        "AT-033",
+        "AT-034",
+        "AT-035"
+      ],
+      "exit_gate": "G3_BEHAVIOR",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-08.json"
+    },
+    {
+      "packet": "WP-09",
+      "depends_on": [
+        "WP-06"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/tts/voice_library.py",
+        "src/engine.py"
+      ],
+      "planned_paths": [
+        "lvc/core/",
+        "lvc/tts/",
+        "lvc/storage/",
+        "assets/manifests/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-TTS-002",
+        "R-TTS-004",
+        "R-DAT-002"
+      ],
+      "acceptance_tests": [
+        "AT-028",
+        "AT-051",
+        "AT-053",
+        "AT-083"
+      ],
+      "exit_gate": "VOICE_LIBRARY",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-09.json"
+    },
+    {
+      "packet": "WP-10",
+      "depends_on": [
+        "WP-06"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/config/ConfigManager.py",
+        "src/db_sqlite.py",
+        "src/utils.py"
+      ],
+      "planned_paths": [
+        "lvc/storage/",
+        "lvc/host/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-STO-001",
+        "R-STO-002",
+        "R-STO-003"
+      ],
+      "acceptance_tests": [
+        "AT-004",
+        "AT-057",
+        "AT-058",
+        "AT-059",
+        "AT-065",
+        "AT-085"
+      ],
+      "exit_gate": "STORAGE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-10.json"
+    },
+    {
+      "packet": "WP-11",
+      "depends_on": [
+        "WP-08",
+        "WP-09",
+        "WP-10"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/voice_lab/",
+        "main.py"
+      ],
+      "planned_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "lvc/adapters/legacy/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-UX-001",
+        "R-UX-002",
+        "R-UX-003",
+        "R-CFG-001"
+      ],
+      "acceptance_tests": [
+        "AT-014",
+        "AT-015",
+        "AT-018",
+        "AT-043",
+        "AT-055",
+        "AT-065",
+        "AT-066",
+        "AT-067"
+      ],
+      "exit_gate": "UX_BETA",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-11.json"
+    },
+    {
+      "packet": "WP-12",
+      "depends_on": [
+        "WP-06",
+        "WP-09"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/tts/omnivoice.py"
+      ],
+      "planned_paths": [
+        "lvc/tts/",
+        "assets/manifests/",
+        "benchmarks/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-TTS-001",
+        "R-TTS-005",
+        "R-REL-004"
+      ],
+      "acceptance_tests": [
+        "AT-047",
+        "AT-048",
+        "AT-050",
+        "AT-054",
+        "AT-081",
+        "AT-083"
+      ],
+      "exit_gate": "PREMIUM_CONDITIONAL",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-12.json"
+    },
+    {
+      "packet": "WP-13",
+      "depends_on": [
+        "WP-07",
+        "WP-11"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/config/ConfigManager.py",
+        "installer/"
+      ],
+      "planned_paths": [
+        "lvc/",
+        "tests/v2/",
+        "tools/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-SEC-001",
+        "R-SEC-002",
+        "R-SEC-003",
+        "R-ERR-001",
+        "R-IPC-005"
+      ],
+      "acceptance_tests": [
+        "AT-044",
+        "AT-046",
+        "AT-060",
+        "AT-061",
+        "AT-065",
+        "AT-068",
+        "AT-069",
+        "AT-074",
+        "AT-085"
+      ],
+      "exit_gate": "HARDENED_BETA",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-13.json"
+    },
+    {
+      "packet": "WP-14",
+      "depends_on": [
+        "WP-13"
+      ],
+      "legacy_paths_to_inspect": [
+        "installer/",
+        "Windows/",
+        "Linux/",
+        ".github/workflows/build.yml"
+      ],
+      "planned_paths": [
+        "packaging/",
+        "assets/manifests/",
+        "tools/",
+        "tests/v2/",
+        ".github/workflows/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-PKG-001",
+        "R-PKG-002",
+        "R-PKG-003",
+        "R-STO-003",
+        "R-TST-004"
+      ],
+      "acceptance_tests": [
+        "AT-059",
+        "AT-060",
+        "AT-062",
+        "AT-063",
+        "AT-064",
+        "AT-074"
+      ],
+      "exit_gate": "PACKAGE_CANDIDATE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-14.json"
+    },
+    {
+      "packet": "WP-15",
+      "depends_on": [
+        "WP-14"
+      ],
+      "legacy_paths_to_inspect": [
+        "tests/",
+        "data/screenshots/"
+      ],
+      "planned_paths": [
+        "benchmarks/",
+        "tests/v2/",
+        "docs/",
+        "planning/"
+      ],
+      "requirements": [
+        "R-SCP-001",
+        "R-REL-002",
+        "R-REL-003",
+        "R-TST-002",
+        "R-TST-003",
+        "R-TST-004"
+      ],
+      "acceptance_tests": [
+        "AT-071",
+        "AT-072",
+        "AT-073",
+        "AT-079",
+        "AT-083"
+      ],
+      "exit_gate": "G3_AND_G4_EVIDENCE",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-15.json"
+    },
+    {
+      "packet": "WP-16",
+      "depends_on": [
+        "WP-12",
+        "WP-15"
+      ],
+      "legacy_paths_to_inspect": [
+        "LICENSE",
+        "README.md",
+        "pyproject.toml"
+      ],
+      "planned_paths": [
+        "docs/",
+        "planning/",
+        "packaging/"
+      ],
+      "requirements": [
+        "R-GOV-005",
+        "R-REL-001",
+        "R-REL-004",
+        "R-DEV-001",
+        "R-DEV-002",
+        "R-DEV-003"
+      ],
+      "acceptance_tests": [
+        "AT-075",
+        "AT-076",
+        "AT-077",
+        "AT-078",
+        "AT-080"
+      ],
+      "exit_gate": "G4",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-16.json"
+    },
+    {
+      "packet": "WP-17",
+      "depends_on": [
+        "WP-08",
+        "WP-10"
+      ],
+      "legacy_paths_to_inspect": [
+        "src/db_sqlite.py",
+        "data/"
+      ],
+      "planned_paths": [
+        "lvc/vision/",
+        "lvc/core/",
+        "assets/manifests/",
+        "benchmarks/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-COR-001",
+        "R-COR-002",
+        "R-REL-004"
+      ],
+      "acceptance_tests": [
+        "AT-036",
+        "AT-037",
+        "AT-038",
+        "AT-039",
+        "AT-082"
+      ],
+      "exit_gate": "CORPUS_CONDITIONAL",
+      "status": "PLANNED_NOT_IMPLEMENTED",
+      "environment_gate": "Actual Windows/game/device/GPU evidence when required by catalog; no synthetic substitution",
+      "report": "docs/evidence/WP-17.json"
+    }
+  ]
+}

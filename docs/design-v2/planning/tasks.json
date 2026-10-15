@@ -1,0 +1,810 @@
+{
+  "spec_version": "2.0",
+  "note": "Graph prerequisites mean required code and local evidence. A dependent hardware gate still requires real evidence; unavailable optional bridge/premium runtime must not block unrelated base code. WP-17 is not a G4 prerequisite.",
+  "tasks": [
+    {
+      "id": "WP-00",
+      "title": "Adopt, pin, audit, and choose authorized repository path",
+      "depends_on": [],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "docs/",
+        "planning/",
+        "AGENTS.md",
+        "START_HERE.md",
+        "tools/bootstrap_repository.py"
+      ],
+      "requirements": [
+        "R-GOV-001",
+        "R-GOV-002",
+        "R-GOV-003",
+        "R-GOV-004",
+        "R-GOV-005",
+        "R-REP-001",
+        "R-REP-002",
+        "R-REP-003",
+        "R-AUD-001",
+        "R-AUD-002",
+        "R-SCP-003"
+      ],
+      "acceptance_tests": [
+        "AT-076",
+        "AT-077"
+      ],
+      "deliverables": "Pinned baseline; source/reuse/dependency/rights inventories; baseline test report; explicit permission record.",
+      "exit_gate": "G0",
+      "prohibited_shortcuts": "Do not modify application behavior or create/push a remote without approval.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-00.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-01",
+      "title": "Freeze contracts and build independent test infrastructure",
+      "depends_on": [
+        "WP-00"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "contracts/",
+        "tools/",
+        "tests/v2/",
+        "planning/",
+        "docs/",
+        "pyproject.toml"
+      ],
+      "requirements": [
+        "R-SCP-004",
+        "R-REP-004",
+        "R-ARC-003",
+        "R-CFG-001",
+        "R-TST-001",
+        "R-TST-003",
+        "R-TST-004",
+        "R-DEV-003"
+      ],
+      "acceptance_tests": [
+        "AT-071",
+        "AT-074",
+        "AT-078"
+      ],
+      "deliverables": "Exact validated development locks; QA runner; schemas; fake clock/process/sink; original fixtures and independent expected outputs.",
+      "exit_gate": "LOCAL_FOUNDATION",
+      "prohibited_shortcuts": "No model download or UI redesign to hide missing domain tests.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-01.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-02",
+      "title": "Implement pure coordinator, identity and scheduling",
+      "depends_on": [
+        "WP-01"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/core/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-ARC-002",
+        "R-DAT-001",
+        "R-DAT-002",
+        "R-DAT-003",
+        "R-CTL-001",
+        "R-CTL-002",
+        "R-CTL-003",
+        "R-CTL-004",
+        "R-CTL-005",
+        "R-CTL-006",
+        "R-IPC-005",
+        "R-TST-002"
+      ],
+      "acceptance_tests": [
+        "AT-001",
+        "AT-002",
+        "AT-003",
+        "AT-006",
+        "AT-009",
+        "AT-010",
+        "AT-011",
+        "AT-012",
+        "AT-014",
+        "AT-016",
+        "AT-017",
+        "AT-018",
+        "AT-019",
+        "AT-070",
+        "AT-072"
+      ],
+      "deliverables": "Pure reducer and complete transition table; immutable context; tombstones; bounded queues; failing mutants.",
+      "exit_gate": "G1_CORE",
+      "prohibited_shortcuts": "No Qt/ML imports in core; no timeout-based deduplication.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-02.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-03",
+      "title": "Implement subprocess protocol and supervision",
+      "depends_on": [
+        "WP-02"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-ARC-001",
+        "R-IPC-001",
+        "R-IPC-002",
+        "R-IPC-003",
+        "R-IPC-004",
+        "R-IPC-005",
+        "R-ERR-001"
+      ],
+      "acceptance_tests": [
+        "AT-007",
+        "AT-008",
+        "AT-009",
+        "AT-044",
+        "AT-045",
+        "AT-046",
+        "AT-047",
+        "AT-048",
+        "AT-049",
+        "AT-084"
+      ],
+      "deliverables": "Schema-validated QProcess adapters; bounded stdout/stderr; spool validation; Windows process-tree test; deadlines and circuit breaker.",
+      "exit_gate": "G1_CONTRACT",
+      "prohibited_shortcuts": "No localhost web server, binary streaming or pickle transport.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-03.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-04",
+      "title": "Implement audio service and physical Stop tests",
+      "depends_on": [
+        "WP-03"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-AUD-OUT-001",
+        "R-AUD-OUT-002",
+        "R-AUD-OUT-003",
+        "R-CTL-004",
+        "R-CTL-005",
+        "R-CTL-006"
+      ],
+      "acceptance_tests": [
+        "AT-001",
+        "AT-004",
+        "AT-005",
+        "AT-013",
+        "AT-055",
+        "AT-056"
+      ],
+      "deliverables": "One audio owner; reset/ack fence; sink-epoch drain accounting; device selection/recovery; measured Stop evidence.",
+      "exit_gate": "AUDIO_SLICE",
+      "prohibited_shortcuts": "No alternative playback path for previews/cache.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-04.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-05",
+      "title": "Implement selected-window capture, geometry, and OCR",
+      "depends_on": [
+        "WP-03"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/vision/",
+        "lvc/platform/windows/",
+        "profiles/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-OBS-001",
+        "R-OBS-002",
+        "R-OBS-003",
+        "R-OBS-004",
+        "R-TXT-001",
+        "R-TXT-002",
+        "R-TXT-003",
+        "R-DAT-003"
+      ],
+      "acceptance_tests": [
+        "AT-029",
+        "AT-030",
+        "AT-031",
+        "AT-032",
+        "AT-033",
+        "AT-034",
+        "AT-040",
+        "AT-041",
+        "AT-042",
+        "AT-043",
+        "AT-084"
+      ],
+      "deliverables": "Verified Qt capture adapter or approved scoped replacement; bounded detector/OCR; preservation-first text; geometry/provenance fixtures.",
+      "exit_gate": "VISION_SLICE",
+      "prohibited_shortcuts": "No arbitrary desktop capture or destructive text repair.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-05.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-06",
+      "title": "Implement Kokoro CPU and manual end-to-end slice",
+      "depends_on": [
+        "WP-04",
+        "WP-05"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/tts/",
+        "lvc/host/",
+        "assets/manifests/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-SCP-002",
+        "R-TTS-001",
+        "R-TTS-003",
+        "R-TTS-005",
+        "R-IPC-003"
+      ],
+      "acceptance_tests": [
+        "AT-050",
+        "AT-052",
+        "AT-054",
+        "AT-061",
+        "AT-069"
+      ],
+      "deliverables": "Real approved CPU speech via isolated worker; manual Read/Preview/Stop; actual target environment report.",
+      "exit_gate": "G2",
+      "prohibited_shortcuts": "Do not claim passing real speech from fake PCM only.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-06.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-07",
+      "title": "Implement optional namespaced bridge and robust tailer",
+      "depends_on": [
+        "WP-03"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "bridge/",
+        "lvc/vision/",
+        "lvc/platform/windows/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-LOG-001",
+        "R-LOG-002",
+        "R-LOG-003"
+      ],
+      "acceptance_tests": [
+        "AT-020",
+        "AT-021",
+        "AT-022",
+        "AT-023",
+        "AT-024",
+        "AT-025",
+        "AT-026",
+        "AT-027",
+        "AT-028"
+      ],
+      "deliverables": "Documented capability probe; binary tailer; typed hint handling; optional own-namespace installer.",
+      "exit_gate": "BRIDGE_OPTIONAL",
+      "prohibited_shortcuts": "No invented API; no game-side install without approval; bridge absence cannot block G2.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-07.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-08",
+      "title": "Implement automatic pages and scroll ledger",
+      "depends_on": [
+        "WP-06"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/core/",
+        "lvc/vision/",
+        "profiles/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-OBS-003",
+        "R-TXT-004",
+        "R-CTL-001",
+        "R-CTL-002",
+        "R-CTL-003",
+        "R-CTL-004"
+      ],
+      "acceptance_tests": [
+        "AT-010",
+        "AT-011",
+        "AT-012",
+        "AT-016",
+        "AT-017",
+        "AT-019",
+        "AT-033",
+        "AT-034",
+        "AT-035"
+      ],
+      "deliverables": "Qualified stock-panel tracker; same-NPC changes; conservative ordered scroll; negative-screen and dedup reports.",
+      "exit_gate": "G3_BEHAVIOR",
+      "prohibited_shortcuts": "No broadening to custom skins or auto chat.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-08.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-09",
+      "title": "Implement stable voice library and lexicon",
+      "depends_on": [
+        "WP-06"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/core/",
+        "lvc/tts/",
+        "lvc/storage/",
+        "assets/manifests/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-TTS-002",
+        "R-TTS-004",
+        "R-DAT-002"
+      ],
+      "acceptance_tests": [
+        "AT-028",
+        "AT-051",
+        "AT-053",
+        "AT-083"
+      ],
+      "deliverables": "Persisted mappings; exact engine realizations; data-only lexicon; preview using same renderer.",
+      "exit_gate": "VOICE_LIBRARY",
+      "prohibited_shortcuts": "No actor cloning or automatic recasting.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-09.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-10",
+      "title": "Implement persistence, cache and migrations",
+      "depends_on": [
+        "WP-06"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/storage/",
+        "lvc/host/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-STO-001",
+        "R-STO-002",
+        "R-STO-003"
+      ],
+      "acceptance_tests": [
+        "AT-004",
+        "AT-057",
+        "AT-058",
+        "AT-059",
+        "AT-065",
+        "AT-085"
+      ],
+      "deliverables": "Single-writer SQLite; exact audio cache; atomic files; backups; corruption and disk-floor tests.",
+      "exit_gate": "STORAGE",
+      "prohibited_shortcuts": "Do not copy a live SQLite main file as a complete backup.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-10.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-11",
+      "title": "Implement complete Qt UX and safe legacy import",
+      "depends_on": [
+        "WP-08",
+        "WP-09",
+        "WP-10"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/host/",
+        "lvc/platform/windows/",
+        "lvc/adapters/legacy/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-UX-001",
+        "R-UX-002",
+        "R-UX-003",
+        "R-CFG-001"
+      ],
+      "acceptance_tests": [
+        "AT-014",
+        "AT-015",
+        "AT-018",
+        "AT-043",
+        "AT-055",
+        "AT-065",
+        "AT-066",
+        "AT-067"
+      ],
+      "deliverables": "Keyboard-accessible UI; first-run diagnostics; exact preview confirmation; import preview/idempotence.",
+      "exit_gate": "UX_BETA",
+      "prohibited_shortcuts": "No second toolkit or focus-stealing overlays.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-11.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-12",
+      "title": "Implement and qualify OmniVoice adapter",
+      "depends_on": [
+        "WP-06",
+        "WP-09"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/tts/",
+        "assets/manifests/",
+        "benchmarks/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-TTS-001",
+        "R-TTS-005",
+        "R-REL-004"
+      ],
+      "acceptance_tests": [
+        "AT-047",
+        "AT-048",
+        "AT-050",
+        "AT-054",
+        "AT-081",
+        "AT-083"
+      ],
+      "deliverables": "Premium adapter plus real qualification report or explicit hardware/rights blocker; profile disabled until gates pass.",
+      "exit_gate": "PREMIUM_CONDITIONAL",
+      "prohibited_shortcuts": "A failed premium profile does not block CPU release.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-12.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-13",
+      "title": "Harden security, privacy and cross-system faults",
+      "depends_on": [
+        "WP-07",
+        "WP-11"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "lvc/",
+        "tests/v2/",
+        "tools/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-SEC-001",
+        "R-SEC-002",
+        "R-SEC-003",
+        "R-ERR-001",
+        "R-IPC-005"
+      ],
+      "acceptance_tests": [
+        "AT-044",
+        "AT-046",
+        "AT-060",
+        "AT-061",
+        "AT-065",
+        "AT-068",
+        "AT-069",
+        "AT-074",
+        "AT-085"
+      ],
+      "deliverables": "Offline proof; content-redacted diagnostics; safe imports/archives; fault injection and rights release map.",
+      "exit_gate": "HARDENED_BETA",
+      "prohibited_shortcuts": "Do not waive core safeguards to get a clean demo.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-13.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-14",
+      "title": "Build installer, runtime bundles, repair and rollback",
+      "depends_on": [
+        "WP-13"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "packaging/",
+        "assets/manifests/",
+        "tools/",
+        "tests/v2/",
+        ".github/workflows/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-PKG-001",
+        "R-PKG-002",
+        "R-PKG-003",
+        "R-STO-003",
+        "R-TST-004"
+      ],
+      "acceptance_tests": [
+        "AT-059",
+        "AT-060",
+        "AT-062",
+        "AT-063",
+        "AT-064",
+        "AT-074"
+      ],
+      "deliverables": "Relocatable tested bundles; standard-user clean install; signature policy; stage interruption/repair/rollback reports.",
+      "exit_gate": "PACKAGE_CANDIDATE",
+      "prohibited_shortcuts": "Production signing/hosting/publication require authority; unsigned dev builds labeled.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-14.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-15",
+      "title": "Execute held-out and real-machine qualification",
+      "depends_on": [
+        "WP-14"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "benchmarks/",
+        "tests/v2/",
+        "docs/",
+        "planning/"
+      ],
+      "requirements": [
+        "R-SCP-001",
+        "R-REL-002",
+        "R-REL-003",
+        "R-TST-002",
+        "R-TST-003",
+        "R-TST-004"
+      ],
+      "acceptance_tests": [
+        "AT-071",
+        "AT-072",
+        "AT-073",
+        "AT-079",
+        "AT-083"
+      ],
+      "deliverables": "Frozen-profile holdout results; real timing/game-impact; eight-hour soak; thirty sessions/quit cycles; no invented metrics.",
+      "exit_gate": "G3_AND_G4_EVIDENCE",
+      "prohibited_shortcuts": "Failure requires scoped fix/retest; do not tune on heldout and call it untouched.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-15.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-16",
+      "title": "Independent release audit and handoff",
+      "depends_on": [
+        "WP-12",
+        "WP-15"
+      ],
+      "activation": "REQUIRED_IMPLEMENTATION",
+      "allowed_paths": [
+        "docs/",
+        "planning/",
+        "packaging/"
+      ],
+      "requirements": [
+        "R-GOV-005",
+        "R-REL-001",
+        "R-REL-004",
+        "R-DEV-001",
+        "R-DEV-002",
+        "R-DEV-003"
+      ],
+      "acceptance_tests": [
+        "AT-075",
+        "AT-076",
+        "AT-077",
+        "AT-078",
+        "AT-080"
+      ],
+      "deliverables": "Exact candidate evidence matrix, supported matrix, rights/notices, known limitations, recovery runbook; owner-approved publication only.",
+      "exit_gate": "G4",
+      "prohibited_shortcuts": "CODE_COMPLETE_HARDWARE_BLOCKED is not release-ready.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-16.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    },
+    {
+      "id": "WP-17",
+      "title": "Optional authorized visible-span corpus",
+      "depends_on": [
+        "WP-08",
+        "WP-10"
+      ],
+      "activation": "OPTIONAL_REQUIRES_CORPUS_SCOPE_AUTHORIZATION",
+      "allowed_paths": [
+        "lvc/vision/",
+        "lvc/core/",
+        "assets/manifests/",
+        "benchmarks/",
+        "tests/v2/",
+        "docs/"
+      ],
+      "requirements": [
+        "R-COR-001",
+        "R-COR-002",
+        "R-REL-004"
+      ],
+      "acceptance_tests": [
+        "AT-036",
+        "AT-037",
+        "AT-038",
+        "AT-039",
+        "AT-082"
+      ],
+      "deliverables": "Optional resolver, synthetic contradiction tests, authorized manifest and heldout evidence; keep disabled if not qualified.",
+      "exit_gate": "CORPUS_CONDITIONAL",
+      "prohibited_shortcuts": "No scraping substitute, full-section expansion or dependency on corpus for base release.",
+      "status": "NOT_STARTED",
+      "report_required": "docs/evidence/WP-17.json",
+      "standard_steps": [
+        "Inspect pinned relevant source and current contracts.",
+        "Reproduce defect or write failing desired-behavior test with independent oracle.",
+        "Implement smallest scoped change.",
+        "Run applicable QA; preserve real output and environment.",
+        "Review changes against requirements and permission boundaries.",
+        "Record PASS/FAIL/BLOCKED evidence and update traceability; do not auto-publish."
+      ]
+    }
+  ]
+}

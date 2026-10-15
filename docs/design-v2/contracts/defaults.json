@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "spec_version": "2.0",
+  "scope": {
+    "platform": "windows11_x64",
+    "locale": "en",
+    "capture": "selected_window",
+    "corpus_enabled": false,
+    "bridge_enabled": false
+  },
+  "control": {
+    "auto_on_launch": false,
+    "on_new_page": "replace",
+    "on_panel_close": "stop",
+    "suspend_on_focus_loss": true,
+    "automatic_resume": false,
+    "page_backlog": 0,
+    "max_domain_events": 256,
+    "max_events_per_drain": 32,
+    "max_drain_ms": 5
+  },
+  "capture": {
+    "idle_hz": 2,
+    "changing_hz": 8,
+    "stable_ms": 300,
+    "close_confirmation_checks": 2,
+    "close_min_interval_ms": 125,
+    "max_frames": 2,
+    "max_active_ocr": 1,
+    "max_latest_observations": 1
+  },
+  "ocr": {
+    "engine": "tesseract",
+    "agreement_passes": 2,
+    "minimum_word_confidence": 40,
+    "minimum_median_confidence": 85,
+    "title_reading": false,
+    "minimum_scroll_overlap_tokens": 12,
+    "profile_id": null
+  },
+  "bridge": {
+    "prefix": "LVC1|",
+    "max_line_bytes": 16384,
+    "max_name_codepoints": 200,
+    "hint_ttl_ms": 2000,
+    "read_bytes_per_tick": 65536,
+    "present_poll_hz": 4,
+    "missing_poll_hz": 0.5,
+    "legacy_mode": false
+  },
+  "worker": {
+    "startup_ms": 120000,
+    "observation_ms": 3000,
+    "cpu_unit_ms": 8000,
+    "premium_unit_ms": 15000,
+    "heartbeat_ms": 1000,
+    "unresponsive_ms": 5000,
+    "cancel_ack_ms": 250,
+    "cancel_terminal_ms": 1000,
+    "shutdown_ms": 2000,
+    "restart_limit": 2,
+    "restart_window_ms": 300000
+  },
+  "ipc": {
+    "major": 1,
+    "minor": 0,
+    "max_line_bytes_including_lf": 262144,
+    "max_pending_stdout_bytes": 1048576,
+    "max_stderr_tail_bytes": 1048576,
+    "max_messages_per_drain": 32,
+    "max_drain_ms": 5
+  },
+  "speech": {
+    "default_engine": "kokoro_cpu",
+    "premium_enabled": false,
+    "default_voice_realization": null,
+    "unit_max_codepoints": 280,
+    "unit_max_seconds": 30,
+    "max_active_synthesis": 1,
+    "max_prepared_next_units": 1,
+    "unit_max_file_bytes": 16777216,
+    "max_admitted_spool_bytes": 33554432,
+    "max_admitted_spool_seconds": 60,
+    "gain_abs_max_db": 12,
+    "silence_peak_threshold": 0.0001
+  },
+  "audio": {
+    "rate_hz": 48000,
+    "channels": 1,
+    "format": "s16le",
+    "requested_sink_buffer_ms": 50,
+    "decoded_ring_ms": 500,
+    "pump_ms": 10,
+    "follow_system_default": false,
+    "device_id": null
+  },
+  "cache": {
+    "enabled": true,
+    "max_bytes": 5368709120,
+    "minimum_free_bytes": 2147483648
+  },
+  "privacy": {
+    "persist_screenshots": false,
+    "telemetry": false,
+    "cloud_inference": false,
+    "history_enabled": true,
+    "history_max_snapshots": 50,
+    "log_max_days": 7,
+    "log_max_bytes": 52428800,
+    "log_full_text": false,
+    "manual_updates_only": true
+  },
+  "hotkeys": {
+    "read": "Ctrl+Alt+R",
+    "stop": "Ctrl+Alt+S",
+    "pause": "Ctrl+Alt+P"
+  },
+  "corpus": {
+    "enabled": false,
+    "title_candidates": 5,
+    "title_min": 0.95,
+    "body_min": 0.97,
+    "coverage_min": 0.95,
+    "margin_min": 0.08,
+    "title_weight": 0.25,
+    "body_weight": 0.75,
+    "minimum_body_tokens": 20,
+    "minimum_heldout_accepted_cases": 3000
+  }
+}

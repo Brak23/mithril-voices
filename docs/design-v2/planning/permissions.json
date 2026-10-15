@@ -1,0 +1,15 @@
+{
+  "spec_version": "2.0",
+  "local_working_repository": null,
+  "github_owner": null,
+  "target_repo_name": "lotro-voice-companion",
+  "public_fork_approved": false,
+  "first_push_approved": false,
+  "merge_policy_approved": false,
+  "publish_release_approved": false,
+  "install_lua_bridge_approved": false,
+  "upload_gameplay_data_approved": false,
+  "paid_actions_approved": false,
+  "evidence": [],
+  "note": "These are unset permissions, not a request to reset already supplied explicit authority. Populate only from actual owner authorization, with evidence."
+}

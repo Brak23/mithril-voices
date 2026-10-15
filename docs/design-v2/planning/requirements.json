@@ -1,0 +1,1162 @@
+{
+  "spec_version": "2.0",
+  "requirements": [
+    {
+      "id": "R-GOV-001",
+      "title": "Authority and conflict handling",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075",
+        "AT-078"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-GOV-002",
+      "title": "Evidence integrity",
+      "applicability": "CORE",
+      "tests": [
+        "AT-071",
+        "AT-075"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-GOV-003",
+      "title": "Fail closed without abandoning useful work",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-GOV-004",
+      "title": "Autonomous work boundaries",
+      "applicability": "CORE",
+      "tests": [
+        "AT-076"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-GOV-005",
+      "title": "Honest completion and limitations",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075"
+      ],
+      "tasks": [
+        "WP-00",
+        "WP-16"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SCP-001",
+      "title": "Supported target",
+      "applicability": "CORE",
+      "tests": [
+        "AT-041",
+        "AT-073"
+      ],
+      "tasks": [
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SCP-002",
+      "title": "Required version-1 functionality",
+      "applicability": "CORE",
+      "tests": [
+        "AT-069"
+      ],
+      "tasks": [
+        "WP-06"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SCP-003",
+      "title": "Explicit exclusions",
+      "applicability": "CORE",
+      "tests": [
+        "AT-026",
+        "AT-068"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SCP-004",
+      "title": "Fixed platform",
+      "applicability": "CORE",
+      "tests": [
+        "AT-050",
+        "AT-062",
+        "AT-077"
+      ],
+      "tasks": [
+        "WP-01"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REP-001",
+      "title": "Pinned reference and local bootstrap",
+      "applicability": "CORE",
+      "tests": [
+        "AT-076"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REP-002",
+      "title": "Remote fork and visibility authorization",
+      "applicability": "CORE",
+      "tests": [
+        "AT-076"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REP-003",
+      "title": "Branch, review, and upstream policy",
+      "applicability": "CORE",
+      "tests": [
+        "AT-076"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REP-004",
+      "title": "Repository structure and incremental replacement",
+      "applicability": "CORE",
+      "tests": [
+        "AT-077"
+      ],
+      "tasks": [
+        "WP-01"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-AUD-001",
+      "title": "Audit deliverables before application edits",
+      "applicability": "CORE",
+      "tests": [
+        "AT-077"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-AUD-002",
+      "title": "Required defect fixes and regression evidence",
+      "applicability": "CORE",
+      "tests": [
+        "AT-007",
+        "AT-010",
+        "AT-020",
+        "AT-030",
+        "AT-060",
+        "AT-062",
+        "AT-070",
+        "AT-074"
+      ],
+      "tasks": [
+        "WP-00"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-ARC-001",
+      "title": "Small process topology",
+      "applicability": "CORE",
+      "tests": [
+        "AT-050",
+        "AT-077"
+      ],
+      "tasks": [
+        "WP-03"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-ARC-002",
+      "title": "Thread ownership and event execution",
+      "applicability": "CORE",
+      "tests": [
+        "AT-006",
+        "AT-010",
+        "AT-017"
+      ],
+      "tasks": [
+        "WP-02"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-ARC-003",
+      "title": "Interfaces and dependency rules",
+      "applicability": "CORE",
+      "tests": [
+        "AT-077"
+      ],
+      "tasks": [
+        "WP-01"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DAT-001",
+      "title": "Required identities",
+      "applicability": "CORE",
+      "tests": [
+        "AT-002",
+        "AT-040"
+      ],
+      "tasks": [
+        "WP-02"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DAT-002",
+      "title": "Text identity and provenance",
+      "applicability": "CORE",
+      "tests": [
+        "AT-028",
+        "AT-053"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-09"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DAT-003",
+      "title": "Time and freshness",
+      "applicability": "CORE",
+      "tests": [
+        "AT-029",
+        "AT-042"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-OBS-001",
+      "title": "Window selection and privacy boundary",
+      "applicability": "CORE",
+      "tests": [
+        "AT-029",
+        "AT-040",
+        "AT-042",
+        "AT-084"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-OBS-002",
+      "title": "Geometry model and invalidation",
+      "applicability": "CORE",
+      "tests": [
+        "AT-041"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-OBS-003",
+      "title": "Bounded capture and stable panel acceptance",
+      "applicability": "CORE",
+      "tests": [
+        "AT-010",
+        "AT-012",
+        "AT-029",
+        "AT-041"
+      ],
+      "tasks": [
+        "WP-05",
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-OBS-004",
+      "title": "Manual selection and preview",
+      "applicability": "CORE",
+      "tests": [
+        "AT-018",
+        "AT-033",
+        "AT-043"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-LOG-001",
+      "title": "Capability discovery, not invented APIs",
+      "applicability": "CORE",
+      "tests": [
+        "AT-026",
+        "AT-069"
+      ],
+      "tasks": [
+        "WP-07"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-LOG-002",
+      "title": "Bridge protocol and installation",
+      "applicability": "CORE",
+      "tests": [
+        "AT-022",
+        "AT-023",
+        "AT-027",
+        "AT-028"
+      ],
+      "tasks": [
+        "WP-07"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-LOG-003",
+      "title": "Binary tail algorithm",
+      "applicability": "CORE",
+      "tests": [
+        "AT-011",
+        "AT-020",
+        "AT-021",
+        "AT-022",
+        "AT-023",
+        "AT-024",
+        "AT-025"
+      ],
+      "tasks": [
+        "WP-07"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TXT-001",
+      "title": "Preservation-first normalization",
+      "applicability": "CORE",
+      "tests": [
+        "AT-030",
+        "AT-031",
+        "AT-032"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TXT-002",
+      "title": "OCR quality rule",
+      "applicability": "CORE",
+      "tests": [
+        "AT-016",
+        "AT-034"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TXT-003",
+      "title": "Visible scope and clipped lines",
+      "applicability": "CORE",
+      "tests": [
+        "AT-032",
+        "AT-033"
+      ],
+      "tasks": [
+        "WP-05"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TXT-004",
+      "title": "Scroll continuation and repeated wording",
+      "applicability": "CORE",
+      "tests": [
+        "AT-035"
+      ],
+      "tasks": [
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-001",
+      "title": "Separate observation and playback state",
+      "applicability": "CORE",
+      "tests": [
+        "AT-009",
+        "AT-017",
+        "AT-072"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-002",
+      "title": "Exact command behavior",
+      "applicability": "CORE",
+      "tests": [
+        "AT-012",
+        "AT-014",
+        "AT-015",
+        "AT-018",
+        "AT-042"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-003",
+      "title": "Duplicate suppression and new pages",
+      "applicability": "CORE",
+      "tests": [
+        "AT-003",
+        "AT-010",
+        "AT-011",
+        "AT-012",
+        "AT-016"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-004",
+      "title": "Stop is an irreversible fence for old work",
+      "applicability": "CORE",
+      "tests": [
+        "AT-001",
+        "AT-002",
+        "AT-003",
+        "AT-004",
+        "AT-019",
+        "AT-047"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-04",
+        "WP-08"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-005",
+      "title": "Pause and resume",
+      "applicability": "CORE",
+      "tests": [
+        "AT-013",
+        "AT-055"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-04"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CTL-006",
+      "title": "Queue policy and completion",
+      "applicability": "CORE",
+      "tests": [
+        "AT-005",
+        "AT-007",
+        "AT-085"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-04"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-COR-001",
+      "title": "Off by default and separately qualified",
+      "applicability": "CONDITIONAL",
+      "tests": [
+        "AT-039",
+        "AT-069"
+      ],
+      "tasks": [
+        "WP-17"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-COR-002",
+      "title": "Acceptance algorithm",
+      "applicability": "CONDITIONAL",
+      "tests": [
+        "AT-036",
+        "AT-037",
+        "AT-038",
+        "AT-039",
+        "AT-082"
+      ],
+      "tasks": [
+        "WP-17"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-IPC-001",
+      "title": "Transport and message validation",
+      "applicability": "CORE",
+      "tests": [
+        "AT-044",
+        "AT-045",
+        "AT-084"
+      ],
+      "tasks": [
+        "WP-03"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-IPC-002",
+      "title": "Handshake and request lifecycle",
+      "applicability": "CORE",
+      "tests": [
+        "AT-001",
+        "AT-007",
+        "AT-008",
+        "AT-009",
+        "AT-045",
+        "AT-084"
+      ],
+      "tasks": [
+        "WP-03"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-IPC-003",
+      "title": "Complete-unit PCM spool, not unbounded streaming",
+      "applicability": "CORE",
+      "tests": [
+        "AT-046",
+        "AT-054"
+      ],
+      "tasks": [
+        "WP-03",
+        "WP-06"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-IPC-004",
+      "title": "Exact timeout and recovery policy",
+      "applicability": "CORE",
+      "tests": [
+        "AT-008",
+        "AT-047",
+        "AT-048",
+        "AT-049"
+      ],
+      "tasks": [
+        "WP-03"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-IPC-005",
+      "title": "Queue limits and backpressure",
+      "applicability": "CORE",
+      "tests": [
+        "AT-006",
+        "AT-072",
+        "AT-079"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-03",
+        "WP-13"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TTS-001",
+      "title": "Engine implementation and runtime qualification",
+      "applicability": "CORE",
+      "tests": [
+        "AT-050",
+        "AT-081"
+      ],
+      "tasks": [
+        "WP-06",
+        "WP-12"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TTS-002",
+      "title": "Stable voice assignments",
+      "applicability": "CORE",
+      "tests": [
+        "AT-028",
+        "AT-051",
+        "AT-083"
+      ],
+      "tasks": [
+        "WP-09"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TTS-003",
+      "title": "Chunking without losing text",
+      "applicability": "CORE",
+      "tests": [
+        "AT-052"
+      ],
+      "tasks": [
+        "WP-06"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TTS-004",
+      "title": "Pronunciation without rewriting display text",
+      "applicability": "CORE",
+      "tests": [
+        "AT-053",
+        "AT-083"
+      ],
+      "tasks": [
+        "WP-09"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TTS-005",
+      "title": "Audio quality screening and honest fidelity",
+      "applicability": "CORE",
+      "tests": [
+        "AT-046",
+        "AT-054",
+        "AT-083"
+      ],
+      "tasks": [
+        "WP-06",
+        "WP-12"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-AUD-OUT-001",
+      "title": "Single persistent owner and final fence",
+      "applicability": "CORE",
+      "tests": [
+        "AT-001",
+        "AT-004",
+        "AT-056"
+      ],
+      "tasks": [
+        "WP-04"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-AUD-OUT-002",
+      "title": "Completion and underrun accounting",
+      "applicability": "CORE",
+      "tests": [
+        "AT-005",
+        "AT-013",
+        "AT-056"
+      ],
+      "tasks": [
+        "WP-04"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-AUD-OUT-003",
+      "title": "Device selection and recovery",
+      "applicability": "CORE",
+      "tests": [
+        "AT-055"
+      ],
+      "tasks": [
+        "WP-04"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-STO-001",
+      "title": "Local paths and state ownership",
+      "applicability": "CORE",
+      "tests": [
+        "AT-015",
+        "AT-058",
+        "AT-066",
+        "AT-079",
+        "AT-085"
+      ],
+      "tasks": [
+        "WP-10"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-STO-002",
+      "title": "Exact cache identity and atomicity",
+      "applicability": "CORE",
+      "tests": [
+        "AT-004",
+        "AT-057",
+        "AT-058"
+      ],
+      "tasks": [
+        "WP-10"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-STO-003",
+      "title": "Backup, upgrades, and downgrade safety",
+      "applicability": "CORE",
+      "tests": [
+        "AT-059"
+      ],
+      "tasks": [
+        "WP-10",
+        "WP-14"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-UX-001",
+      "title": "Minimal interface and clear failure states",
+      "applicability": "CORE",
+      "tests": [
+        "AT-014",
+        "AT-056",
+        "AT-067"
+      ],
+      "tasks": [
+        "WP-11"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-UX-002",
+      "title": "First-run and diagnostics journey",
+      "applicability": "CORE",
+      "tests": [
+        "AT-043",
+        "AT-061",
+        "AT-065",
+        "AT-067"
+      ],
+      "tasks": [
+        "WP-11"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-UX-003",
+      "title": "Safe import from Khazad",
+      "applicability": "CORE",
+      "tests": [
+        "AT-064",
+        "AT-066"
+      ],
+      "tasks": [
+        "WP-11"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SEC-001",
+      "title": "Data is never instructions",
+      "applicability": "CORE",
+      "tests": [
+        "AT-044",
+        "AT-046",
+        "AT-068"
+      ],
+      "tasks": [
+        "WP-13"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SEC-002",
+      "title": "Offline and content-retention defaults",
+      "applicability": "CORE",
+      "tests": [
+        "AT-040",
+        "AT-061",
+        "AT-065"
+      ],
+      "tasks": [
+        "WP-13"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-SEC-003",
+      "title": "Rights and public-release gate",
+      "applicability": "CORE",
+      "tests": [
+        "AT-060",
+        "AT-074",
+        "AT-083"
+      ],
+      "tasks": [
+        "WP-13"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-PKG-001",
+      "title": "Reproducible runtime bundles",
+      "applicability": "CORE",
+      "tests": [
+        "AT-062",
+        "AT-074"
+      ],
+      "tasks": [
+        "WP-14"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-PKG-002",
+      "title": "Clean installation and repair",
+      "applicability": "CORE",
+      "tests": [
+        "AT-027",
+        "AT-060",
+        "AT-064"
+      ],
+      "tasks": [
+        "WP-14"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-PKG-003",
+      "title": "Update state machine and rollback",
+      "applicability": "CORE",
+      "tests": [
+        "AT-059",
+        "AT-063"
+      ],
+      "tasks": [
+        "WP-14"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-ERR-001",
+      "title": "Stable error codes and permitted responses",
+      "applicability": "CORE",
+      "tests": [
+        "AT-048",
+        "AT-085"
+      ],
+      "tasks": [
+        "WP-03",
+        "WP-13"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-CFG-001",
+      "title": "Closed defaults and safe changes",
+      "applicability": "CORE",
+      "tests": [
+        "AT-078"
+      ],
+      "tasks": [
+        "WP-01",
+        "WP-11"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TST-001",
+      "title": "Test layers and ground truth",
+      "applicability": "CORE",
+      "tests": [
+        "AT-071"
+      ],
+      "tasks": [
+        "WP-01"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TST-002",
+      "title": "Adversarial schedules and mutation checks",
+      "applicability": "CORE",
+      "tests": [
+        "AT-070",
+        "AT-072"
+      ],
+      "tasks": [
+        "WP-02",
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TST-003",
+      "title": "Fixture provenance and separation",
+      "applicability": "CORE",
+      "tests": [
+        "AT-071"
+      ],
+      "tasks": [
+        "WP-01",
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-TST-004",
+      "title": "CI, local QA, and evidence reports",
+      "applicability": "CORE",
+      "tests": [
+        "AT-074",
+        "AT-080"
+      ],
+      "tasks": [
+        "WP-01",
+        "WP-14",
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REL-001",
+      "title": "Staged completion, not an all-or-nothing project",
+      "applicability": "CORE",
+      "tests": [
+        "AT-080"
+      ],
+      "tasks": [
+        "WP-16"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REL-002",
+      "title": "Correctness and responsiveness gates",
+      "applicability": "CORE",
+      "tests": [
+        "AT-073"
+      ],
+      "tasks": [
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REL-003",
+      "title": "Resource, recovery, and user-experience gates",
+      "applicability": "CORE",
+      "tests": [
+        "AT-073",
+        "AT-079",
+        "AT-083"
+      ],
+      "tasks": [
+        "WP-15"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-REL-004",
+      "title": "Conditional extension gates",
+      "applicability": "CONDITIONAL",
+      "tests": [
+        "AT-080",
+        "AT-081",
+        "AT-082"
+      ],
+      "tasks": [
+        "WP-12",
+        "WP-16",
+        "WP-17"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DEV-001",
+      "title": "Bounded implementation sequence",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075"
+      ],
+      "tasks": [
+        "WP-16"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DEV-002",
+      "title": "Definition of done for every packet",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075"
+      ],
+      "tasks": [
+        "WP-16"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    },
+    {
+      "id": "R-DEV-003",
+      "title": "Agent instructions and start prompt",
+      "applicability": "CORE",
+      "tests": [
+        "AT-075",
+        "AT-080"
+      ],
+      "tasks": [
+        "WP-01",
+        "WP-16"
+      ],
+      "implementation_status": "NOT_STARTED",
+      "evidence_status": "NOT_RUN"
+    }
+  ]
+}

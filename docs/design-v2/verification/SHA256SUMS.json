@@ -1,0 +1,23 @@
+{
+  "scope": "REPOSITORY_ADOPTED_TEXT_COPY",
+  "files": {
+    "START_HERE.md": "1a9d765732b4d6f3130b1153ee6b8fe0315feaabedff15f941e4ebbb1ecf19ac",
+    "IMPLEMENTATION_SPEC.md": "3b0e769351a7a42ed2644e2594b5d3cb96063a84a314db529c24a3bda8ec4fe9",
+    "AGENTS.md": "f45e9d332da075f99e5807500b81474da3ff1caa4b06ef3593ff404ab96849a8",
+    "contracts/defaults.json": "6333aefa42b0529d628c1b86a9ca0be4ab6d3747e9ced16511cc503983b3191f",
+    "contracts/README.md": "56d24b1c9e45a49acea913cd23994425c53e777ee61b3b7ce8c6fea759db5c1c",
+    "contracts/ipc.schema.json": "337d16ae14791995af5ba1cb4f668236a0ff58718179868bed6e2507cb16579e",
+    "contracts/ipc.examples.json": "6fda471eef47d0ff8496039c44fc6b877210917be6530b80a41808b159fe9044",
+    "contracts/defaults.schema.json": "5dcca842413158575cc4b65b404ddc7d3c45a8bfde4e4dbca42467bfceca8a1d",
+    "contracts/behavior-matrix.json": "b533a22c950f7b173e006267e1751913c9a39cca05d94f04d0d3fb14da2695f6",
+    "planning/permissions.json": "68214899e9328215f07c82dd7cae6ff92a31dfc4182ee57d9a6451e2e7159d10",
+    "planning/requirements.json": "ba7a231444ef983e403fcee9f6b5501b955133f849dc884e3843918725c4c74d",
+    "planning/acceptance-tests.json": "56c08cbdf5ca780cfeba17a3fe447d6d44cea9ffcb27d8d9e4729543653fa501",
+    "planning/tasks.json": "cab8cc7b5500d9e859cdfdea7976047bf7d1320da220524df53375b56239e9d3",
+    "docs/sources.json": "dd8472b41464beba39be2dd6e573a26721e85a06c48f6e5674452490ae7df099",
+    "docs/FORK_RUNBOOK.md": "56dc17e14cd7fdd4595a2eb09004138f0d1a74f1c1a9dca3721f8cc7380910ee",
+    "docs/DECISION_TEMPLATE.md": "a39229ae0854f528eb4923cb79ac2f6c294b04d9bfa8eba7f3b4e90e76a0454f",
+    "verification/application-evidence-template.json": "20e1d4077cdf506032371d37c4fe73813e839bff15098c4f0c4dca321a9458d4",
+    "verification/validate_handoff.py": "1bb0fb79f510b2fb383b4cdc7748440cd0202c9e704ce7aa2564424e2efe0afc"
+  }
+}

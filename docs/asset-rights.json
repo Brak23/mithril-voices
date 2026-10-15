@@ -1,0 +1,1081 @@
+{
+  "status": "PARTIAL_SOURCE_INVENTORY_NOT_RIGHTS_APPROVAL",
+  "source_commit": "1c4c23f092fde34ce527ebb27309f57a8c5ec5bb",
+  "code_license_observation": {
+    "LICENSE": "Apache-2.0",
+    "pyproject.toml": "MIT",
+    "resolution": "UNRESOLVED"
+  },
+  "new_assets_published": false,
+  "inherited_files": [
+    {
+      "path": "data/layout_echoes.json",
+      "sha256": "c08ebdd55c33b41d3b2ec7d09d4d8e738c9d6093483eb957a4fd19c6239440d0",
+      "bytes": 261,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/npc_data.csv",
+      "sha256": "523c19e50e4848605fd004d0bd9f40fb9b1a8bc3aab3a7cf2fb25c5ee12fd562",
+      "bytes": 392678,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/npc_data.db",
+      "sha256": "2b96c54ef412a75889429f7b143ce0515124c77eb7719b05804b01092a1aad3f",
+      "bytes": 33570816,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/Maja Ruoho.wav",
+      "sha256": "b2186470aee93fc2a08bf59352328adaf110795ae58d10ac88acd5429739e516",
+      "bytes": 503372,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/Suad Qasim.wav",
+      "sha256": "c6ac4126ed4c1c7cdd6ea00b81bec438aaed9794ec17ad8d771b8185f8a075f6",
+      "bytes": 623692,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/Szofi Granger.wav",
+      "sha256": "9ebc6bbeb8d5d17f8d40a6ffe325992cd821ae9a826cf985c57d414739dba7b5",
+      "bytes": 468044,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/Tammie Ema.wav",
+      "sha256": "1ded1d0852b97d01a074aea1e0055ca9a9e827fa4a0c23b627fba4402223f9fd",
+      "bytes": 561228,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female.txt",
+      "sha256": "cdd6adc8decb073e61b4569cb335da7d9479f5cf5e154ff38c7f5f9492ff7d2e",
+      "bytes": 171,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_1.flac",
+      "sha256": "4308ee9db2a55460e3dc11aed8859028c43692a5fed60b98b1c35c1fe5a85881",
+      "bytes": 331445,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_10.flac",
+      "sha256": "4a491e6a4df3cf4352b9c2da1f6709167a2320c4842bd736bf4d28f314388b97",
+      "bytes": 333481,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_2.flac",
+      "sha256": "f977232730086882f2fc7a3c7a810e44e9a2e1c0109a017c0285510dcb6a1567",
+      "bytes": 314240,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_3.flac",
+      "sha256": "0bf0289047236919509039d546f1d28664c7000d9506747303ff0dd1dd75fb79",
+      "bytes": 358118,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_4.flac",
+      "sha256": "06a8b3f97a29c7b994505b395b642717e8c67a18316d868d4190c1aa61b1bbcb",
+      "bytes": 342195,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_5.flac",
+      "sha256": "6178bd2bf05ac8f179311f4f98889125586275df866acfd30cdd15043bc72f19",
+      "bytes": 329072,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_6.flac",
+      "sha256": "f6028e16ae1cd49474abdbbedc910fa33a0d61baf67b251ee567ba7b76ca3db0",
+      "bytes": 395839,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_7.flac",
+      "sha256": "70ea7823ab1f2545ba5d8108e456c617902a60880c79cb9a6382c5f59aca250a",
+      "bytes": 380178,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_8.flac",
+      "sha256": "549f348fba5f68da848c16896e719c46421020c857858170bd3de1fe7efa2fde",
+      "bytes": 303086,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_9.flac",
+      "sha256": "3638d08bf51fdb3836aaabd3328624f4b189374f7f508b108e5567e82f92c8fb",
+      "bytes": 326541,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_female/dwarf_female_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/Gilberto Mathias.wav",
+      "sha256": "dfa5332c1c35372140cf675fe32a014cd84f6854e69058e9301d5fff53644b3f",
+      "bytes": 503372,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/Ludvig Milivoj.wav",
+      "sha256": "126b325635d692fa364ac0985185a096f3f2922358242bc0448027fdc096cb35",
+      "bytes": 483404,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/Luis Moray.wav",
+      "sha256": "fe7283bff37c7df812830888211c768b5910981335a18b614b2d9dfc8747e423",
+      "bytes": 463436,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/Viktor Eka.wav",
+      "sha256": "de62b9efbd055808bd12ec3b64cca4e0e4c9fa90c8d6816271cd66848debd6a3",
+      "bytes": 577100,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/Wulf Carlevaro.wav",
+      "sha256": "76f8bf85cfe1a96384c3364ce8e7c34403a8d1851fa248e1f10a19494ca44cc8",
+      "bytes": 485452,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male.txt",
+      "sha256": "13c826f23122bcc21509179cc474da123e0648162b27fa119651f78c95b093eb",
+      "bytes": 189,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_1.flac",
+      "sha256": "5ddeb6ec229b27064230d9149b3a9872d1f84c367d324b9033445e8e62a914ef",
+      "bytes": 319998,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_10.flac",
+      "sha256": "82630442b4cdda33ea54910124f5ba07e4008561817182ea2d017cd5aabfb5b6",
+      "bytes": 322279,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_2.flac",
+      "sha256": "5f749a494e64e077ec73d8dc80ffda6987277fe442e3e47a53257e2fc7abbdc6",
+      "bytes": 306441,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_3.flac",
+      "sha256": "cd3124cb3f0c539ae9a84e7449569ebefe184d52a9c7c74567ba799cd198dcc7",
+      "bytes": 366827,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_4.flac",
+      "sha256": "bd1363309a235aa36ddc4b1f341ac62ab1e44bfb9922988f91a91edd718907d3",
+      "bytes": 345841,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_5.flac",
+      "sha256": "80cf854532304c6f9701653ff947ddea56f3b9ec1f21d4feb0c53183949e789f",
+      "bytes": 309449,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_6.flac",
+      "sha256": "7d5d3ae4c1e9b7c2f928e0671c4b49e6220336d0040e1c5edf8adf4432d80141",
+      "bytes": 345995,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_7.flac",
+      "sha256": "9d8a96b301f2a46525d52e4a0bf84faec6d6364d2ed2216633df38c98bb3849c",
+      "bytes": 328526,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_8.flac",
+      "sha256": "60c8ddefe6274611b33ed13ac256c1e32d422c138c92cd25b895a674901ee6bd",
+      "bytes": 331402,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_9.flac",
+      "sha256": "d09982be467a3df6335d8490d257610728242008e31ffeb1f1c44aca36ecc08c",
+      "bytes": 341723,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/dwarf_male/dwarf_male_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Gitta Nikolina.wav",
+      "sha256": "0425ece946939868a8bf6084ed44cd7291346308d1fde7cc5b900c44ebf80a77",
+      "bytes": 547916,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Gracie Wise.wav",
+      "sha256": "32a767f583a8070f5847188ab404e16fbe0f9f60a6d361081cc4531de845c326",
+      "bytes": 659532,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Henriette Usha.wav",
+      "sha256": "a0a972a0251539f301a836058379cfbef6c008a45ffff3d3c4d9189d45a83303",
+      "bytes": 702028,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Narelle Moon.wav",
+      "sha256": "259d4566390bf1acbe856fddadf587999d2e542b21705964852c3567b75175a9",
+      "bytes": 534604,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Nova Hogarth.wav",
+      "sha256": "64d432e1cf21e9b4053c3ff0754a6e08fbe5fc06f931aaac69d62eadf6c77a48",
+      "bytes": 550476,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Tammy Grit.wav",
+      "sha256": "d0758f4f8f5f5d164687dc7e485989c71763ac95ccdbd795a19153d273d89846",
+      "bytes": 463436,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Vjollca Johnnie.wav",
+      "sha256": "0e5e0df1e2321bcb1a745e63a58b5e128dfa2f1cbdd4467415c9e829f20ba7ea",
+      "bytes": 577100,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/Zofija Kendrick.wav",
+      "sha256": "665c966f3e21dc6338dfd96ecef3f43a538492658751d58832cc85cca27cd58f",
+      "bytes": 488012,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female.txt",
+      "sha256": "2cb6be47b7771ff9c1e0c9d6d52e822e433324c318c515c3ddc8b6eacfea2cab",
+      "bytes": 173,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_1.flac",
+      "sha256": "e6319903844c227c166218fe4d7929fda662b99ee29c98932d2b993e0fc6ce74",
+      "bytes": 308854,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_10.flac",
+      "sha256": "9df06d719bc14d9d0b2eaf2b1881aa8e4995cbe00b2f6e856e1c44f3efc033c8",
+      "bytes": 382141,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_2.flac",
+      "sha256": "9b218d9641b023f553094153314a841efe970751358c8f0b72131e3ce768f23f",
+      "bytes": 364128,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_3.flac",
+      "sha256": "67660e53443fb34c5af82372d344e6ffb6f904178f90f1081a8800960f42a760",
+      "bytes": 327265,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_4.flac",
+      "sha256": "5a1f9041a257dce4f727476c91314d3e657998d7d7190d76329172b02cae2c2f",
+      "bytes": 394241,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_5.flac",
+      "sha256": "6555be8b3234ca784328d54e1f9f1ee26f59c91e589ae86fb0b0e1344a1b912c",
+      "bytes": 366319,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_6.flac",
+      "sha256": "7dd2449dc53e07bef5452d7172a3f8d38fde9abc9cf77913b053a17db22431aa",
+      "bytes": 422528,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_7.flac",
+      "sha256": "bf439e4f6069ec95ab3d50f1dac3572eb5783ab0cff298e9b10b8d758c058698",
+      "bytes": 364338,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_8.flac",
+      "sha256": "799becf5f1b8e21bbddc59f6027a51dfdd6833bc31e34e3e0a2fbd029c33ca51",
+      "bytes": 335156,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_9.flac",
+      "sha256": "1b0f9373b5d0393c8bdb1135c974b65d720e14ad1fe7d82eec194541a43963b5",
+      "bytes": 327338,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_female/elf_female_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/Filip Traverse.wav",
+      "sha256": "7e7c34da921bdca9f1713222e0c39846a582a0c3d4dc67550251cb4ec06ff2a4",
+      "bytes": 557132,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/Ige Behringer.wav",
+      "sha256": "89ed0af1dc733c00c3473330dfb2bc87e3e657dbaa895dba35f1cdd78940101e",
+      "bytes": 510028,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/Ilkin Urbano.wav",
+      "sha256": "75f85da5d69a8eab06c48cc46cf6ae9755187aaa56c74c05320f4fc88a55e395",
+      "bytes": 579148,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/Kazuhiko Atallah.wav",
+      "sha256": "b9bbc877677b0fdb69d9b2fc31058d1d9f5b650d262fbaf8ed74e824584fe1bf",
+      "bytes": 499276,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/Torcull Diarmuid.wav",
+      "sha256": "b599849ee7514653bca8e435bc6f48b3ff711ab0533eb5163d7fa07566b88656",
+      "bytes": 644172,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male.txt",
+      "sha256": "f5aed5fec80a4cc2278115a572d41f52422eb7f64057cbde544a2a048b269bdd",
+      "bytes": 298,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_1.flac",
+      "sha256": "78b5f746956106be7d072d3c568c5176fd880cb804872409f1f7c37c3d73229f",
+      "bytes": 538045,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_10.flac",
+      "sha256": "7adc462569fee3bbec7c60bbf80aeebcb71b72e4844bb8ad45e6a9d1b0442c04",
+      "bytes": 477486,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_2.flac",
+      "sha256": "6937b22333881eaae5ae27a5b9314bd170417540fd69f200ea6c5b7068fbcb28",
+      "bytes": 482055,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_3.flac",
+      "sha256": "113a866d9242a59ad48396c3fd488a8a8b6532b9d8c1ccbc709146826f30b042",
+      "bytes": 480204,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_4.flac",
+      "sha256": "96358747ae6d6497ad888ba44310d93296ed50530881e4632260561e8652a309",
+      "bytes": 476316,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_5.flac",
+      "sha256": "d53a59ed1cd2ed9519ffe0c6c3bd1462bb5273b2a5b559394c9f299c4f967d82",
+      "bytes": 517057,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_6.flac",
+      "sha256": "44ed546c4666313707c902f79042ec895ec5c830e8290fd45cb51a4cbc6db7e7",
+      "bytes": 507762,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_7.flac",
+      "sha256": "0613ffa22654e167007d9bdeb429a6ef61794eeb5a709d674d8dc1ada8d76ec1",
+      "bytes": 517814,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_8.flac",
+      "sha256": "0613ffa22654e167007d9bdeb429a6ef61794eeb5a709d674d8dc1ada8d76ec1",
+      "bytes": 517814,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_9.flac",
+      "sha256": "d279da8e4418e41f7bb13db369d8f50638681c0321dbe4f3e054eafacaa8c434",
+      "bytes": 490534,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/elf_male/elf_male_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Alison Dietlinde.wav",
+      "sha256": "a4c8670b423e4eb1adb8618cbb44882bc4c5bca80059c0ac795e28cfea1d6bf8",
+      "bytes": 488012,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Andrew Chipper.wav",
+      "sha256": "341b93e9cf4bf15190c764824135929f6312761eed4c75ebb477d75bc3a73774",
+      "bytes": 496716,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Annmarie Nele.wav",
+      "sha256": "177a0bf966780c75229d01d8105d713653a9017eedef1a355f90f07c75847ace",
+      "bytes": 510028,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Asya Anara.wav",
+      "sha256": "af0c97923297076f2f5353c2cfcb9bd06a740a0b360c7276fa95fbd5e1e52ddc",
+      "bytes": 561228,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Badr Odhiambo.wav",
+      "sha256": "fb55d55f65373d9825a252c7348cbaa3d10fb9bc9640e01278a8151841c3d9e4",
+      "bytes": 617036,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Lidiya Szekeres.wav",
+      "sha256": "2393089471aae8431bae28ffac76e4c8e95d3c4c1b61c082fd9001d79c00b606",
+      "bytes": 461388,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Lilya Stainthorpe.wav",
+      "sha256": "a6be76e170931a67115293438eb90ad5f26d73f4c7f83f02eb19130ff1c1db70",
+      "bytes": 468044,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Rosemary Okafor.wav",
+      "sha256": "96a324c7e0dee91b369c042e3c8ffbde7434e7a9a0aa40da6668124730bdb00e",
+      "bytes": 550476,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Sofia Hellen.wav",
+      "sha256": "e7e9af1f44766043508c807477daac83f88a2b9280b41035a0bc0a35bdd021a4",
+      "bytes": 523340,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/Uta Obando.wav",
+      "sha256": "56a39beac4dd335e968ef4fccb4ada2d7466a337fc4d2391a25e1296eb939c89",
+      "bytes": 532556,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female.txt",
+      "sha256": "051c9f1b21293b8b3854e5ab82f4b97bba5d5d847b1dd120f1107957885bd4e2",
+      "bytes": 197,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_1.flac",
+      "sha256": "2c7a4a737a6486ed5420a749c0c87bf3e8d5d5ddfda65b7db97a34b7f8dabeaa",
+      "bytes": 390089,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_10.flac",
+      "sha256": "95c990474864dff90db0dcad49510eb4dbd2d36e782352b7d68247f267bfa02a",
+      "bytes": 328455,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_2.flac",
+      "sha256": "7ed03f92697ad32c6de8f64c355a00a1cde279a7695f462ac80fc1a8f9ebf38e",
+      "bytes": 358594,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_3.flac",
+      "sha256": "1279c8f6d7a65da161d11d4218331e3304cb90d483ce6324e07ac427479885ab",
+      "bytes": 342483,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_4.flac",
+      "sha256": "a35acbd659cb9a50123950c057b857024011c562cb9ffc83f9ffffef146888cf",
+      "bytes": 345447,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_5.flac",
+      "sha256": "d4476e49dd5bcc10122c0dfaec2621958f0b9c4a73284c8f38b327dfb7e7f7ae",
+      "bytes": 361423,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_6.flac",
+      "sha256": "272a64d25d7f224e0cdc38992a792b5f7d88dc9363a997fc08dab3f289350c0c",
+      "bytes": 407112,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_7.flac",
+      "sha256": "69a4b52db89246576ebe64e13d9778d1cfe989b759b7b2f7abfb39eab2d001f7",
+      "bytes": 344164,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_8.flac",
+      "sha256": "92e6913c77a4f559cc9a809fc2534936257abd0a2080f80e061e322e5ff49388",
+      "bytes": 367155,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_9.flac",
+      "sha256": "f09ea14a18fa857a9d366bc59dd35b3eef77f4009b06f63c7b5517379f968a63",
+      "bytes": 359575,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_female/hobbit_female_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Aaron Dreschner.wav",
+      "sha256": "c0e4b9027558814ea3cd7c48941bebba82a3c3944080d1e1db6d0d5f6b6508ea",
+      "bytes": 483404,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Abrahan Mack.wav",
+      "sha256": "af0e3fc360cd296c56026d669855229949260be381c90d5bce8b974ce1f23e45",
+      "bytes": 601676,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Marcos Rudaski.wav",
+      "sha256": "2d35b85a1349edd8f58a390b224dcd37d6e3e18b329be737c5b984cc495dbdf4",
+      "bytes": 527948,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Royston Min.wav",
+      "sha256": "97ecf5ba50b2c568ca0fcfd25bece6cbe4e77fd781b6b7a6910646e5462abf8e",
+      "bytes": 539212,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Xavier Hayasaka.wav",
+      "sha256": "c0b80da65fd670fcb6ab8dad1fd5c6bde625c7d5791740298be0c2d74e53b73d",
+      "bytes": 534604,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/Zacharie Aimilios.wav",
+      "sha256": "8e18a81c4ba12d920cc4fb81148a9f049338e52fe06da168e41457791ef29a02",
+      "bytes": 545868,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male.txt",
+      "sha256": "56e07a7f0930031a383d9818f3fcbb2d294e606bda1ce2682543fc8f77663da5",
+      "bytes": 272,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_1.flac",
+      "sha256": "1392a1b3d8fc5a3c7136f7d76df192a2f4372a0cc4dc027041590768ad9c6bd3",
+      "bytes": 471193,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_10.flac",
+      "sha256": "c2c49198782b6cba8e609d86c8db5350c06e7840533088a4c8e1e0dc62e2aac4",
+      "bytes": 454484,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_2.flac",
+      "sha256": "d42657219f458e78b9528dde491f025dfb837247ebaf0def1140acee43c0f580",
+      "bytes": 371730,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_3.flac",
+      "sha256": "67983e6b2c6c1e8ca8c4317d08c43feab6e5cc626a39dd448f55e451042cc4be",
+      "bytes": 389968,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_4.flac",
+      "sha256": "a6742e0275c944e4525212829d4cb1112191b35c4b6de1dac6face1351eb4710",
+      "bytes": 399436,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_5.flac",
+      "sha256": "9e93f5aa9bd624908963240b1030bbd64b9f9abd22989b136dcce2f52fa0c3d9",
+      "bytes": 440876,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_6.flac",
+      "sha256": "cbf4b7e76899e973b653f394e3491d183b052d3aab945a467e68dbc6d272293b",
+      "bytes": 431253,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_7.flac",
+      "sha256": "214c53a7ff31b58ce95bf36e00cdc3fd168b702aad8cdbb14ae9a9b9fb2b6fa5",
+      "bytes": 448780,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_8.flac",
+      "sha256": "bcb900fe8954f1a2779b5f943d409a05942ba6e40aa05d971e841de76346bfe3",
+      "bytes": 367270,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_9.flac",
+      "sha256": "bd653946df13da1be2a30499bc58e389c008b1a75f9b369f16a35059660ed2f6",
+      "bytes": 522235,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/hobbit_male/hobbit_male_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Alexandra Hisakawa.wav",
+      "sha256": "fc501a12207b63d7135bd9ef3fb304e6c0390f36285e80ed1f832aa90ad6d1c7",
+      "bytes": 606284,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Ana Florence.wav",
+      "sha256": "00ec893b54ae2c1c24b03fc0c85ea01ca15e71c8308dc8a55b6dbeb2e8519b6e",
+      "bytes": 577100,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Barbora MacLean.wav",
+      "sha256": "a1833f1b32b2299c6558b901da46209602ecbbbc2e19ebf6a1306694632157a4",
+      "bytes": 527948,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Brenda Stern.wav",
+      "sha256": "aecfe228febb1fa8665363bc93a5b7b9bbe08eec8f1fdad9fc11f306b6a16f0a",
+      "bytes": 470092,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Chandra MacFarland.wav",
+      "sha256": "049df3f9aa869d1c0dcdd34d3265ccf152537745cdda70de1775d07b55c954f4",
+      "bytes": 485452,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Claribel Dervla.wav",
+      "sha256": "a98dc2e8059cf9b706ce2da1d15e134fa998ac4ab97b72a2a7298a79b8e42e27",
+      "bytes": 481356,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Daisy Studious.wav",
+      "sha256": "d6d58ca39c35f16487746141114f3f9e7d4304db42c380ac1ebf9f87ee5aa309",
+      "bytes": 501324,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/Tanja Adelina.wav",
+      "sha256": "2a09f79f143dd87df6b5ae8e449f1c6e2dec4936167d7783201a1662d3dee368",
+      "bytes": 492108,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female.txt",
+      "sha256": "632a78100ed005cdcf72f27c4901a6e402613c6335cf640e55da8afeca96590b",
+      "bytes": 235,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_1.flac",
+      "sha256": "25c2371f63f13153ae58b9030e788553af53444d890712110da97a3c775880f9",
+      "bytes": 350480,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_10.flac",
+      "sha256": "ee24f3809b17be170848c94ff5fb096073ab175dc5211506afcae7c685989fec",
+      "bytes": 414612,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_2.flac",
+      "sha256": "7850d6b46ab17fa18535861e487b806307893177a99f3c93f682e5440f33e474",
+      "bytes": 370924,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_3.flac",
+      "sha256": "397d11cebe709b93ccd4c2c6888ee562637fc3d572e7521ec5ef683958b58fc6",
+      "bytes": 361726,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_4.flac",
+      "sha256": "337b09a31ceb047757b8df5241287f1ad3a61e535eca941314fab34ff34740eb",
+      "bytes": 390003,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_5.flac",
+      "sha256": "17b22bb13035056442ce993c980d75a2669c7741020bd45f2482477fd195ac07",
+      "bytes": 427391,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_6.flac",
+      "sha256": "6ae1b459f4f703710b340dd3a3c87a86e9a651e17d9dc4a7da76d8eeb06eea2e",
+      "bytes": 381455,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_7.flac",
+      "sha256": "eb8cf575a90713618c67c1f9f287896d91d2deef37412fd1a5ca7769619eff65",
+      "bytes": 370413,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_8.flac",
+      "sha256": "b415fbd91d35eab9d88b9e5e7fa16059a3f4cfb5ad84c559a006ca8af4845a85",
+      "bytes": 470465,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_9.flac",
+      "sha256": "c1124d707edb0adfdb7ba13b0745457febbac1e06229c3c9296555966950929c",
+      "bytes": 380239,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_female/man_female_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Adde Michal.wav",
+      "sha256": "5d52f08f70b8860a73889822901d6b8f24fd9b4a09aca3ebca7723901fa36fd6",
+      "bytes": 530508,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Baldur Sanjin.wav",
+      "sha256": "2d87d91c1d73253005a48f7095b2ed03de5ccee98aed597e4ed1adbaac825df1",
+      "bytes": 521292,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Damien Black.wav",
+      "sha256": "e98ed4bf25afada647dee3588cd802083d07ed2a3e331a8ae36ff52397f872b9",
+      "bytes": 496716,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Damjan Chapman.wav",
+      "sha256": "294894d0248df0ba9d4c5a2f3b92adde512867303bd23115421233babb586a97",
+      "bytes": 476748,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Dionisio Schuyler.wav",
+      "sha256": "b68f5ea3c969ec8eb290762880b22d0fc3f914ecc7c36f0d44cf637a9549022f",
+      "bytes": 496716,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Ferran Simen.wav",
+      "sha256": "df3250999362a7508dcc055c70e29fc6ea14e0500bc45c5d14de120deed144c2",
+      "bytes": 534604,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Filip Traverse.wav",
+      "sha256": "7e7c34da921bdca9f1713222e0c39846a582a0c3d4dc67550251cb4ec06ff2a4",
+      "bytes": 557132,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Kumar Dahl.wav",
+      "sha256": "b026724cd314180f5262069338bcdec792a82268576cd4a942e7ace3973a9ba8",
+      "bytes": 523340,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/Viktor Menelaos.wav",
+      "sha256": "bd6c220e59cb8616e794e812168f7af9e1b0e2cde0fb4e7dcfe304e7b2263723",
+      "bytes": 450124,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male.txt",
+      "sha256": "7fba2c6235c8b918de9975fb190f270dc436f47f0ab3b5d2bee0a4073d8b6468",
+      "bytes": 143,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_1.flac",
+      "sha256": "c0904b1c71c4371e302b9ecc85b73559ea0f8607da38ae8676bf84b4fc998409",
+      "bytes": 302135,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_10.flac",
+      "sha256": "2c1a5b5a6638b59c73c24728f02bef7a4cd4ad0a565f682006369698f2b9644c",
+      "bytes": 270690,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_2.flac",
+      "sha256": "02b2aa054198d74a031bc6b63d1d3eea426a118d5ffc224afa1b3e9cfe3cae1c",
+      "bytes": 275188,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_3.flac",
+      "sha256": "d4fbdf5ec6ccb70d6543e169836164106b99e3bc769fb86ecf6d1c8f4d00571c",
+      "bytes": 297253,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_4.flac",
+      "sha256": "ed0484e818d50d39ccf90cd6c6528cc280462af6f87c40aec1baee61c56433a2",
+      "bytes": 251579,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_5.flac",
+      "sha256": "4dfec893bd702ad64d9dbf83d017cf602412594f8e05666c998cf78e5623a15c",
+      "bytes": 274420,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_6.flac",
+      "sha256": "9bd3f3aeaf757e4671bf3a2b2e047a39da4e359585034f0a889915dad098095c",
+      "bytes": 304291,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_7.flac",
+      "sha256": "a52eb84bf9f9a275f7ad9b9da795031854288f7a1669cdac8f9441faafce233b",
+      "bytes": 240003,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_8.flac",
+      "sha256": "cb31ad795f4fd6455242a171fe3d8805448f3e55674ab87ff844e3f66d0a3498",
+      "bytes": 244666,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_9.flac",
+      "sha256": "9c77fd46d222a18dfb4c0c5ff28eac417fb31aabd278faf775e7dae28a157a7a",
+      "bytes": 252099,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/man_male/man_male_wav.txt",
+      "sha256": "81d11d73454eba6e901318942d9d4f2efb7548bb2f0b300d5f59aee5fc212df7",
+      "bytes": 167,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/narrator/narrator.txt",
+      "sha256": "e33ff25f073db95785f4a6b718239ac27810a2ca31815a185f6e12bee42906c5",
+      "bytes": 79,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/narrator/narrator_1.flac",
+      "sha256": "2b64f9155a63b551a03a4ba091e1d789e5acf284deb0a7108fce7c26cfc87a1f",
+      "bytes": 161348,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/narrator/narrator_2.flac",
+      "sha256": "9d431448a4c4b3719e47d908c946222589f9f871ca2de8666ad157e9cdfe74b3",
+      "bytes": 226091,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/narrator/quest_narrator.txt",
+      "sha256": "c4cf61cb8be98d56f29aebfb4a0b71d9d55527d8857e05cf098b21dfc94ab779",
+      "bytes": 207,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/reference_audio/narrator/quest_narrator.wav",
+      "sha256": "e3f341248c261de725e3483c56c616927c4fe2edd2a45f88c0302171cc7a423e",
+      "bytes": 2050492,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/screenshots/configuration_suite.png",
+      "sha256": "29161d5ed1c3ba918d733d7b1435eb193dd40d3a5b5d36e3be7624e17cf7c6b9",
+      "bytes": 128626,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/screenshots/static_quest_window_mode.png",
+      "sha256": "01a85c1073bc9070b159b936f624b48946e44c243c940d95451772d19f35e12b",
+      "bytes": 695421,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "data/screenshots/tts_tester.png",
+      "sha256": "d0c98853d94594ab579b382d864c34b94c3a972adbab8f043dca0eb5591abff1",
+      "bytes": 153085,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "plugins/Dt192/getNPCName.plugin",
+      "sha256": "6c1ea32977d2b14525795986d7db55258528314d5ae846519df17409ccf50d69",
+      "bytes": 264,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "plugins/Dt192/getNPCName/Main.lua",
+      "sha256": "86a3298321a629839c8c562e8eae571168ef54fc7a65999622ee1d4308031971",
+      "bytes": 483,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/body_upper_left_corner.png",
+      "sha256": "63cc6dfe2d998d77e62d2c2f9124d17e03767d2b87108c0528f809ec16b82331",
+      "bytes": 241,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/end_leaf.png",
+      "sha256": "fa8f5390f784728c3f5df747b6caea8e7b4e9423eea3c7e901ef5ef3297a6ede",
+      "bytes": 902,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/example_echoes_br_corner.png",
+      "sha256": "3a45b7470cdb58217697f2ecf1486dcc42e47dc0c60e5f1166104f4b3699ea14",
+      "bytes": 679,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/example_echoes_left_plant.png",
+      "sha256": "034719ad7d6875b56bd39955aee16ef58db3ae6ef48bebf59709d5f08276f575",
+      "bytes": 705,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/example_echoes_right_plant.png",
+      "sha256": "afe256b8c47c92fcb697dc020299e9c176775d487838e74a1336756d0311147b",
+      "bytes": 679,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/example_echoes_tl_corner.png",
+      "sha256": "ee9ed5c90a2e0769f1cac257130f88fb3b91f12f3a291cb523829986769c0eba",
+      "bytes": 795,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/filter_icon.png",
+      "sha256": "09ab6bf485ed95f17018e931dd1b35fb176fb775c882816544d15826fa9c7978",
+      "bytes": 1151,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/intersection.png",
+      "sha256": "700b7a17b463ac4fe00777ccb6b2b88a841b6a50f2761a7dae8cfc3247d845bb",
+      "bytes": 405,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/nextObjective.PNG",
+      "sha256": "68e0f84f92603f4913686829581c89a7b2f733c5b63f685a0a4fdde05f55c496",
+      "bytes": 3713,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/quest.png",
+      "sha256": "bef1e9ea3fd346cc633ea4d15e5126ef5abd126f0c59d58dbecb7ab2f3281018",
+      "bytes": 4300,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/questIcon1.PNG",
+      "sha256": "c9d71c2e86e2786c01195a5c9198342a08da4671f3c92a35d77eba669a6b584b",
+      "bytes": 3897,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/questIcon2.PNG",
+      "sha256": "d4544a60d7368d8307c79288d5a790d899d2c41061d37955e88c778073248ac7",
+      "bytes": 3046,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    },
+    {
+      "path": "templates/start_leaf.png",
+      "sha256": "477f647318c1b45bf62770c5becd8007796aabea7a1aa78257395f26b516426d",
+      "bytes": 987,
+      "redistribution_decision": "UNKNOWN_NOT_CLEARED_FOR_NEW_PACKAGE"
+    }
+  ],
+  "remaining": [
+    "Per-asset original source/version/license/consent/attribution/modification review",
+    "Qualified governing code-license assessment",
+    "Qt/native/model/tokenizer/runtime dependency rights",
+    "Publisher-policy and branding assessment before public release"
+  ],
+  "note": "Paths/digests inventory already-inherited public files; no copied new audio/data and no blanket redistribution clearance."
+}
