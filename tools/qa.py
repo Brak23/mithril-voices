@@ -60,6 +60,7 @@ INPUTS = {
                          "docs/design-v2/contracts/ipc.schema.json",
                          "docs/design-v2/contracts/ipc.examples.json"],
     "qt-audio-owner": ["lvc/core.py", "lvc/safeguards.py", "lvc/qt_audio_owner.py",
+                       "lvc/qt_physical_backend.py", "tools/qt_sink_backend_fake_probe.py",
                        "lvc/synthetic_flow.py", "lvc/spool.py", "tests/v2/support.py",
                        "tools/qt_audio_owner_probe.py", "tools/validate_contracts.py",
                        "docs/design-v2/contracts/ipc.schema.json",

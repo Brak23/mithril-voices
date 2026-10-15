@@ -38,3 +38,16 @@ def test_synthetic_qt_owner_case(case: str, reason: str) -> None:
     assert report["physical_enabled"] is False
     assert report["selected_endpoint"] == "synthetic-selected-endpoint"
     assert report["verified_pcm_bytes"] == 1920
+
+
+def test_physical_backend_accepts_qtaudio_no_error_from_fake_sink() -> None:
+    qt_python = Path(os.environ.get("MITHRIL_QT_PYTHON", DEFAULT_QT_PYTHON))
+    assert qt_python.is_file(), "Set MITHRIL_QT_PYTHON to the isolated PySide6 interpreter"
+    run = subprocess.run(
+        [str(qt_python), str(ROOT / "tools" / "qt_sink_backend_fake_probe.py")],
+        cwd=ROOT, capture_output=True, text=True, timeout=12, check=False,
+    )
+    assert run.returncode == 0, run.stdout + run.stderr
+    report = json.loads(run.stdout)
+    assert report == {"status": "PASSED", "accepted_bytes": 4,
+                      "physical_device_opened": False}

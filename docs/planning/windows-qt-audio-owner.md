@@ -33,15 +33,22 @@ can be enabled only by an explicit service opt-in; the physical probe requires
 an additional `--play` argument. The no-playback preflight found the Windows
 default Realtek speaker endpoint, verified the format, and submitted zero
 frames. A separate generated 0.25-second, 440 Hz tone contains exactly 12,000
-frames with a measured -36.005 dBFS digital peak. The physical run is pending
-confirmation that the powered speakers are connected to that Realtek endpoint;
-the headset and two Steam virtual outputs are distinct. No endpoint volume or
-system setting changed.
+frames with a measured -36.005 dBFS digital peak. Bryce confirmed the Realtek
+speakers, and one guarded physical attempt was made. That attempt submitted
+zero bytes: our code compared the `QtAudio.Error` returned by `QAudioSink`
+against the different `QAudio.Error` enum, causing a valid `NoError` value to
+be mistaken for failure. The resulting `DEVICE_LOST` receipt is the owner's
+generic failure label, not evidence that the Windows endpoint disconnected.
+The failed receipt was preserved outside the repository. No endpoint volume
+or system setting changed.
 
-The first user-approved run will record the endpoint identity, negotiated
-format, actual buffer size, write count and software Stop/reset timing. Actual
-drain accounting and physical Stop-to-silence measurement remain separate
-qualification work. The test will not open LOTRO.
+The enum comparison is corrected. Silent starts on the Realtek endpoint now
+return an open `QIODevice` and `NoError` in the main thread, owner thread,
+owner thread after reset, and exact backend object. All four diagnostics wrote
+zero PCM bytes. A fake-sink test exercises the corrected backend write path
+without opening a physical device. A second audible attempt is not included in
+this batch. It still needs its own authorization; actual drain accounting and
+physical Stop-to-silence measurement remain separate qualification work.
 
 The production worker launch/manifest adapter and in-progress `.part` size and
 deadline limits remain prerequisites before real model output can feed this

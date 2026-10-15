@@ -9,7 +9,7 @@ from __future__ import annotations
 from time import perf_counter_ns
 
 from PySide6.QtCore import QIODevice, QThread
-from PySide6.QtMultimedia import QAudio, QAudioFormat, QAudioSink, QMediaDevices
+from PySide6.QtMultimedia import QAudioFormat, QAudioSink, QMediaDevices, QtAudio
 
 SAMPLE_RATE = 48_000
 FRAME_BYTES = 2
@@ -57,9 +57,12 @@ class QtSinkBackend:
         self._on_owner_thread()
         if self.io is None:
             self.io = self.sink.start()
-            if self.io is None or self.sink.error() != QAudio.Error.NoError:
+            if self.io is None:
+                self.error_names.append(f"START_RETURNED_NO_DEVICE:{self.sink.error()}")
+                raise RuntimeError("Selected QAudioSink returned no write device")
+            if self.sink.error() != QtAudio.Error.NoError:
                 self.error_names.append(str(self.sink.error()))
-                raise RuntimeError("Selected QAudioSink failed to start")
+                raise RuntimeError("Selected QAudioSink reported a start error")
             actual_format = self.sink.format()
             self.actual_buffer_bytes = self.sink.bufferSize()
             self.actual_sample_rate = actual_format.sampleRate()
@@ -69,7 +72,7 @@ class QtSinkBackend:
                     or self.actual_channel_count != 1
                     or actual_format.sampleFormat() != QAudioFormat.SampleFormat.Int16):
                 raise RuntimeError("QAudioSink format changed after validation")
-        if self.sink.error() != QAudio.Error.NoError:
+        if self.sink.error() != QtAudio.Error.NoError:
             self.error_names.append(str(self.sink.error()))
             raise RuntimeError("Selected QAudioSink reported an error")
         free_bytes = self.sink.bytesFree() & ~1
