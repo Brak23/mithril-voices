@@ -276,3 +276,31 @@ def test_failed_worker_cannot_be_admitted_and_cache_requires_explicit_source():
     gate = gate.fence(stopped.generation)
     gate, wrote = gate.write(state, empty_ledger, token, "cached-unit", 0, 0, 2, sink)
     assert not wrote and len(sink.calls) == 1
+
+
+def test_partial_sink_acceptance_counts_only_frames_actually_written():
+    state, token = prepared(State(session_id=SESSION, bound=True), 16)
+    ledger = WorkerLedger(SESSION).submit(token, WORKER_A, 0)
+    ledger, _ = ledger.terminal(token.request_id, WORKER_A, "completed", 1)
+    gate = acknowledged_gate(state).start_unit(state, ledger, token, "unit", 0, 5, 0)
+
+    class PartialSink:
+        def write(self, generation, request_id, unit_id, frames):
+            assert (generation, request_id, unit_id) == (
+                token.generation, str(token.request_id), "unit")
+            return min(2, frames)
+
+    sink = PartialSink()
+    gate, wrote = gate.write(state, ledger, token, "unit", 0, 0, 5, sink)
+    assert wrote and gate.unit is not None
+    assert (gate.unit.written_frames, gate.unit.outstanding_frames) == (2, 2)
+    gate = gate.drain(state, ledger, token, "unit", 0, 0, 2)
+    gate, complete = gate.idle(state, ledger, token, "unit", 0, 0)
+    assert not complete
+    gate, wrote = gate.write(state, ledger, token, "unit", 0, 0, 3, sink)
+    assert wrote and gate.unit is not None and gate.unit.written_frames == 4
+    gate, wrote = gate.write(state, ledger, token, "unit", 0, 0, 1, sink)
+    assert wrote and gate.unit is not None and gate.unit.written_frames == 5
+    gate = gate.drain(state, ledger, token, "unit", 0, 0, 3)
+    gate, complete = gate.idle(state, ledger, token, "unit", 0, 0)
+    assert complete

@@ -26,6 +26,9 @@ connects the reducer, supervised fake worker, and fake playback controller;
 artifact and physical audio qualification remain open.
 The [generated WAV spool slice](docs/planning/windows-spool-validation.md)
 checks actual synthetic file bytes and ownership before fake sink admission.
+The [synthetic Qt audio owner slice](docs/planning/windows-qt-audio-owner.md)
+pumps verified PCM on one Qt thread with generation fences and a fake backend;
+physical playback remains disabled.
 
 Read these in order:
 
