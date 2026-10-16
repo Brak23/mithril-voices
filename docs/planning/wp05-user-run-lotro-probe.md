@@ -23,11 +23,16 @@ path. A missing or changed identity, missing foreground, minimized window,
 timeout, invalid dimensions or unavailable WGC stops the run.
 
 The helper pipes RGB pixels to Python in memory. Python shows the selected
-window frame locally so the user can drag a quest **body** crop. The crop goes
-to the already installed English Tesseract through standard input, twice,
-with fixed preprocessing. The existing two-pass text gate reports its decision.
+window frame locally. The user first marks an approximate quest **body** area
+in the overview, then zooms to native pixels and refines the crop with scrollbars.
+The bounded crop goes to the already installed English Tesseract through standard
+input, twice, with fixed preprocessing. The existing two-pass text gate reports
+its decision. The preview stays open during OCR and shows pass progress, the gate
+reason, a short explanation, and local raw OCR text. The user can cancel OCR or
+retry a crop on the same captured frame without another game capture.
 The probe does not save an image or OCR output, upload anything, play speech,
-or change game files. The local console does display raw OCR Preview text.
+or change game files. The local console prints only gate metadata; raw OCR text
+stays in the preview window.
 The native helper is a local Build Tools build pinned by SHA-256 in the Python
 entrypoint. It is not a distributed release artifact.
 The prepared executable is under the local task root at
@@ -42,11 +47,13 @@ not substitute an unreviewed executable.
 1. Launch the retail 64-bit LOTRO client yourself in windowed or borderless
    mode. Open one quest panel with visible body text. Hide chat or other
    private content before capture. Leave the game running.
-2. In a **normal, non-admin PowerShell** on the signed-in desktop, run:
+2. Double-click `tools/Run-LOTRO-OCR-Probe.cmd` in the checkout from the
+   signed-in desktop. It changes to the checkout itself and keeps its console
+   open after the preview closes. Alternatively, in a **normal, non-admin
+   PowerShell** from the checkout directory, run:
 
    ```powershell
-   Set-Location '<local Mithril Voices checkout>'
-   .\.venv\Scripts\python.exe -m lvc.platform.windows.lotro_user_probe
+   & ./.venv/Scripts/python.exe -u -m lvc.platform.windows.lotro_user_probe
    ```
 
 3. Check the listed PID, title, executable path and client size. Enter the
@@ -55,27 +62,34 @@ not substitute an unreviewed executable.
    that game window within eight seconds and leave it focused until capture
    finishes. Do not grant new Windows permissions if prompted; stop and report
    the prompt instead.
-4. In the local preview, drag around **only visible quest body text**, avoiding
-   clipped lines, title, rewards, buttons and chat. Click **Preview OCR of
-   selected crop**, or cancel. The console shows the raw OCR and two-pass gate
-   reason. Share only the gate reason, acceptance status, frame/crop size and a
-   redacted accuracy description. Do not paste private chat or unredacted
-   quest text into this thread.
+4. The preview should appear above the game. In the overview, drag approximately
+   around the quest body and click **Zoom to selection (native size)**. Use the
+   scrollbars to pan, then drag around **complete visible quest body lines**,
+   leaving space around edge words and excluding title, rewards, buttons and
+   chat. Click **Preview OCR of selected body**. The same window shows progress,
+   result and reason; **Retry crop from this frame** returns to the overview.
+   Share only the gate reason, acceptance status, frame/crop size and a redacted
+   accuracy description. Do not paste private chat or unredacted quest text.
 
 The expected observations are whether an exact LOTRO window is discovered,
 whether WGC delivers a current frame from that window, whether the preview
 matches the intended quest panel, and whether two local OCR passes agree on
 complete body text. A failure is useful evidence; record the displayed
 `BLOCKED` reason without weakening the binding or widening capture scope.
-The run is one frame, one crop, one OCR Preview. It does not enable narration.
+The run is one frame with local crop retries. It does not enable narration.
 
 ## Validation boundary
 
-This handoff has only a successful native compilation and synthetic Python
-tests so far. The local synthetic receipt is
-`../wp05-user-probe-synthetic.json` (31 passed, no skips); Ruff and Pyright
-passed. The no-argument native invocation returned
+The original handoff had successful native compilation and synthetic Python
+tests. Its local synthetic receipt is
+`../wp05-user-probe-synthetic.json` (31 passed, no skips). The no-argument native invocation returned
 `BLOCKED:EXPLICIT_SELECTION_ARGUMENTS_REQUIRED`. No LOTRO window was selected
-or captured by Codex. Window
-discovery, WGC delivery in the real game, crop correctness, DPI/UI scale,
+or captured by Codex. The owner later reported one real-game window selection,
+one captured preview and a rejected OCR crop; the exact rejection detail was
+not retained, so no specific OCR cause is asserted. The repair's own synthetic
+tests cover ultrawide coordinate mapping, bounded crop, two-pass decisions,
+cancel/timeout process reaping, repeated clicks and close behavior. On Windows,
+the 11 focused probe tests and the 31-case vision-prep lane passed; an original
+in-memory phrase also passed through the installed Tesseract and the unchanged
+gate. The repaired GUI still needs the owner's retest. Crop correctness, DPI/UI scale,
 quest-language performance and rights remain open WP-05 gates.

@@ -9,16 +9,17 @@ import io
 import struct
 import subprocess
 import sys
-import tkinter as tk
 import unicodedata
+from collections.abc import Callable
 from ctypes import wintypes
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image, ImageOps, ImageTk
+from PIL import Image, ImageOps
 
+from lvc.platform.windows.lotro_probe_ui import Viewport, show_preview
 from lvc.vision.binding import PixelRect
-from lvc.vision.text_gate import OcrPass, OcrWord, decide_text
+from lvc.vision.text_gate import OcrPass, OcrWord
 
 TASK_ROOT = Path(__file__).resolve().parents[4]
 NATIVE_PROBE = TASK_ROOT / "test-tmp" / "lotro_frame_probe.exe"
@@ -150,66 +151,19 @@ def decode_frame(data: bytes) -> Image.Image:
 
 def display_crop_to_frame(x1: float, y1: float, x2: float, y2: float,
                           scale: float, width: int, height: int) -> PixelRect | None:
-    if scale <= 0:
-        return None
-    left = max(0, min(width, round(min(x1, x2) / scale)))
-    top = max(0, min(height, round(min(y1, y2) / scale)))
-    right = max(0, min(width, round(max(x1, x2) / scale)))
-    bottom = max(0, min(height, round(max(y1, y2) / scale)))
-    rect = PixelRect(left, top, right - left, bottom - top)
-    return rect if rect.width >= 20 and rect.height >= 20 and rect.inside(width, height) else None
+    return Viewport(width, height, scale).crop(x1, y1, x2, y2)
 
 
-def choose_crop(image: Image.Image) -> PixelRect | None:
-    """Show only the selected-window frame locally; return the user's body crop."""
-    root = tk.Tk()
-    root.title("Mithril Voices: select visible quest body only")
-    scale = min(1.0, 1200 / image.width, 800 / image.height)
-    shown = image.resize((round(image.width * scale), round(image.height * scale)))
-    photo = ImageTk.PhotoImage(shown, master=root)
-    canvas = tk.Canvas(root, width=shown.width, height=shown.height, cursor="crosshair")
-    canvas.pack()
-    canvas.create_image(0, 0, image=photo, anchor="nw")
-    tk.Label(root, text="Drag around visible quest BODY text only. Exclude title, rewards, buttons, chat and clipped lines.").pack()
-    selection: dict[str, float] = {}
-    answer: list[PixelRect | None] = [None]
-
-    def press(event: tk.Event) -> None:
-        selection.update(x1=event.x, y1=event.y, x2=event.x, y2=event.y)
-
-    def drag(event: tk.Event) -> None:
-        if "x1" not in selection:
-            return
-        selection.update(x2=event.x, y2=event.y)
-        canvas.delete("selection")
-        canvas.create_rectangle(selection["x1"], selection["y1"], event.x, event.y,
-                                outline="red", width=2, tags="selection")
-
-    def confirm() -> None:
-        if len(selection) != 4:
-            return
-        answer[0] = display_crop_to_frame(selection["x1"], selection["y1"],
-                                          selection["x2"], selection["y2"],
-                                          scale, image.width, image.height)
-        if answer[0] is not None:
-            root.destroy()
-
-    canvas.bind("<Button-1>", press)
-    canvas.bind("<B1-Motion>", drag)
-    tk.Button(root, text="Preview OCR of selected crop", command=confirm).pack()
-    tk.Button(root, text="Cancel without OCR", command=root.destroy).pack()
-    root.mainloop()
-    return answer[0]
-
-
-def recognize(image: Image.Image, *, alternative: bool) -> OcrPass:
+def recognize(image: Image.Image, *, alternative: bool,
+              runner: Callable[..., subprocess.CompletedProcess[bytes]] | None = None) -> OcrPass:
     gray = ImageOps.grayscale(image)
     processed = ImageOps.autocontrast(gray).resize((gray.width * 2, gray.height * 2)) if alternative else gray
     encoded = io.BytesIO()
     processed.save(encoded, format="PNG")
-    completed = subprocess.run([str(TESSERACT), "stdin", "stdout", "-l", "eng",
-                                "--psm", "6", "tsv"], input=encoded.getvalue(),
-                               capture_output=True, timeout=10, check=False)
+    run = runner if runner is not None else subprocess.run
+    completed = run([str(TESSERACT), "stdin", "stdout", "-l", "eng",
+                     "--psm", "6", "tsv"], input=encoded.getvalue(),
+                    capture_output=True, timeout=10, check=False)
     if completed.returncode != 0:
         raise RuntimeError("Local Tesseract OCR failed")
     rows = csv.DictReader(io.StringIO(completed.stdout.decode("utf-8-sig")),
@@ -278,19 +232,7 @@ def main() -> int:
     if len(completed.stdout) > MAX_FRAME_BYTES:
         raise ValueError("Native frame exceeded the bounded pipe size")
     frame = decode_frame(completed.stdout)
-    crop = choose_crop(frame)
-    if crop is None:
-        print("Canceled; no OCR was run.")
-        return 0
-    body = frame.crop((crop.x, crop.y, crop.x + crop.width, crop.y + crop.height))
-    first = recognize(body, alternative=False)
-    second = recognize(body, alternative=True)
-    decision = decide_text(first, second, qualified_region=True)
-    print("\nRaw local OCR Preview (not saved or uploaded):\n")
-    print(decision.raw_text)
-    print(f"\nTwo-pass gate: {decision.reason}; accepted={decision.accepted_text is not None}.")
-    print(f"Crop: x={crop.x}, y={crop.y}, width={crop.width}, height={crop.height}; "
-          f"frame={frame.width}x{frame.height}.")
+    show_preview(frame, recognize)
     print("No speech was played and no image or OCR text was saved by this probe.")
     return 0
 
