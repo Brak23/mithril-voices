@@ -149,6 +149,7 @@ class ObservationWindow:
         self.frame: Image.Image | None = None
         self.photo: ImageTk.PhotoImage | None = None
         self.viewport: Viewport | None = None
+        self.native_view = False
         self.anchor: PixelRect | None = None
         self.body: PixelRect | None = None
         self.profile: Calibration | None = None
@@ -184,6 +185,8 @@ class ObservationWindow:
         tk.Radiobutton(controls, text="Mark complete body text", variable=self.mode,
                        value="body").pack(side="left")
         tk.Button(controls, text="Save regions", command=self.save_regions).pack(side="left", padx=8)
+        tk.Button(controls, text="Native-size refine", command=self.zoom_native).pack(side="left")
+        tk.Button(controls, text="Whole window", command=self.overview).pack(side="left", padx=5)
         tk.Button(controls, text="Start observation (no speech)",
                   command=self.start).pack(side="left")
         tk.Button(controls, text="Stop", command=self.stop).pack(side="left", padx=5)
@@ -283,15 +286,38 @@ class ObservationWindow:
             self.stop()
         self._capture("calibration")
 
-    def _show_frame(self, frame: Image.Image) -> None:
-        scale = min(1.0, 1050 / frame.width, 590 / frame.height)
+    def _show_frame(self, frame: Image.Image, *, native: bool = False) -> None:
+        self.native_view = native
+        scale = 1.0 if native else min(1.0, 1050 / frame.width, 590 / frame.height)
         self.viewport = Viewport(frame.width, frame.height, scale)
-        shown = frame.resize((round(frame.width * scale), round(frame.height * scale)))
+        shown = frame if native else frame.resize((round(frame.width * scale),
+                                                    round(frame.height * scale)))
         self.photo = ImageTk.PhotoImage(shown, master=self.root)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, anchor="nw")
         self.canvas.configure(scrollregion=(0, 0, shown.width, shown.height))
         self._draw_rectangles()
+        if native:
+            center = self.body or self.anchor
+            if center is not None:
+                self.root.update_idletasks()
+                left = center.x + center.width / 2 - self.canvas.winfo_width() / 2
+                top = center.y + center.height / 2 - self.canvas.winfo_height() / 2
+                self.canvas.xview_moveto(max(0.0, left / shown.width))
+                self.canvas.yview_moveto(max(0.0, top / shown.height))
+
+    def zoom_native(self) -> None:
+        if self.frame is None or self.running:
+            self.status.set("Capture an open panel before refining its crop.")
+            return
+        self._show_frame(self.frame, native=True)
+        self.status.set("Native pixels: use scrollbars to pan; redraw exact body boundaries.")
+
+    def overview(self) -> None:
+        if self.frame is None or self.running:
+            return
+        self._show_frame(self.frame)
+        self.status.set("Whole selected window. Draw a rough region or use Native-size refine.")
 
     def _draw_rectangles(self) -> None:
         self.canvas.delete("regions")

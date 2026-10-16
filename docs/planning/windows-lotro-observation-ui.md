@@ -15,7 +15,9 @@ gameplay input, audio playback, model inference, or desktop-wide capture occurs.
 2. Click **Capture open quest panel**, return focus to LOTRO within eight
    seconds, then return to Mithril. Draw a small static quest-pane border or
    emblem as the yellow **anchor**. Draw only complete quest body lines as the
-   blue **body**, excluding buttons, rewards and chat. Click **Save regions**.
+   blue **body**, excluding buttons, rewards and chat. Use **Native-size refine**
+   and its scrollbars to correct both rectangles on the ultrawide image, then
+   click **Save regions**.
 3. Click **Start observation (no speech)** and return to LOTRO within eight
    seconds. Show one new page with the same NPC, close and reopen the quest
    panel, then show a non-quest surface such as the journal. Return to Mithril

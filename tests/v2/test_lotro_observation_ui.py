@@ -1,4 +1,4 @@
-"""Hidden Tk synthetic observation; verified LOTRO capture is never invoked."""
+"""One hidden Tk synthetic session; no verified LOTRO capture is invoked."""
 from __future__ import annotations
 
 import time
@@ -15,8 +15,8 @@ from lvc.vision.auto_observation import Observation
 from lvc.vision.binding import PixelRect
 
 
-def test_hidden_ui_surfaces_stable_candidate_without_starting_speech(
-        monkeypatch: pytest.MonkeyPatch) -> None:
+def test_synthetic_observation_session_and_private_summary(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     frame = Image.new("RGB", (800, 500), "#202020")
     ImageDraw.Draw(frame).rectangle((100, 80, 149, 129), fill="#ffcc44")
     profile = Calibration(800, 500, 800, 500, 96,
@@ -46,26 +46,24 @@ def test_hidden_ui_surfaces_stable_candidate_without_starting_speech(
         assert window.metrics["anchor_present"] == 1
         assert len(attempts) == 1
         assert window.candidate_text.get("1.0", "end-1c") == ""
-    finally:
-        window.running = False  # Test does not write a run summary.
-        window.close()
 
+        # A real launch creates one Tk root. Exercise the ultrawide view in it.
+        window.running = False
+        window.frame = Image.new("RGB", (5120, 1440), "black")
+        window.body = PixelRect(3800, 300, 700, 360)
+        window._show_frame(window.frame)
+        assert window.viewport is not None and window.viewport.scale < 0.25
+        window.zoom_native()
+        assert window.viewport is not None and window.viewport.scale == 1
 
-def test_summary_contains_metrics_but_no_candidate_text(
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    window = ObservationWindow(hidden=True)
-    try:
         path = tmp_path / "summary.json"
         monkeypatch.setattr(lotro_observation_ui, "SUMMARY", path)
-        window.profile = Calibration(800, 500, 800, 500, 96,
-                                     PixelRect(100, 80, 50, 50),
-                                     PixelRect(190, 140, 500, 100))
         window.metrics = {"frames": 3, "ocr_text_gate_passes": 1}
-        window.started_ms = time.monotonic_ns() // 1_000_000
         window.set_text("PRIVATE QUEST WORDS")
         window._save_summary()
         saved = path.read_text(encoding="utf-8")
         assert "PRIVATE QUEST WORDS" not in saved
         assert '"frames": 3' in saved
     finally:
+        window.running = False  # The test never writes a real run summary.
         window.close()
