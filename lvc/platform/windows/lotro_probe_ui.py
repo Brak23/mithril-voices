@@ -8,11 +8,18 @@ import threading
 import tkinter as tk
 from collections.abc import Callable
 from dataclasses import dataclass
-from tkinter import scrolledtext
+from tkinter import scrolledtext, ttk
 from typing import cast
 
 from PIL import Image, ImageTk
 
+from lvc.platform.windows.manual_read import (
+    MAX_TEXT_CHARS,
+    ManualReadController,
+    ManualReadError,
+    OutputDevice,
+    list_output_devices,
+)
 from lvc.platform.windows.windows_ocr import recognize_windows
 from lvc.vision.binding import PixelRect
 from lvc.vision.comparison import ReviewState, disagreement_spans
@@ -174,25 +181,27 @@ class EngineComparison:
 def perform_comparison(body: Image.Image, recognize: Callable[..., OcrPass],
                        native: Callable[[Image.Image, OcrProcessRunner], str],
                        runner: OcrProcessRunner, on_second: Callable[[], None],
-                       on_windows: Callable[[], None]) -> EngineComparison:
+                       on_windows: Callable[[], None], *,
+                       compare_tesseract: bool = True) -> EngineComparison:
     """Independent OCR sources; neither result authorizes speech or auto admission."""
     decision: TextDecision | None = None
     first: OcrPass | None = None
     second: OcrPass | None = None
-    tesseract_error: str | None = None
+    tesseract_error: str | None = "NOT_RUN" if not compare_tesseract else None
     windows_error: str | None = None
     windows_text: str | None = None
-    try:
-        decision, first, second = perform_two_pass(body, recognize, runner, on_second)
-    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
-        tesseract_error = str(exc)[:100] or "TESSERACT_FAILED"
-    if runner.cancelled.is_set():
-        raise OcrCancelled()
     on_windows()
     try:
         windows_text = native(body, runner)
     except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
         windows_error = str(exc)[:100] or "WINDOWS_OCR_FAILED"
+    if runner.cancelled.is_set():
+        raise OcrCancelled()
+    if compare_tesseract:
+        try:
+            decision, first, second = perform_two_pass(body, recognize, runner, on_second)
+        except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+            tesseract_error = str(exc)[:100] or "TESSERACT_FAILED"
     if runner.cancelled.is_set():
         raise OcrCancelled()
     return EngineComparison(decision, first, second, windows_text,
@@ -226,6 +235,9 @@ class PreviewWindow:
         self.review = ReviewState.empty()
         self._loading_draft = False
         self.results: queue.Queue[tuple[int, object]] = queue.Queue()
+        self.reader = ManualReadController()
+        self.devices: dict[str, OutputDevice] = {}
+        self.device_results: queue.Queue[object] = queue.Queue()
 
         self.instructions = tk.StringVar()
         tk.Label(self.root, textvariable=self.instructions).pack(anchor="w")
@@ -254,6 +266,9 @@ class PreviewWindow:
         self.retry_button = tk.Button(controls, text="Retry crop from this frame",
                                       command=self.retry)
         self.retry_button.pack(side="left")
+        self.compare_tesseract = tk.BooleanVar(value=False)
+        tk.Checkbutton(controls, text="Compare Tesseract (optional diagnostic)",
+                       variable=self.compare_tesseract).pack(side="left")
         self.cancel_button = tk.Button(controls, text="Cancel OCR", command=self.cancel_ocr)
         self.cancel_button.pack(side="left")
         tk.Button(controls, text="Close", command=self.close).pack(side="right")
@@ -286,8 +301,31 @@ class PreviewWindow:
         self.confirm_button = tk.Button(self.root, text="Confirm corrected text for this preview",
                                         command=self.confirm_review, state="disabled")
         self.confirm_button.pack(anchor="w")
-        tk.Label(self.root, text="Confirmation is local to this preview. Speech is not connected.").pack(anchor="w")
+        speech = tk.Frame(self.root)
+        speech.pack(fill="x")
+        tk.Label(speech, text="Voice:").pack(side="left")
+        self.voice_choice = ttk.Combobox(speech, width=20, state="readonly",
+                                         values=("Emma (British)", "Fable (British)"))
+        self.voice_choice.pack(side="left")
+        self.voice_choice.bind("<<ComboboxSelected>>", self._speech_choice_changed)
+        tk.Label(speech, text="Speakers:").pack(side="left")
+        self.device_choice = ttk.Combobox(speech, width=44, state="readonly")
+        self.device_choice.pack(side="left")
+        self.device_choice.bind("<<ComboboxSelected>>", self._speech_choice_changed)
+        tk.Button(speech, text="Refresh speakers", command=self._refresh_devices).pack(side="left")
+        self.keep_cache = tk.BooleanVar(value=False)
+        tk.Checkbutton(speech, text="Keep private local audio cache",
+                       variable=self.keep_cache).pack(side="left")
+        self.read_button = tk.Button(self.root, text="Read confirmed text",
+                                     command=self._read_confirmed, state="disabled")
+        self.read_button.pack(side="left")
+        self.stop_button = tk.Button(self.root, text="Stop speech", command=self._stop_read)
+        self.stop_button.pack(side="left")
+        self.speech_status = tk.StringVar(value="Choose a voice and speaker, then confirm the text.")
+        tk.Label(self.root, textvariable=self.speech_status, anchor="w").pack(fill="x")
         self._render(overview=True)
+        self._refresh_devices()
+        self.root.after(100, self._poll_read)
 
     def _render(self, *, overview: bool, center: PixelRect | None = None) -> None:
         self._clear_review()
@@ -364,25 +402,122 @@ class PreviewWindow:
         self._loading_draft = False
 
     def _clear_review(self) -> None:
+        self.reader.stop()
         self.review = self.review.invalidate()
         self._set_source(self.tesseract_text, "")
         self._set_source(self.windows_text, "")
         self._set_draft("")
         self.confirm_button.configure(state="disabled")
+        self._update_read_button()
 
     def _draft_modified(self, _event: tk.Event) -> None:
         if self._loading_draft or not self.draft.edit_modified():
             return
         self.draft.edit_modified(False)
         self.review = self.review.edit(self.draft.get("1.0", "end-1c"))
+        self.reader.stop()
         self.confirm_button.configure(state="normal" if self.review.can_confirm else "disabled")
-        self.status.set("Review changed; confirmation cleared. Speech is not connected.")
+        self.status.set("Review changed; confirmation cleared. Press Confirm before Read.")
+        self._update_read_button()
 
     def confirm_review(self) -> None:
         self.review = self.review.edit(self.draft.get("1.0", "end-1c")).confirm()
-        self.status.set("Text confirmed for this preview only; speech is not connected."
-                        if self.review.confirmed else
-                        "Review requires OCR source and 1-10,000 nonblank characters.")
+        if self.review.confirmed and len(self.review.draft) > MAX_TEXT_CHARS:
+            self.status.set("Text confirmed, but manual Read is limited to 3,000 characters."
+                            " Shorten the draft and confirm it again.")
+        else:
+            self.status.set("Text confirmed for this manual read. Press Read when ready."
+                            if self.review.confirmed else
+                            "Review requires OCR source and 1-10,000 nonblank characters.")
+        self._update_read_button()
+
+    def _update_read_button(self) -> None:
+        ready = (self.review.confirmed and self.review.can_confirm
+                 and len(self.review.draft) <= MAX_TEXT_CHARS
+                 and not self.reader.busy and self.voice_choice.get()
+                 in {"Emma (British)", "Fable (British)"}
+                 and self.device_choice.get() in self.devices)
+        self.read_button.configure(state="normal" if ready else "disabled")
+
+    def _speech_choice_changed(self, _event: tk.Event) -> None:
+        self.reader.stop()
+        self._update_read_button()
+
+    def _refresh_devices(self) -> None:
+        self.reader.stop()
+        self.devices.clear()
+        self.device_choice.set("")
+        self.device_choice.configure(values=())
+        self.speech_status.set("Finding local speakers; no audio is played...")
+        self._update_read_button()
+
+        def work() -> None:
+            try:
+                self.device_results.put(list_output_devices())
+            except (ManualReadError, OSError, subprocess.TimeoutExpired) as exc:
+                self.device_results.put(exc)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _poll_read(self) -> None:
+        if self.closed:
+            return
+        try:
+            while True:
+                result = self.device_results.get_nowait()
+                if isinstance(result, Exception):
+                    self.speech_status.set(f"Speaker list unavailable: {result}.")
+                    continue
+                devices = cast(tuple[OutputDevice, ...], result)
+                self.devices = {f"{item.description} [{item.id[-8:]}]": item
+                                for item in devices}
+                self.device_choice.configure(values=tuple(self.devices))
+                self.speech_status.set("Select the Realtek speakers or another intended output.")
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                event, value = self.reader.events.get_nowait()
+                descriptions = {
+                    "SYNTHESIZING": "Rendering confirmed text with the local offline voice...",
+                    "CACHE_HIT": "Using verified private local audio cache...",
+                    "PREPARING_AUDIO": "Checking complete audio and selected speaker...",
+                    "READY": "Audio owner ready; reading starts now.",
+                    "UNIT_RENDERED": f"Voice rendered unit {value}.",
+                    "UNIT_STARTED": f"Reading unit {value}.",
+                    "UNIT_DONE": f"Completed unit {value}.",
+                    "STOPPING": "Stopping and fencing the current read...",
+                    "STOPPED": "Stopped. The reviewed text remains available to read again.",
+                    "COMPLETED": "Read completed. Press Read to hear it again.",
+                    "ERROR": f"Read stopped safely: {value}. Review setup and retry.",
+                }
+                self.speech_status.set(descriptions.get(event, "Read status unavailable."))
+        except queue.Empty:
+            pass
+        self._update_read_button()
+        self.root.after(100, self._poll_read)
+
+    def _read_confirmed(self) -> None:
+        current = self.draft.get("1.0", "end-1c")
+        if current != self.review.draft:
+            self.review = self.review.edit(current)
+            self.status.set("Text changed; confirm it again before reading.")
+            self._update_read_button()
+            return
+        voice = {"Emma (British)": "bf_emma", "Fable (British)": "bm_fable"}.get(
+            self.voice_choice.get())
+        device = self.devices.get(self.device_choice.get())
+        if voice is None or device is None:
+            self.speech_status.set("Select a voice and exact speaker first.")
+            return
+        if self.reader.read(self.review, voice, device,
+                            keep_local_cache=self.keep_cache.get()):
+            self.speech_status.set("Preparing private local speech...")
+        self._update_read_button()
+
+    def _stop_read(self) -> None:
+        self.reader.stop()
+        self._update_read_button()
 
     def preview_ocr(self) -> None:
         if self.job is not None:
@@ -397,6 +532,7 @@ class PreviewWindow:
         body = self.frame.crop((crop.x, crop.y, crop.x + crop.width,
                                 crop.y + crop.height))
         self._clear_review()
+        compare_tesseract = self.compare_tesseract.get()
         self.attempt += 1
         attempt = self.attempt
         runner = OcrProcessRunner()
@@ -404,7 +540,7 @@ class PreviewWindow:
         self.ocr_button.configure(state="disabled")
         self.refine_button.configure(state="disabled")
         self.retry_button.configure(state="disabled")
-        self.status.set("Tesseract pass 1 of 2 running (10-second child timeout).")
+        self.status.set("Windows OCR running (3-second child timeout).")
         self._set_output("")
 
         def work() -> None:
@@ -412,7 +548,8 @@ class PreviewWindow:
                 comparison = perform_comparison(
                     body, self.recognize, self.native, runner,
                     lambda: self.results.put((attempt, "SECOND_PASS")),
-                    lambda: self.results.put((attempt, "WINDOWS_PASS")))
+                    lambda: None,
+                    compare_tesseract=compare_tesseract)
                 self.results.put((attempt, (comparison, crop)))
             except (OcrCancelled, OSError, ValueError, RuntimeError,
                     subprocess.TimeoutExpired) as exc:
@@ -470,8 +607,9 @@ class PreviewWindow:
                             else comparison.tesseract_error or "UNAVAILABLE")
         windows_status = ("returned text" if right else
                           comparison.windows_error or "EMPTY_OCR_OUTPUT")
-        self.status.set(f"Tesseract: {tesseract_status}; Windows OCR: {windows_status}. "
-                        "Highlighted words differ. Check the image and confirm your edit.")
+        comparison_hint = ("Highlighted words differ. " if left and right else "")
+        self.status.set(f"Windows OCR: {windows_status}; Tesseract diagnostic: {tesseract_status}. "
+                        f"{comparison_hint}Check the image and confirm your edit.")
         explanation = (gate_explanation(comparison.tesseract, comparison.first,
                                         comparison.second)
                        if comparison.tesseract is not None and comparison.first is not None
@@ -504,6 +642,12 @@ class PreviewWindow:
         self.closed = True
         if self.job is not None:
             self.job.cancel()
+        try:
+            self.reader.close()
+        except ManualReadError as exc:
+            self.closed = False
+            self.speech_status.set(f"Cannot close while audio is active: {exc}. Press Stop and retry.")
+            return
         self.review = self.review.invalidate()
         self.root.destroy()
 

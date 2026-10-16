@@ -45,6 +45,7 @@ class AudioSubmission:
     token: RequestToken
     unit: AcceptedUnit
     source: AudioSource = "worker"
+    unit_index: int = 0
 
 
 class FenceFloor:
@@ -129,7 +130,8 @@ class _AudioOwner(QObject):
             return
         try:
             self.gate = self.gate.start_unit(submission.state, submission.ledger,
-                                             submission.token, unit.unit_id, 0,
+                                             submission.token, unit.unit_id,
+                                             submission.unit_index,
                                              unit.frames, self.gate.sink_epoch,
                                              source=submission.source)
         except ValueError:
@@ -184,7 +186,8 @@ class _AudioOwner(QObject):
         try:
             self.gate, wrote = self.gate.write(
                 submission.state, submission.ledger, submission.token,
-                submission.unit.unit_id, 0, self.gate.sink_epoch, frames, self,
+                submission.unit.unit_id, submission.unit_index,
+                self.gate.sink_epoch, frames, self,
             )
         except (OSError, RuntimeError, ValueError):
             self.lose_device()
@@ -202,7 +205,7 @@ class _AudioOwner(QObject):
             return
         self.gate = self.gate.drain(submission.state, submission.ledger,
                                     submission.token, submission.unit.unit_id,
-                                    0, epoch, frames)
+                                    submission.unit_index, epoch, frames)
 
     @Slot(int)
     def idle(self, epoch: int) -> None:
@@ -211,7 +214,7 @@ class _AudioOwner(QObject):
             return
         self.gate, completed = self.gate.idle(submission.state, submission.ledger,
                                                submission.token, submission.unit.unit_id,
-                                               0, epoch)
+                                               submission.unit_index, epoch)
         if completed:
             self.unit_drained.emit(str(submission.token.request_id),
                                    submission.unit.unit_id, epoch)

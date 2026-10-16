@@ -15,6 +15,7 @@ from lvc.platform.windows.lotro_probe_ui import (
     PreviewWindow,
     perform_comparison,
 )
+from lvc.platform.windows.manual_read import ManualReadController
 from lvc.vision.binding import PixelRect
 from lvc.vision.comparison import ReviewState, disagreement_spans
 from lvc.vision.text_gate import OcrPass, OcrWord
@@ -48,6 +49,24 @@ def test_review_never_promotes_agreement_or_edit_to_automated_pass() -> None:
     assert state.windows_source == "Lanterns glow"
     assert state.confirm().confirmed
     assert not state.invalidate().confirmed
+
+
+def test_windows_is_primary_but_tesseract_is_optional_diagnostic() -> None:
+    crop = PixelRect(20, 20, 200, 80)
+    state = ReviewState.empty().load(crop, "Tesseract guess", "Windows guess")
+    assert state.draft == "Windows guess"
+    calls: list[str] = []
+
+    def forbidden(_image: Image.Image, **_kwargs: object) -> OcrPass:
+        calls.append("tesseract")
+        raise AssertionError("diagnostic was not requested")
+
+    result = perform_comparison(Image.new("RGB", (80, 50)), forbidden,
+                                lambda _image, _runner: "Windows guess",
+                                OcrProcessRunner(), lambda: None, lambda: None,
+                                compare_tesseract=False)
+    assert calls == [] and result.windows_text == "Windows guess"
+    assert result.tesseract_error == "NOT_RUN"
 
 
 def test_cannot_confirm_blank_or_unrelated_source_free_review() -> None:
@@ -186,6 +205,7 @@ def test_starting_a_new_crop_invalidates_prior_human_confirmation() -> None:
 
     preview = object.__new__(PreviewWindow)
     preview.job = None
+    preview.reader = ManualReadController()
     preview._loading_draft = False
     preview.review = ReviewState.empty().load(PixelRect(0, 0, 80, 50),
                                               "Source", "Source").confirm()
@@ -193,6 +213,12 @@ def test_starting_a_new_crop_invalidates_prior_human_confirmation() -> None:
     preview.windows_text = FakeText()  # type: ignore[assignment]
     preview.draft = FakeText()  # type: ignore[assignment]
     preview.confirm_button = FakeText()  # type: ignore[assignment]
+    preview.read_button = FakeText()  # type: ignore[assignment]
+    preview.devices = {}
+    preview.voice_choice = FakeText()  # type: ignore[assignment]
+    preview.device_choice = FakeText()  # type: ignore[assignment]
+    preview.voice_choice.get = lambda: ""  # type: ignore[method-assign]
+    preview.device_choice.get = lambda: ""  # type: ignore[method-assign]
     preview.canvas = FakeCanvas()  # type: ignore[assignment]
     preview._point = lambda _event: (10, 20)  # type: ignore[method-assign]
     preview._press(object())  # type: ignore[arg-type]

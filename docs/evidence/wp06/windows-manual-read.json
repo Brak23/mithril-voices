@@ -1,0 +1,33 @@
+{
+  "scope": "WP06_MANUAL_CONFIRMED_SPEECH_SYNTHETIC_WINDOWS_ONLY",
+  "date_utc": "2026-10-16",
+  "platform": "Windows",
+  "status": "SYNTHETIC_PASSED_REAL_GAME_AND_PHYSICAL_AUDIO_NOT_RUN",
+  "owner_observation": "Windows OCR appeared accurate on one quest; user reported, not a measured accuracy result",
+  "focused_tests": {
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0,
+    "receipt_from_repository_root": "../test-tmp/wp06-focused.xml"
+  },
+  "existing_lanes": {
+    "vision_prep": {"passed": 31, "failed": 0, "skipped": 0},
+    "contract": {"passed": 43, "failed": 0, "skipped": 0}
+  },
+  "static": {"ruff": "PASSED", "pyright": "0 errors, 0 warnings"},
+  "private_silent_checks": [
+    "Fresh local Emma synthesis, complete WAV validation and silent Qt admission completed",
+    "Fresh local Fable synthesis, complete WAV validation and silent Qt admission completed",
+    "Stop during an active owned synthesis child produced STOPPED without completion",
+    "Stop during cached silent playback produced STOPPED without completion; replay completed",
+    "Synthetic Tk comparison/review lifecycle completed"
+  ],
+  "not_run": [
+    "Audible selected-speaker playback",
+    "Real LOTRO capture and manual quest-to-speech on this branch",
+    "OCR accuracy qualification across panels",
+    "Automatic narration and release gates"
+  ],
+  "fixture_provenance": "ORIGINAL_SYNTHETIC",
+  "private_data_published": false
+}
