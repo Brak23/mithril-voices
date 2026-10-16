@@ -5,7 +5,7 @@
   "status": "SYNTHETIC_PASSED_REAL_GAME_AND_PHYSICAL_AUDIO_NOT_RUN",
   "owner_observation": "Windows OCR appeared accurate on one quest; user reported, not a measured accuracy result",
   "focused_tests": {
-    "passed": 59,
+    "passed": 60,
     "failed": 0,
     "skipped": 0,
     "receipt_from_repository_root": "../test-tmp/wp06-focused.xml"
@@ -22,6 +22,7 @@
     "Stop during cached silent playback produced STOPPED without completion; replay completed",
     "Synthetic Tk comparison/review lifecycle completed"
   ],
+  "layout_repair": "Owner screenshot showed voice and Read controls below the window; a reserved footer and smaller initial panes passed a Windows Tk layout regression",
   "not_run": [
     "Audible selected-speaker playback",
     "Real LOTRO capture and manual quest-to-speech on this branch",

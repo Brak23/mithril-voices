@@ -70,3 +70,16 @@ the signed-in desktop. A new game frame requires closing the preview and
 repeating the explicit window selection/capture command. The owner has not
 yet reported an audible real-game read; this packet remains at manual
 end-to-end check pending. Model and corpus rights remain separate gates.
+
+## Preview layout repair after owner retest
+
+The owner's first retest showed the Confirm button at the bottom edge and the
+voice and Read controls below the visible window. The same launcher was loading
+the new code; this was a Tk layout defect. The manual controls now occupy a
+reserved bottom footer, while the image and OCR panes request less initial
+height. A synthetic 5120x1440 frame on this Windows desktop requested a
+750-pixel-tall preview, within the 950-pixel configured window, and the footer
+hierarchy is covered by a Windows regression test. The running preview has
+already constructed its old layout, so this repair takes effect on the next
+launcher run and explicit frame capture. No saved game image or text was used
+to test the repair.

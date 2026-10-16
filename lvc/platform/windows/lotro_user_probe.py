@@ -262,7 +262,7 @@ def main() -> int:
         raise ValueError("Native frame exceeded the bounded pipe size")
     frame = decode_frame(completed.stdout)
     show_preview(frame, recognize)
-    print("No speech was played and no image or OCR text was saved by this probe.")
+    print("Preview closed. No image or OCR text was saved by this probe.")
     return 0
 
 

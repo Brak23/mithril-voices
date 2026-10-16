@@ -224,6 +224,10 @@ class PreviewWindow:
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.attributes("-topmost", True)
         self.root.after_idle(self.root.lift)
+        # Reserve the manual controls before the scrollable image and OCR panes.
+        # Otherwise the image can consume the viewport and hide Read below it.
+        self.actions = tk.Frame(self.root)
+        self.actions.pack(side="bottom", fill="x")
         self.stage = "overview"
         self.viewport = Viewport(frame.width, frame.height, 1.0)
         self.photo: ImageTk.PhotoImage | None = None
@@ -244,7 +248,7 @@ class PreviewWindow:
         holder = tk.Frame(self.root)
         holder.pack(fill="both", expand=True)
         self.canvas = tk.Canvas(holder, width=min(1200, frame.width),
-                                height=min(480, frame.height), cursor="crosshair")
+                                height=min(300, frame.height), cursor="crosshair")
         xscroll = tk.Scrollbar(holder, orient="horizontal", command=self.canvas.xview)
         yscroll = tk.Scrollbar(holder, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
@@ -274,7 +278,7 @@ class PreviewWindow:
         tk.Button(controls, text="Close", command=self.close).pack(side="right")
         self.status = tk.StringVar(value="Select an approximate quest-body area.")
         tk.Label(self.root, textvariable=self.status, anchor="w").pack(fill="x")
-        self.output = scrolledtext.ScrolledText(self.root, width=110, height=8,
+        self.output = scrolledtext.ScrolledText(self.root, width=110, height=5,
                                                 wrap="word")
         self.output.pack(fill="x")
         self.output.configure(state="disabled")
@@ -285,7 +289,7 @@ class PreviewWindow:
             pane = tk.Frame(sources)
             pane.grid(row=0, column=column, sticky="nsew")
             tk.Label(pane, text=title).pack(anchor="w")
-            widget = scrolledtext.ScrolledText(pane, height=6, wrap="word")
+            widget = scrolledtext.ScrolledText(pane, height=4, wrap="word")
             widget.pack(fill="both", expand=True)
             widget.configure(state="disabled")
             widget.tag_configure("difference", background="#ffe19c")
@@ -295,13 +299,13 @@ class PreviewWindow:
                 self.windows_text = widget
             sources.grid_columnconfigure(column, weight=1)
         tk.Label(self.root, text="Editable review text (changes require confirmation again)").pack(anchor="w")
-        self.draft = scrolledtext.ScrolledText(self.root, width=110, height=5, wrap="word")
+        self.draft = scrolledtext.ScrolledText(self.root, width=110, height=4, wrap="word")
         self.draft.pack(fill="x")
         self.draft.bind("<<Modified>>", self._draft_modified)
-        self.confirm_button = tk.Button(self.root, text="Confirm corrected text for this preview",
+        self.confirm_button = tk.Button(self.actions, text="Confirm corrected text for this preview",
                                         command=self.confirm_review, state="disabled")
         self.confirm_button.pack(anchor="w")
-        speech = tk.Frame(self.root)
+        speech = tk.Frame(self.actions)
         speech.pack(fill="x")
         tk.Label(speech, text="Voice:").pack(side="left")
         self.voice_choice = ttk.Combobox(speech, width=20, state="readonly",
@@ -316,13 +320,15 @@ class PreviewWindow:
         self.keep_cache = tk.BooleanVar(value=False)
         tk.Checkbutton(speech, text="Keep private local audio cache",
                        variable=self.keep_cache).pack(side="left")
-        self.read_button = tk.Button(self.root, text="Read confirmed text",
+        playback = tk.Frame(self.actions)
+        playback.pack(fill="x")
+        self.read_button = tk.Button(playback, text="Read confirmed text",
                                      command=self._read_confirmed, state="disabled")
         self.read_button.pack(side="left")
-        self.stop_button = tk.Button(self.root, text="Stop speech", command=self._stop_read)
+        self.stop_button = tk.Button(playback, text="Stop speech", command=self._stop_read)
         self.stop_button.pack(side="left")
         self.speech_status = tk.StringVar(value="Choose a voice and speaker, then confirm the text.")
-        tk.Label(self.root, textvariable=self.speech_status, anchor="w").pack(fill="x")
+        tk.Label(self.actions, textvariable=self.speech_status, anchor="w").pack(fill="x")
         self._render(overview=True)
         self._refresh_devices()
         self.root.after(100, self._poll_read)
