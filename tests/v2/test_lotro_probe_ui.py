@@ -19,6 +19,7 @@ from lvc.platform.windows.lotro_probe_ui import (
     perform_two_pass,
 )
 from lvc.vision.binding import PixelRect
+from lvc.vision.comparison import ReviewState
 from lvc.vision.text_gate import OcrPass, OcrWord
 
 
@@ -134,6 +135,7 @@ def test_repeated_preview_click_retry_and_close_lifecycle(
     preview = object.__new__(PreviewWindow)
     preview.job = OcrProcessRunner()
     preview.closed = False
+    preview.review = ReviewState.empty()
     messages: list[str] = []
 
     class FakeStatus:

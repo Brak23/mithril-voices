@@ -13,7 +13,9 @@ from typing import cast
 
 from PIL import Image, ImageTk
 
+from lvc.platform.windows.windows_ocr import recognize_windows
 from lvc.vision.binding import PixelRect
+from lvc.vision.comparison import ReviewState, disagreement_spans
 from lvc.vision.text_gate import OcrPass, TextDecision, decide_text
 
 MAX_OCR_PIXELS = 2_000_000
@@ -155,15 +157,61 @@ def perform_two_pass(body: Image.Image, recognize: Callable[..., OcrPass],
     return decide_text(first, second, qualified_region=True), first, second
 
 
+@dataclass(frozen=True)
+class EngineComparison:
+    tesseract: TextDecision | None
+    first: OcrPass | None
+    second: OcrPass | None
+    windows_text: str | None
+    tesseract_error: str | None = None
+    windows_error: str | None = None
+
+    @property
+    def tesseract_text(self) -> str | None:
+        return self.first.raw_text if self.first is not None else None
+
+
+def perform_comparison(body: Image.Image, recognize: Callable[..., OcrPass],
+                       native: Callable[[Image.Image, OcrProcessRunner], str],
+                       runner: OcrProcessRunner, on_second: Callable[[], None],
+                       on_windows: Callable[[], None]) -> EngineComparison:
+    """Independent OCR sources; neither result authorizes speech or auto admission."""
+    decision: TextDecision | None = None
+    first: OcrPass | None = None
+    second: OcrPass | None = None
+    tesseract_error: str | None = None
+    windows_error: str | None = None
+    windows_text: str | None = None
+    try:
+        decision, first, second = perform_two_pass(body, recognize, runner, on_second)
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        tesseract_error = str(exc)[:100] or "TESSERACT_FAILED"
+    if runner.cancelled.is_set():
+        raise OcrCancelled()
+    on_windows()
+    try:
+        windows_text = native(body, runner)
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        windows_error = str(exc)[:100] or "WINDOWS_OCR_FAILED"
+    if runner.cancelled.is_set():
+        raise OcrCancelled()
+    return EngineComparison(decision, first, second, windows_text,
+                            tesseract_error, windows_error)
+
+
 class PreviewWindow:
     """Keep one captured frame visible for overview, native-size refinement and retry."""
 
     def __init__(self, frame: Image.Image,
-                 recognize: Callable[..., OcrPass]) -> None:
+                 recognize: Callable[..., OcrPass],
+                 native: Callable[[Image.Image, OcrProcessRunner], str] = recognize_windows) -> None:
         self.frame = frame
         self.recognize = recognize
+        self.native = native
         self.root = tk.Tk()
         self.root.title("Mithril Voices - one-frame quest OCR preview")
+        self.root.geometry("1250x950")
+        self.root.minsize(900, 700)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.attributes("-topmost", True)
         self.root.after_idle(self.root.lift)
@@ -175,6 +223,8 @@ class PreviewWindow:
         self.job: OcrProcessRunner | None = None
         self.attempt = 0
         self.closed = False
+        self.review = ReviewState.empty()
+        self._loading_draft = False
         self.results: queue.Queue[tuple[int, object]] = queue.Queue()
 
         self.instructions = tk.StringVar()
@@ -182,7 +232,7 @@ class PreviewWindow:
         holder = tk.Frame(self.root)
         holder.pack(fill="both", expand=True)
         self.canvas = tk.Canvas(holder, width=min(1200, frame.width),
-                                height=min(800, frame.height), cursor="crosshair")
+                                height=min(480, frame.height), cursor="crosshair")
         xscroll = tk.Scrollbar(holder, orient="horizontal", command=self.canvas.xview)
         yscroll = tk.Scrollbar(holder, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
@@ -213,9 +263,34 @@ class PreviewWindow:
                                                 wrap="word")
         self.output.pack(fill="x")
         self.output.configure(state="disabled")
+        sources = tk.Frame(self.root)
+        sources.pack(fill="x")
+        for column, title in enumerate(("Tesseract source guess",
+                                        "Windows OCR source guess")):
+            pane = tk.Frame(sources)
+            pane.grid(row=0, column=column, sticky="nsew")
+            tk.Label(pane, text=title).pack(anchor="w")
+            widget = scrolledtext.ScrolledText(pane, height=6, wrap="word")
+            widget.pack(fill="both", expand=True)
+            widget.configure(state="disabled")
+            widget.tag_configure("difference", background="#ffe19c")
+            if column == 0:
+                self.tesseract_text = widget
+            else:
+                self.windows_text = widget
+            sources.grid_columnconfigure(column, weight=1)
+        tk.Label(self.root, text="Editable review text (changes require confirmation again)").pack(anchor="w")
+        self.draft = scrolledtext.ScrolledText(self.root, width=110, height=5, wrap="word")
+        self.draft.pack(fill="x")
+        self.draft.bind("<<Modified>>", self._draft_modified)
+        self.confirm_button = tk.Button(self.root, text="Confirm corrected text for this preview",
+                                        command=self.confirm_review, state="disabled")
+        self.confirm_button.pack(anchor="w")
+        tk.Label(self.root, text="Confirmation is local to this preview. Speech is not connected.").pack(anchor="w")
         self._render(overview=True)
 
     def _render(self, *, overview: bool, center: PixelRect | None = None) -> None:
+        self._clear_review()
         self.stage = "overview" if overview else "refine"
         scale = min(1.0, 1200 / self.frame.width, 800 / self.frame.height) if overview else 1.0
         self.viewport = Viewport(self.frame.width, self.frame.height, scale)
@@ -243,6 +318,7 @@ class PreviewWindow:
     def _press(self, event: tk.Event) -> None:
         if self.job is not None:
             return
+        self._clear_review()
         self.drag_start = self._point(event)
         self.selection = None
         self.canvas.delete("selection")
@@ -269,6 +345,45 @@ class PreviewWindow:
         self.output.insert("1.0", value)
         self.output.configure(state="disabled")
 
+    @staticmethod
+    def _set_source(widget: scrolledtext.ScrolledText, value: str,
+                    differences: tuple[tuple[int, int], ...] = ()) -> None:
+        widget.configure(state="normal")
+        widget.delete("1.0", "end")
+        widget.insert("1.0", value)
+        widget.tag_remove("difference", "1.0", "end")
+        for start, end in differences:
+            widget.tag_add("difference", f"1.0+{start}c", f"1.0+{end}c")
+        widget.configure(state="disabled")
+
+    def _set_draft(self, value: str) -> None:
+        self._loading_draft = True
+        self.draft.delete("1.0", "end")
+        self.draft.insert("1.0", value)
+        self.draft.edit_modified(False)
+        self._loading_draft = False
+
+    def _clear_review(self) -> None:
+        self.review = self.review.invalidate()
+        self._set_source(self.tesseract_text, "")
+        self._set_source(self.windows_text, "")
+        self._set_draft("")
+        self.confirm_button.configure(state="disabled")
+
+    def _draft_modified(self, _event: tk.Event) -> None:
+        if self._loading_draft or not self.draft.edit_modified():
+            return
+        self.draft.edit_modified(False)
+        self.review = self.review.edit(self.draft.get("1.0", "end-1c"))
+        self.confirm_button.configure(state="normal" if self.review.can_confirm else "disabled")
+        self.status.set("Review changed; confirmation cleared. Speech is not connected.")
+
+    def confirm_review(self) -> None:
+        self.review = self.review.edit(self.draft.get("1.0", "end-1c")).confirm()
+        self.status.set("Text confirmed for this preview only; speech is not connected."
+                        if self.review.confirmed else
+                        "Review requires OCR source and 1-10,000 nonblank characters.")
+
     def preview_ocr(self) -> None:
         if self.job is not None:
             return
@@ -281,6 +396,7 @@ class PreviewWindow:
             return
         body = self.frame.crop((crop.x, crop.y, crop.x + crop.width,
                                 crop.y + crop.height))
+        self._clear_review()
         self.attempt += 1
         attempt = self.attempt
         runner = OcrProcessRunner()
@@ -288,15 +404,16 @@ class PreviewWindow:
         self.ocr_button.configure(state="disabled")
         self.refine_button.configure(state="disabled")
         self.retry_button.configure(state="disabled")
-        self.status.set("OCR pass 1 of 2 running. Each Tesseract child has a 10-second timeout.")
+        self.status.set("Tesseract pass 1 of 2 running (10-second child timeout).")
         self._set_output("")
 
         def work() -> None:
             try:
-                decision, first, second = perform_two_pass(
-                    body, self.recognize, runner,
-                    lambda: self.results.put((attempt, "SECOND_PASS")))
-                self.results.put((attempt, (decision, first, second, crop)))
+                comparison = perform_comparison(
+                    body, self.recognize, self.native, runner,
+                    lambda: self.results.put((attempt, "SECOND_PASS")),
+                    lambda: self.results.put((attempt, "WINDOWS_PASS")))
+                self.results.put((attempt, (comparison, crop)))
             except (OcrCancelled, OSError, ValueError, RuntimeError,
                     subprocess.TimeoutExpired) as exc:
                 self.results.put((attempt, exc))
@@ -320,32 +437,58 @@ class PreviewWindow:
                 self.root.after(100, self._poll)
             return
         if result == "SECOND_PASS":
-            self.status.set("OCR pass 2 of 2 running (at most 10 seconds).")
+            self.status.set("Tesseract pass 2 of 2 running (at most 10 seconds).")
             self.root.after(100, self._poll)
             return
+        if result == "WINDOWS_PASS":
+            self.status.set("Windows OCR running (at most 3 seconds if available).")
+            self.root.after(100, self._poll)
+            return
+        canceled = self.job is not None and self.job.cancelled.is_set()
         self.job = None
         self.retry_button.configure(state="normal")
         self.ocr_button.configure(state="normal")
+        if canceled:
+            self._clear_review()
+            self.status.set("OCR canceled; no result retained.")
+            return
         if isinstance(result, Exception):
             self.status.set("OCR canceled." if isinstance(result, OcrCancelled)
                             else f"OCR stopped: {result}. Refine and retry this frame.")
             return
-        decision, first, second, crop = cast(
-            tuple[TextDecision, OcrPass, OcrPass, PixelRect], result)
-        self.status.set(f"{decision.reason}; accepted={decision.accepted_text is not None}. "
-                        "You can refine and retry this same frame.")
-        self._set_output(f"{gate_explanation(decision, first, second)}\n"
+        comparison, crop = cast(tuple[EngineComparison, PixelRect], result)
+        self.review = self.review.load(crop, comparison.tesseract_text,
+                                       comparison.windows_text)
+        left = comparison.tesseract_text or ""
+        right = comparison.windows_text or ""
+        left_diff, right_diff = disagreement_spans(left, right) if left and right else ((), ())
+        self._set_source(self.tesseract_text, left, left_diff)
+        self._set_source(self.windows_text, right, right_diff)
+        self._set_draft(self.review.draft)
+        self.confirm_button.configure(state="normal" if self.review.can_confirm else "disabled")
+        tesseract_status = (comparison.tesseract.reason if comparison.tesseract is not None
+                            else comparison.tesseract_error or "UNAVAILABLE")
+        windows_status = ("returned text" if right else
+                          comparison.windows_error or "EMPTY_OCR_OUTPUT")
+        self.status.set(f"Tesseract: {tesseract_status}; Windows OCR: {windows_status}. "
+                        "Highlighted words differ. Check the image and confirm your edit.")
+        explanation = (gate_explanation(comparison.tesseract, comparison.first,
+                                        comparison.second)
+                       if comparison.tesseract is not None and comparison.first is not None
+                       and comparison.second is not None else
+                       f"Tesseract: {comparison.tesseract_error or 'unavailable'}.")
+        self._set_output(f"{explanation}\nWindows OCR: {windows_status}. "
+                         "Neither agreement nor an edit is an automated speech pass.\n"
                          f"Crop: x={crop.x}, y={crop.y}, {crop.width}x{crop.height}; "
-                         f"frame: {self.frame.width}x{self.frame.height}.\n\n"
-                         f"Raw local OCR preview (not saved or uploaded):\n{decision.raw_text}")
-        print(f"Two-pass gate: {decision.reason}; accepted={decision.accepted_text is not None}; "
+                         f"frame: {self.frame.width}x{self.frame.height}.")
+        print(f"Comparison: Tesseract={tesseract_status}; Windows={windows_status}; "
               f"crop={crop.x},{crop.y},{crop.width},{crop.height}; "
               f"frame={self.frame.width}x{self.frame.height}.", flush=True)
 
     def cancel_ocr(self) -> None:
         if self.job is not None:
             self.job.cancel()
-            self.status.set("Canceling OCR child process...")
+            self.status.set("Canceling OCR child process; review invalidated...")
 
     def retry(self) -> None:
         if self.job is not None:
@@ -361,6 +504,7 @@ class PreviewWindow:
         self.closed = True
         if self.job is not None:
             self.job.cancel()
+        self.review = self.review.invalidate()
         self.root.destroy()
 
     def run(self) -> None:

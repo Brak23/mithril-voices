@@ -140,3 +140,46 @@ not qualified and was not applied. The two-pass thresholds and preprocessing
 remain unchanged. The local result now lists the weakest recognized word guesses
 and scores per pass, solely in the preview, to make the next diagnosis precise.
 This probe still cannot establish accurate quest OCR or authorize narration.
+
+## Windows OCR comparison and correction preview
+
+The next bounded WP-05 prototype adds the installed `Windows.Media.Ocr` engine as
+a second, independent source for the same in-memory selected body crop. Its
+reviewed helper source is `tools/windows_ocr_stdin.cpp`; an x64 Visual Studio
+developer prompt can build it with `tools/build_windows_ocr.cmd` from the
+repository root. On this PC the local executable is
+`../test-tmp/windows_ocr_stdin.exe` and its pinned SHA-256 is
+`159a2fc8a35e7eb9ff151b78566d6977145fa2ec2d6f40cf1ce51b261eeb87e3`.
+The probe refuses a different executable. No extra service, model, or download
+is involved. If the helper or English OCR language is unavailable, the preview
+shows that condition and can still show the independent Tesseract result.
+
+The two Tesseract passes and their existing gate remain unchanged. Windows OCR
+has no comparable per-word confidence in the API used here. The preview keeps
+the first Tesseract source guess, Windows source guess, and editable review text
+separate. Yellow marks identify differing nonspace tokens in each source.
+Agreement is only a comparison observation. The user must inspect the visible
+image and press **Confirm corrected text for this preview**. Any edit, crop
+selection, new OCR attempt, retry, or close invalidates that confirmation.
+Cancellation kills the active child; each Tesseract child has a 10-second limit
+and the Windows OCR child a 3-second limit. Stale attempt results are ignored.
+Neither human confirmation nor an OCR agreement qualifies automatic narration,
+and this preview has no speech bridge.
+
+For a retest when the owner has already launched LOTRO, use the existing
+`tools/Run-LOTRO-OCR-Probe.cmd` and the selection/CAPTURE steps above. After
+selecting a complete quest-body crop, compare the yellow differences with the
+visible text. Correct the editable field, press **Confirm corrected text for this
+preview**, then make a small edit and verify confirmation clears. Try a second
+crop on the same frame; its old sources and confirmation should clear. The useful
+report is whether both engine panels populated, whether the highlighted words
+matched actual mistakes, and whether confirmation invalidated as described.
+Share only redacted observations and reason codes, not screenshot or quest text.
+
+Local qualification so far is a synthetic Tk workflow and a real Windows OCR
+call on an original synthetic phrase, plus a private existing screenshot crop
+read only from this PC. No private pixels or recognized text were committed.
+The native adapter reproduced the earlier file-only Windows OCR result on that
+crop, but neither engine was fully accurate there. Real LOTRO UI behavior,
+capture freshness, OCR accuracy over varied panels, and quest-to-speech remain
+unqualified.
