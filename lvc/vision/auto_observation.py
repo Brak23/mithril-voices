@@ -183,8 +183,7 @@ class AutoObservation:
 
     def validated(self, token: tuple[int, str], text: str | None) -> Decision:
         """Only a current, independently qualified OCR result may reach READ."""
-        if (self.suspended or not self.armed or token != self._pending
-                or token[1] != self._candidate or self._unknown_hold):
+        if not self.can_accept_validation(token):
             return Decision()
         self._pending = None
         self._validated = token[1]
@@ -192,3 +191,7 @@ class AutoObservation:
             return Decision()
         self._active = token[1]
         return Decision(("READ",), accepted_text=text)
+
+    def can_accept_validation(self, token: tuple[int, str]) -> bool:
+        return (not self.suspended and self.armed and token == self._pending
+                and token[1] == self._candidate and not self._unknown_hold)
