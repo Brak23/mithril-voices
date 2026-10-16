@@ -63,6 +63,14 @@ def test_two_pass_acceptance_rejection_and_reason_explanation() -> None:
         image, lambda _image, **_kwargs: low, OcrProcessRunner(), lambda: None)
     assert decision.reason == "LOW_OCR_CONFIDENCE"
     assert "min 14.8" in gate_explanation(decision, first, second)
+    assert "#1 recognized as 'Arin' (14.8)" in gate_explanation(decision, first, second)
+
+    punctuation = OcrPass("...", (OcrWord("...", 96),))
+    decision, first, second = perform_two_pass(
+        image, lambda _image, **_kwargs: punctuation,
+        OcrProcessRunner(), lambda: None)
+    assert decision.reason == "LOW_OCR_CONFIDENCE"
+    assert "no alphanumeric word guesses" in gate_explanation(decision, first, second)
 
 
 def test_cancel_between_passes_prevents_second_ocr_call() -> None:

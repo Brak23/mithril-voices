@@ -111,8 +111,26 @@ def gate_explanation(decision: TextDecision, first: OcrPass, second: OcrPass) ->
                 return "no alphanumeric words"
             return f"min {min(values):.1f}, median {statistics.median(values):.1f}"
 
+        def weakest(result: OcrPass) -> str:
+            ranked = sorted(((index, word) for index, word in enumerate(result.words, 1)
+                             if any(character.isalnum() for character in word.text)),
+                            key=lambda item: item[1].confidence)
+            below_floor = [item for item in ranked if item[1].confidence < 40]
+            selected = below_floor[:5] if below_floor else ranked[:2]
+            if not selected:
+                return "no alphanumeric word guesses"
+            details = "; ".join(
+                f"#{index} recognized as {word.text[:48]!r} ({word.confidence:.1f})"
+                for index, word in selected)
+            if len(below_floor) > len(selected):
+                details += f"; {len(below_floor) - len(selected)} more below 40"
+            return details
+
         return (f"Pass 1: {scores(first)}; pass 2: {scores(second)}. "
-                "Each word needs at least 40 and each pass median at least 85.")
+                "Each word needs at least 40 and each pass median at least 85.\n"
+                f"Pass 1 weakest OCR guesses: {weakest(first)}.\n"
+                f"Pass 2 weakest OCR guesses: {weakest(second)}. "
+                "These are recognized guesses, not confirmed game text.")
     if decision.reason == "OCR_PASS_DISAGREEMENT":
         return "The two OCR passes disagree on at least one word."
     if decision.reason == "EMPTY_OCR_OUTPUT":

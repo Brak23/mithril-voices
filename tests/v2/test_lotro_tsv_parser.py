@@ -51,6 +51,23 @@ def test_real_low_confidence_and_clipped_words_still_fail_closed() -> None:
                        qualified_region=True).reason == "INCOMPLETE_OR_INVALID_WORD"
 
 
+def test_ambiguous_spacing_and_protected_number_disagreement_abstain() -> None:
+    separated = parse_tesseract_tsv(
+        tsv(word(1, "I"), word(2, "am"), word(3, "ready.")),
+        width=400, height=100, margin=3)
+    merged = parse_tesseract_tsv(
+        tsv(word(1, "Iam"), word(2, "ready.")),
+        width=400, height=100, margin=3)
+    assert decide_text(separated, merged,
+                       qualified_region=True).reason == "OCR_PASS_DISAGREEMENT"
+    one = parse_tesseract_tsv(tsv(word(1, "Bring"), word(2, "1")),
+                              width=400, height=100, margin=3)
+    four = parse_tesseract_tsv(tsv(word(1, "Bring"), word(2, "4")),
+                               width=400, height=100, margin=3)
+    assert decide_text(one, four,
+                       qualified_region=True).reason == "OCR_PASS_DISAGREEMENT"
+
+
 def test_empty_or_negative_confidence_word_cannot_be_silently_dropped() -> None:
     result = parse_tesseract_tsv(
         tsv(word(1, "Lantern"), word(2, "", -1)),

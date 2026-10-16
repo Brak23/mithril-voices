@@ -113,3 +113,30 @@ trial, so the corrected parser may still abstain for genuine OCR uncertainty.
 The UI now reports each pass's minimum and median score when that gate rejects.
 No owner quest text or frame was used as a fixture or committed. A real-game
 retest of this parser repair remains pending.
+
+## Small-glyph confidence diagnosis after owner retest
+
+The owner confirmed the TSV rows are gone. The new result had a word-confidence
+minimum below 40 in the first pass and above 40 in the second. The first pass
+uses the selected crop's native grayscale pixels; the second uses autocontrast
+then 2x resizing. The 1200-pixel overview and scrollable native-size refinement
+affect only the preview: OCR crops from the original captured frame. The user's
+298x205 crop is in original frame pixels. No game image was retained here, so
+its exact glyph heights and colors cannot be measured from this result.
+
+The confidence floors come from R-TXT-002 and `contracts/defaults.json`:
+every alphanumeric word at least 40 and each pass median at least 85. The
+owner also identified a merged `I am` word in the OCR preview. This is an
+accuracy error, not a dictionary issue. A low score can cause an honest
+abstention, but a high score is not proof that the recognized words are right.
+
+An ignored, local experiment rendered original text at small sizes in two
+installed fonts and two contrast settings. It compared the current native/2x
+pair with a proposed 2x grayscale/2x autocontrast pair. The proposed pair
+accepted more cases but also accepted incorrect text: 6 of 7 accepted spacing
+cases and 2 of 9 accepted protected-content cases differed from the source.
+The existing pair also accepted one wrong spacing case. Thus the 2x change is
+not qualified and was not applied. The two-pass thresholds and preprocessing
+remain unchanged. The local result now lists the weakest recognized word guesses
+and scores per pass, solely in the preview, to make the next diagnosis precise.
+This probe still cannot establish accurate quest OCR or authorize narration.
