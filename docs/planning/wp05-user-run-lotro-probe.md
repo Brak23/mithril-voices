@@ -93,3 +93,23 @@ the 11 focused probe tests and the 31-case vision-prep lane passed; an original
 in-memory phrase also passed through the installed Tesseract and the unchanged
 gate. The repaired GUI still needs the owner's retest. Crop correctness, DPI/UI scale,
 quest-language performance and rights remain open WP-05 gates.
+
+## Literal TSV parser repair after owner retest
+
+The owner's second local Preview contained Tesseract TSV metadata interleaved
+with recognized words. The defect was the probe's use of Python's default CSV
+quoting rules for Tesseract's literal tab-separated records. A recognized leading
+quotation mark could open a CSV quoted field and fold following physical TSV
+rows into one OCR word. An original synthetic TSV fixture reproduced this
+exact failure shape. The parser now treats quotation marks as OCR text, requires
+the documented 12-column header/rows, ignores nonword structural records, and
+fails closed on malformed rows. It keeps valid names and punctuation exactly as
+recognized; there is no dictionary-based rejection or automatic word repair.
+
+The existing two-pass gate still requires complete unclipped words, agreement,
+all alphanumeric word confidences at least 40, and median confidence at least
+85 per pass. The owner reported at least one word score below 40 in the same
+trial, so the corrected parser may still abstain for genuine OCR uncertainty.
+The UI now reports each pass's minimum and median score when that gate rejects.
+No owner quest text or frame was used as a fixture or committed. A real-game
+retest of this parser repair remains pending.

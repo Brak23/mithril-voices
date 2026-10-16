@@ -154,6 +154,61 @@ def display_crop_to_frame(x1: float, y1: float, x2: float, y2: float,
     return Viewport(width, height, scale).crop(x1, y1, x2, y2)
 
 
+TSV_HEADER = ("level", "page_num", "block_num", "par_num", "line_num",
+              "word_num", "left", "top", "width", "height", "conf", "text")
+
+
+def parse_tesseract_tsv(payload: bytes, *, width: int, height: int,
+                        margin: int) -> OcrPass:
+    """Parse Tesseract's literal tab records; OCR quotation marks are not CSV syntax."""
+    try:
+        source = io.StringIO(payload.decode("utf-8-sig"), newline="")
+        rows = csv.reader(source, delimiter="\t", quoting=csv.QUOTE_NONE)
+        if tuple(next(rows, ())) != TSV_HEADER:
+            raise ValueError("OCR_TSV_HEADER_INVALID")
+        words: list[OcrWord] = []
+        lines: list[str] = []
+        line_words: list[str] = []
+        current_line: tuple[int, int, int, int] | None = None
+        for row in rows:
+            if not row:
+                continue
+            if len(row) != len(TSV_HEADER):
+                raise ValueError("OCR_TSV_ROW_INVALID")
+            level, page, block, para, line, word = (int(field) for field in row[:6])
+            if not 1 <= level <= 5:
+                raise ValueError("OCR_TSV_ROW_INVALID")
+            if level != 5:
+                continue  # Structural rows have conf=-1 and no word text.
+            if word <= 0:
+                raise ValueError("OCR_TSV_ROW_INVALID")
+            x, y, word_width, word_height = (int(field) for field in row[6:10])
+            score = float(row[10])
+            text = unicodedata.normalize("NFC", row[11].strip())
+            key = (page, block, para, line)
+            if text:
+                if current_line is not None and key != current_line:
+                    lines.append(" ".join(line_words))
+                    line_words = []
+                current_line = key
+                line_words.append(text)
+            clipped = (x <= margin or y <= margin or word_width <= 0 or
+                       word_height <= 0 or x + word_width >= width - margin or
+                       y + word_height >= height - margin)
+            # Retain invalid word rows in the gate input so they cannot be
+            # silently omitted from an otherwise plausible Preview.
+            words.append(OcrWord(text, score, clipped))
+        if line_words:
+            lines.append(" ".join(line_words))
+        return OcrPass("\n".join(lines), tuple(words))
+    except ValueError as exc:
+        if str(exc).startswith("OCR_TSV_"):
+            raise
+        raise ValueError("OCR_TSV_ROW_INVALID") from exc
+    except (UnicodeError, csv.Error, TypeError, OverflowError) as exc:
+        raise ValueError("OCR_TSV_ROW_INVALID") from exc
+
+
 def recognize(image: Image.Image, *, alternative: bool,
               runner: Callable[..., subprocess.CompletedProcess[bytes]] | None = None) -> OcrPass:
     gray = ImageOps.grayscale(image)
@@ -166,35 +221,9 @@ def recognize(image: Image.Image, *, alternative: bool,
                     capture_output=True, timeout=10, check=False)
     if completed.returncode != 0:
         raise RuntimeError("Local Tesseract OCR failed")
-    rows = csv.DictReader(io.StringIO(completed.stdout.decode("utf-8-sig")),
-                          delimiter="\t")
-    words: list[OcrWord] = []
-    lines: list[str] = []
-    current_line: tuple[int, int, int] | None = None
-    line_words: list[str] = []
-    margin = 6 if alternative else 3
-    for row in rows:
-        value = row["text"]
-        text = unicodedata.normalize("NFC", value.strip())
-        score = float(row["conf"])
-        if not text or score < 0:
-            continue
-        key = (int(row["block_num"]), int(row["par_num"]),
-               int(row["line_num"]))
-        if current_line is not None and key != current_line:
-            lines.append(" ".join(line_words))
-            line_words = []
-        current_line = key
-        line_words.append(text)
-        x, y = int(row["left"]), int(row["top"])
-        right = x + int(row["width"])
-        bottom = y + int(row["height"])
-        clipped = (x <= margin or y <= margin or right >= processed.width - margin
-                   or bottom >= processed.height - margin)
-        words.append(OcrWord(text, score, clipped))
-    if line_words:
-        lines.append(" ".join(line_words))
-    return OcrPass("\n".join(lines), tuple(words))
+    return parse_tesseract_tsv(completed.stdout, width=processed.width,
+                               height=processed.height,
+                               margin=6 if alternative else 3)
 
 
 def main() -> int:

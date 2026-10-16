@@ -58,6 +58,12 @@ def test_two_pass_acceptance_rejection_and_reason_explanation() -> None:
     assert decision.accepted_text is None
     assert "crop edge" in gate_explanation(decision, first, second)
 
+    low = OcrPass("Arin", (OcrWord("Arin", 14.8),))
+    decision, first, second = perform_two_pass(
+        image, lambda _image, **_kwargs: low, OcrProcessRunner(), lambda: None)
+    assert decision.reason == "LOW_OCR_CONFIDENCE"
+    assert "min 14.8" in gate_explanation(decision, first, second)
+
 
 def test_cancel_between_passes_prevents_second_ocr_call() -> None:
     calls: list[bool] = []

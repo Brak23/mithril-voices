@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import queue
+import statistics
 import subprocess
 import threading
 import tkinter as tk
@@ -103,7 +104,15 @@ def gate_explanation(decision: TextDecision, first: OcrPass, second: OcrPass) ->
             return "A detected word touches the crop edge. Widen the crop and retry."
         return "At least one OCR pass contains an incomplete or invalid word. Refine the crop."
     if decision.reason == "LOW_OCR_CONFIDENCE":
-        return "One or more words scored below 40, or the median scored below 85."
+        def scores(result: OcrPass) -> str:
+            values = [word.confidence for word in result.words
+                      if any(character.isalnum() for character in word.text)]
+            if not values:
+                return "no alphanumeric words"
+            return f"min {min(values):.1f}, median {statistics.median(values):.1f}"
+
+        return (f"Pass 1: {scores(first)}; pass 2: {scores(second)}. "
+                "Each word needs at least 40 and each pass median at least 85.")
     if decision.reason == "OCR_PASS_DISAGREEMENT":
         return "The two OCR passes disagree on at least one word."
     if decision.reason == "EMPTY_OCR_OUTPUT":
