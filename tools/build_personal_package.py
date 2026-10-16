@@ -234,7 +234,7 @@ def stage(desktop: Path) -> dict[str, str]:
     package.mkdir(exist_ok=True)
     active_cmd = _cmd(active)
     previous_cmd = _cmd(previous)
-    check_cmd = _cmd(active, pause=False)
+    check_cmd = _cmd(active)
     _write_atomic(package / "Check Mithril Voices.cmd",
         check_cmd.replace("installed_launcher %*", "installed_launcher --check"),
         encoding="ascii")
