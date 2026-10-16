@@ -46,7 +46,7 @@ class ReviewState:
 
     def load(self, crop: PixelRect, tesseract: str | None,
              windows: str | None) -> ReviewState:
-        draft = tesseract if tesseract and tesseract.strip() else windows or ""
+        draft = windows if windows and windows.strip() else tesseract or ""
         return ReviewState(crop, tesseract, windows, draft, False)
 
     def edit(self, text: str) -> ReviewState:

@@ -18,6 +18,7 @@ from lvc.platform.windows.lotro_probe_ui import (
     gate_explanation,
     perform_two_pass,
 )
+from lvc.platform.windows.manual_read import ManualReadController
 from lvc.vision.binding import PixelRect
 from lvc.vision.comparison import ReviewState
 from lvc.vision.text_gate import OcrPass, OcrWord
@@ -136,6 +137,7 @@ def test_repeated_preview_click_retry_and_close_lifecycle(
     preview.job = OcrProcessRunner()
     preview.closed = False
     preview.review = ReviewState.empty()
+    preview.reader = ManualReadController()
     messages: list[str] = []
 
     class FakeStatus:
@@ -175,3 +177,20 @@ def test_ocr_runner_preserves_binary_output() -> None:
                     input=b"", capture_output=True, timeout=10, check=False)
     assert isinstance(result, subprocess.CompletedProcess)
     assert result.returncode == 0 and result.stdout == b"OK"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows Tk preview layout")
+def test_manual_controls_have_reserved_footer_in_ultrawide_preview() -> None:
+    preview = PreviewWindow(Image.new("RGB", (5120, 1440)),
+                            lambda _image, **_kwargs: _pass("Synthetic words"),
+                            lambda _image, _runner: "Synthetic words")
+    try:
+        preview.root.withdraw()
+        preview.root.update_idletasks()
+        assert preview.actions.pack_info()["side"] == "bottom"
+        assert preview.confirm_button.master is preview.actions
+        assert preview.voice_choice.master.master is preview.actions
+        assert preview.read_button.master.master is preview.actions
+        assert preview.root.winfo_reqheight() <= 950
+    finally:
+        preview.close()

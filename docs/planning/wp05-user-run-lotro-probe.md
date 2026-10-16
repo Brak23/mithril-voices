@@ -183,3 +183,13 @@ The native adapter reproduced the earlier file-only Windows OCR result on that
 crop, but neither engine was fully accurate there. Real LOTRO UI behavior,
 capture freshness, OCR accuracy over varied panels, and quest-to-speech remain
 unqualified.
+
+## Subsequent manual-read packet
+
+The owner subsequently reported that Windows OCR appeared fully accurate on
+one quest. That observation led to the bounded [WP-06 manual read
+path](wp06-manual-read.md), which makes Windows OCR the primary draft source
+and Tesseract an optional diagnostic. The earlier statement above that this
+prototype has no speech bridge describes WP-05 at the time; WP-06 now adds
+explicitly confirmed local speech. The one-quest observation does not qualify
+general OCR accuracy or automatic narration.
