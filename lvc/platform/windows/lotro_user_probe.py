@@ -69,6 +69,26 @@ class Candidate:
     client_height: int
 
 
+def same_window_and_size(first: Candidate, second: Candidate | None) -> bool:
+    return (second is not None and first.hwnd == second.hwnd
+            and first.pid == second.pid
+            and first.process_started_ticks == second.process_started_ticks
+            and first.executable_path.casefold() == second.executable_path.casefold()
+            and first.client_width == second.client_width
+            and first.client_height == second.client_height)
+
+
+def capture_guidance(reason: str) -> str:
+    if "SELECTED_WINDOW_NOT_FOREGROUND" in reason:
+        return "Return focus to the selected LOTRO window during the 8-second wait, then retry."
+    if any(code in reason for code in ("WINDOW_CHANGED", "IDENTITY_CHANGED",
+                                       "NO_CURRENT_FRAME")):
+        return "Keep the same LOTRO window visible and size stable; select it again."
+    if "WGC_UNSUPPORTED" in reason or "WGC_HRESULT_" in reason:
+        return "Windows Graphics Capture is unavailable for this window; report the code."
+    return "Check the selected window and retry a fresh explicit capture."
+
+
 def approved_executable(path: str) -> bool:
     return Path(path).name.casefold() == "lotroclient64.exe"
 
@@ -211,6 +231,8 @@ def parse_tesseract_tsv(payload: bytes, *, width: int, height: int,
 
 def recognize(image: Image.Image, *, alternative: bool,
               runner: Callable[..., subprocess.CompletedProcess[bytes]] | None = None) -> OcrPass:
+    if not TESSERACT.is_file():
+        raise RuntimeError("TESSERACT_UNAVAILABLE")
     gray = ImageOps.grayscale(image)
     processed = ImageOps.autocontrast(gray).resize((gray.width * 2, gray.height * 2)) if alternative else gray
     encoded = io.BytesIO()
@@ -229,8 +251,8 @@ def recognize(image: Image.Image, *, alternative: bool,
 def main() -> int:
     if sys.platform != "win32":
         raise RuntimeError("This probe is Windows-only")
-    if not NATIVE_PROBE.is_file() or not TESSERACT.is_file():
-        raise RuntimeError("Prepared native probe or existing local Tesseract is missing")
+    if not NATIVE_PROBE.is_file():
+        raise RuntimeError("CAPTURE_HELPER_MISSING")
     actual_hash = hashlib.sha256(NATIVE_PROBE.read_bytes()).hexdigest()
     if actual_hash != EXPECTED_NATIVE_SHA256:
         raise RuntimeError("Native probe hash differs from the reviewed local build")
@@ -256,10 +278,15 @@ def main() -> int:
                                timeout=15, check=False)
     if completed.returncode != 0:
         reason = completed.stderr.decode("ascii", "replace").strip()[:160]
-        print(f"Capture blocked: {reason or 'native probe failed'}")
+        print(f"Capture blocked: {reason or 'native probe failed'}. "
+              f"{capture_guidance(reason)}")
         return 2
     if len(completed.stdout) > MAX_FRAME_BYTES:
         raise ValueError("Native frame exceeded the bounded pipe size")
+    if not same_window_and_size(candidate, candidate_for_hwnd(candidate.hwnd)):
+        print("Capture blocked: WINDOW_CHANGED_OR_RESIZED. "
+              "Keep the selected window visible and size stable; select it again.")
+        return 2
     frame = decode_frame(completed.stdout)
     show_preview(frame, recognize)
     print("Preview closed. No image or OCR text was saved by this probe.")
