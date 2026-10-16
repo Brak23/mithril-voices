@@ -93,6 +93,16 @@ class ConfirmedPage:
 
 
 @dataclass(frozen=True)
+class PageChangePending:
+    """Credible content change: fence now, retain old identity until confirmation."""
+
+
+@dataclass(frozen=True)
+class PanelClosed:
+    """Two valid absent-panel checks confirmed an interaction closure."""
+
+
+@dataclass(frozen=True)
 class ValidatedText:
     request_id: UUID
     page: PageIdentity
@@ -124,7 +134,8 @@ class RendererDrained:
 
 
 Event: TypeAlias = (AutoEnable | AutoDisable | Stop | ReadCurrent | ConfirmedPage |
-                    ValidatedText | WorkerCompleted | WorkerFailed | RendererStarted | RendererDrained)
+                    PageChangePending | PanelClosed | ValidatedText | WorkerCompleted |
+                    WorkerFailed | RendererStarted | RendererDrained)
 
 
 def _cancel_effects(state: State) -> tuple[Effect, ...]:
@@ -163,6 +174,21 @@ def reduce(state: State, event: Event, now_ms: int) -> tuple[State, tuple[Effect
         return replace(next_state, tombstone=state.page,
                        auto_held_unknown=state.page is None,
                        observation="WATCHING"), effects
+
+    if isinstance(event, PageChangePending):
+        if (state.pending is None and state.synthesis is None
+                and state.prepared_token is None and state.playback == "STOPPED"):
+            return state, ()
+        next_state, effects = _fence(state, page=state.page)
+        return replace(next_state, observation="STABILIZING"), effects
+
+    if isinstance(event, PanelClosed):
+        if (state.page is None and state.pending is None and state.synthesis is None
+                and state.prepared_token is None and not state.auto_held_unknown):
+            return state, ()
+        next_state, effects = _fence(state)
+        return replace(next_state, auto_held_unknown=False, tombstone=None,
+                       auto_read_pages=frozenset(), observation="WATCHING"), effects
 
     if isinstance(event, ReadCurrent):
         if not state.bound:
