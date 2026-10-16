@@ -18,16 +18,18 @@ from pathlib import Path
 from typing import cast
 from uuid import uuid4
 
-from lvc.tts.kokoro_cpu import MODEL_SHA256, VOICE_SHA256
+from lvc.tts.manual_providers import (
+    LocalKokoroProvider,
+    provider_for_voice,
+    voice_options,
+)
 from lvc.vision.comparison import ReviewState
-from lvc.voice.assignments import VoiceCatalog, VoiceRealization
 from lvc.voice.cache import (
     CompletedAudioCache,
-    SynthesisIdentity,
     cache_key,
     validate_complete_wav,
 )
-from lvc.voice.text_plan import SpeechUnit, chunk_speech, load_lexicon, prepare_text
+from lvc.voice.text_plan import chunk_speech, load_lexicon, prepare_text
 from tools.windows_job_probe import OwnedJob, kernel32
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -42,12 +44,8 @@ MAX_TEXT_CHARS = 3_000
 MAX_UNITS = 32
 TTS_TIMEOUT_S = 180.0
 
-VOICE_CATALOG = VoiceCatalog((
-    VoiceRealization("bf_emma", "kokoro", VOICE_SHA256["bf_emma"], "en-GB",
-                     "manual_narrator", approved=True),
-    VoiceRealization("bm_fable", "kokoro", VOICE_SHA256["bm_fable"], "en-GB",
-                     "manual_narrator", approved=True),
-), narrator_id="bf_emma")
+PROVIDERS = (LocalKokoroProvider(TTS_PYTHON),)
+VOICE_OPTIONS = voice_options(PROVIDERS)
 
 
 class ManualReadError(RuntimeError):
@@ -84,20 +82,6 @@ def list_output_devices() -> tuple[OutputDevice, ...]:
         return devices
     except (TypeError, KeyError, ValueError, UnicodeError) as exc:
         raise ManualReadError("AUDIO_DEVICE_LIST_INVALID") from exc
-
-
-def synthesis_identity(unit: SpeechUnit, voice: str,
-                       lexicon_version: str, lexicon_hash: str) -> SynthesisIdentity:
-    return SynthesisIdentity(
-        speech_text=unit.text, locale="en-GB", engine="kokoro",
-        model_sha256=MODEL_SHA256, runtime_id="kokoro-cpu-win-py312-0.9.4",
-        voice_realization_id=voice,
-        voice_artifact_sha256=VOICE_CATALOG.get(voice).artifact_sha256,
-        lexicon_version=lexicon_version, lexicon_sha256=lexicon_hash,
-        overrides_sha256=hashlib.sha256(b"").hexdigest(), speed=1.0,
-        style="neutral", chunker_version="sentence-1-180",
-        output_version="wav48k-mono-s16-v1",
-    )
 
 
 def validated_rows(rows: object, directory: Path,
@@ -170,7 +154,7 @@ class ManualReadController:
             self.events.put(("ERROR", "REVIEW_OR_DEVICE_NOT_READY"))
             return False
         try:
-            VOICE_CATALOG.get(voice)
+            provider_for_voice(voice, PROVIDERS)
         except LookupError:
             self.events.put(("ERROR", "VOICE_UNAVAILABLE"))
             return False
@@ -312,9 +296,10 @@ class ManualReadController:
              device: OutputDevice, keep_cache: bool, silent: bool) -> None:
         spool: Path | None = None
         try:
-            if not TTS_PYTHON.is_file() or not AUDIO_PYTHON.is_file():
-                raise ManualReadError("LOCAL_RUNTIME_UNAVAILABLE")
+            if not AUDIO_PYTHON.is_file():
+                raise ManualReadError("QT_AUDIO_RUNTIME_UNAVAILABLE")
             lexicon = load_lexicon(LEXICON)
+            provider = provider_for_voice(voice, PROVIDERS)
             source = review.windows_source or review.tesseract_source or ""
             plan = prepare_text(source, review.draft, lexicon,
                                 locale="en-GB", engine="kokoro")
@@ -325,8 +310,8 @@ class ManualReadController:
             spool = SPOOL_ROOT / str(uuid4())
             spool.mkdir(exist_ok=False)
             cache = CompletedAudioCache(CACHE_ROOT)
-            identities = [synthesis_identity(unit, voice, plan.lexicon_version,
-                                             plan.lexicon_sha256) for unit in chunks]
+            identities = [provider.identity(unit, voice, plan.lexicon_version,
+                                            plan.lexicon_sha256) for unit in chunks]
             rows: list[dict[str, object]] = []
             cache_hit = False
             if keep_cache:
@@ -343,10 +328,10 @@ class ManualReadController:
                     self.events.put(("CACHE_HIT", ""))
             if not cache_hit:
                 self.events.put(("SYNTHESIZING", ""))
-                command = [str(TTS_PYTHON), "-u", "-m", "lvc.tts.manual_kokoro_worker",
-                           "--output", str(spool)]
-                messages = self._run_child(command, {"text": plan.speech_text,
-                                                    "voice": voice}, generation,
+                command, payload = provider.render_command(spool, voice, plan.speech_text)
+                if not command or not Path(command[0]).is_file():
+                    raise ManualReadError("VOICE_RUNTIME_UNAVAILABLE")
+                messages = self._run_child(command, payload, generation,
                                            TTS_TIMEOUT_S, audio=False, temp=spool)
                 done = [item for item in messages if item.get("event") == "DONE"]
                 if len(done) != 1:

@@ -13,8 +13,11 @@ from typing import cast
 
 from PIL import Image, ImageTk
 
+from lvc.platform.windows.manual_preferences import PreferencesStore
 from lvc.platform.windows.manual_read import (
     MAX_TEXT_CHARS,
+    PRIVATE_ROOT,
+    VOICE_OPTIONS,
     ManualReadController,
     ManualReadError,
     OutputDevice,
@@ -26,6 +29,18 @@ from lvc.vision.comparison import ReviewState, disagreement_spans
 from lvc.vision.text_gate import OcrPass, TextDecision, decide_text
 
 MAX_OCR_PIXELS = 2_000_000
+READ_HINTS = {
+    "VOICE_RUNTIME_UNAVAILABLE": "Restore the installed local voice runtime and run Check Mithril Voices.",
+    "VOICE_ASSET_UNAVAILABLE": "Restore the previously approved local voice asset.",
+    "VOICE_ASSET_INVALID": "Run Check Mithril Voices; a pinned asset or runtime changed.",
+    "TEXT_UNSPEAKABLE": "Edit the confirmed text into speakable words and confirm it again.",
+    "SELECTED_DEVICE_UNAVAILABLE": "Refresh speakers and choose the current exact output.",
+    "DEVICE_LOST": "Reconnect the speaker, refresh, and choose it again.",
+    "AUDIO_REJECTED": "Refresh speakers and run Check Mithril Voices if this repeats.",
+    "AUDIO_STALLED": "Refresh speakers and retry the confirmed text.",
+    "TTS_TIMEOUT": "The local voice took too long; shorten the reviewed text and retry.",
+    "PRIVATE_SPOOL_CLEANUP_FAILED": "Close the preview and check the private package folder.",
+}
 
 
 class OcrCancelled(Exception):
@@ -219,8 +234,10 @@ class PreviewWindow:
         self.native = native
         self.root = tk.Tk()
         self.root.title("Mithril Voices - one-frame quest OCR preview")
-        self.root.geometry("1250x950")
-        self.root.minsize(900, 700)
+        window_width = min(1250, max(760, self.root.winfo_screenwidth() - 80))
+        window_height = min(950, max(550, self.root.winfo_screenheight() - 80))
+        self.root.geometry(f"{window_width}x{window_height}")
+        self.root.minsize(760, min(700, window_height))
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.attributes("-topmost", True)
         self.root.after_idle(self.root.lift)
@@ -240,6 +257,11 @@ class PreviewWindow:
         self._loading_draft = False
         self.results: queue.Queue[tuple[int, object]] = queue.Queue()
         self.reader = ManualReadController()
+        self.voice_by_label = {option.label: option.voice_id for option in VOICE_OPTIONS}
+        self.label_by_voice = {option.voice_id: option.label for option in VOICE_OPTIONS}
+        self.preferences_store = PreferencesStore(
+            PRIVATE_ROOT / "preferences.json", tuple(self.label_by_voice))
+        self.preferences, self.settings_issue = self.preferences_store.load()
         self.devices: dict[str, OutputDevice] = {}
         self.device_results: queue.Queue[object] = queue.Queue()
 
@@ -248,7 +270,8 @@ class PreviewWindow:
         holder = tk.Frame(self.root)
         holder.pack(fill="both", expand=True)
         self.canvas = tk.Canvas(holder, width=min(1200, frame.width),
-                                height=min(300, frame.height), cursor="crosshair")
+                                height=min(300, max(140, window_height - 650), frame.height),
+                                cursor="crosshair")
         xscroll = tk.Scrollbar(holder, orient="horizontal", command=self.canvas.xview)
         yscroll = tk.Scrollbar(holder, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(xscrollcommand=xscroll.set, yscrollcommand=yscroll.set)
@@ -309,17 +332,20 @@ class PreviewWindow:
         speech.pack(fill="x")
         tk.Label(speech, text="Voice:").pack(side="left")
         self.voice_choice = ttk.Combobox(speech, width=20, state="readonly",
-                                         values=("Emma (British)", "Fable (British)"))
+                                         values=tuple(self.voice_by_label))
         self.voice_choice.pack(side="left")
         self.voice_choice.bind("<<ComboboxSelected>>", self._speech_choice_changed)
+        if self.preferences.voice_id is not None:
+            self.voice_choice.set(self.label_by_voice[self.preferences.voice_id])
         tk.Label(speech, text="Speakers:").pack(side="left")
         self.device_choice = ttk.Combobox(speech, width=44, state="readonly")
         self.device_choice.pack(side="left")
         self.device_choice.bind("<<ComboboxSelected>>", self._speech_choice_changed)
         tk.Button(speech, text="Refresh speakers", command=self._refresh_devices).pack(side="left")
-        self.keep_cache = tk.BooleanVar(value=False)
+        self.keep_cache = tk.BooleanVar(value=self.preferences.keep_local_cache)
         tk.Checkbutton(speech, text="Keep private local audio cache",
-                       variable=self.keep_cache).pack(side="left")
+                       variable=self.keep_cache,
+                       command=self._cache_choice_changed).pack(side="left")
         playback = tk.Frame(self.actions)
         playback.pack(fill="x")
         self.read_button = tk.Button(playback, text="Read confirmed text",
@@ -441,13 +467,30 @@ class PreviewWindow:
         ready = (self.review.confirmed and self.review.can_confirm
                  and len(self.review.draft) <= MAX_TEXT_CHARS
                  and not self.reader.busy and self.voice_choice.get()
-                 in {"Emma (British)", "Fable (British)"}
+                 in self.voice_by_label
                  and self.device_choice.get() in self.devices)
         self.read_button.configure(state="normal" if ready else "disabled")
 
+    def _save_preferences(self) -> None:
+        try:
+            self.preferences_store.save(self.preferences)
+            self.settings_issue = None
+        except (OSError, ValueError):
+            self.speech_status.set("SETTINGS_WRITE_FAILED: choices work now but may not survive restart.")
+
     def _speech_choice_changed(self, _event: tk.Event) -> None:
         self.reader.stop()
+        device = self.devices.get(self.device_choice.get())
+        self.preferences = self.preferences.voice(
+            self.voice_by_label.get(self.voice_choice.get())).device(
+                device.id if device else None,
+                device.description if device else None)
+        self._save_preferences()
         self._update_read_button()
+
+    def _cache_choice_changed(self) -> None:
+        self.preferences = self.preferences.cache(self.keep_cache.get())
+        self._save_preferences()
 
     def _refresh_devices(self) -> None:
         self.reader.stop()
@@ -472,13 +515,32 @@ class PreviewWindow:
             while True:
                 result = self.device_results.get_nowait()
                 if isinstance(result, Exception):
-                    self.speech_status.set(f"Speaker list unavailable: {result}.")
+                    self.speech_status.set("Speaker list unavailable. Run Check Mithril Voices, "
+                                           "then press Refresh speakers.")
                     continue
                 devices = cast(tuple[OutputDevice, ...], result)
-                self.devices = {f"{item.description} [{item.id[-8:]}]": item
-                                for item in devices}
+                self.devices = {}
+                for item in devices:
+                    label = f"{item.description} [{item.id[-8:]}]"
+                    if label in self.devices:
+                        label = f"{item.description} [{item.id}]"
+                    self.devices[label] = item
                 self.device_choice.configure(values=tuple(self.devices))
-                self.speech_status.set("Select the Realtek speakers or another intended output.")
+                saved = next((label for label, item in self.devices.items()
+                              if (item.id, item.description) ==
+                              (self.preferences.device_id,
+                               self.preferences.device_description)), None)
+                if saved is not None:
+                    self.device_choice.set(saved)
+                    self.speech_status.set("Saved exact speaker restored; confirm text before Read.")
+                elif self.preferences.device_id is not None:
+                    self.speech_status.set("Saved speaker is unavailable or changed. Select a speaker again.")
+                elif not devices:
+                    self.speech_status.set("No output speaker found. Connect one and press Refresh speakers.")
+                else:
+                    self.speech_status.set("Select the intended output speaker.")
+                if self.settings_issue is not None:
+                    self.speech_status.set(f"{self.settings_issue}: choose voice and speaker again.")
         except queue.Empty:
             pass
         try:
@@ -495,7 +557,8 @@ class PreviewWindow:
                     "STOPPING": "Stopping and fencing the current read...",
                     "STOPPED": "Stopped. The reviewed text remains available to read again.",
                     "COMPLETED": "Read completed. Press Read to hear it again.",
-                    "ERROR": f"Read stopped safely: {value}. Review setup and retry.",
+                    "ERROR": (f"Read stopped safely: {value}. "
+                              f"{READ_HINTS.get(value, 'Check the selected voice and speaker, then retry.')}"),
                 }
                 self.speech_status.set(descriptions.get(event, "Read status unavailable."))
         except queue.Empty:
@@ -510,8 +573,7 @@ class PreviewWindow:
             self.status.set("Text changed; confirm it again before reading.")
             self._update_read_button()
             return
-        voice = {"Emma (British)": "bf_emma", "Fable (British)": "bm_fable"}.get(
-            self.voice_choice.get())
+        voice = self.voice_by_label.get(self.voice_choice.get())
         device = self.devices.get(self.device_choice.get())
         if voice is None or device is None:
             self.speech_status.set("Select a voice and exact speaker first.")

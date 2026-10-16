@@ -5,10 +5,12 @@ import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
 
 import pytest
 from PIL import Image
 
+from lvc.platform.windows import lotro_probe_ui
 from lvc.platform.windows.lotro_probe_ui import (
     OcrCancelled,
     OcrProcessRunner,
@@ -18,7 +20,8 @@ from lvc.platform.windows.lotro_probe_ui import (
     gate_explanation,
     perform_two_pass,
 )
-from lvc.platform.windows.manual_read import ManualReadController
+from lvc.platform.windows.manual_preferences import ManualPreferences, PreferencesStore
+from lvc.platform.windows.manual_read import ManualReadController, OutputDevice
 from lvc.vision.binding import PixelRect
 from lvc.vision.comparison import ReviewState
 from lvc.vision.text_gate import OcrPass, OcrWord
@@ -180,7 +183,13 @@ def test_ocr_runner_preserves_binary_output() -> None:
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows Tk preview layout")
-def test_manual_controls_have_reserved_footer_in_ultrawide_preview() -> None:
+def test_manual_controls_and_saved_choices_in_ultrawide_preview(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    store = PreferencesStore(tmp_path / "preferences.json", ("bf_emma", "bm_fable"))
+    store.save(ManualPreferences("bm_fable", "dev-1", "Selected speaker", True))
+    monkeypatch.setattr(lotro_probe_ui, "PRIVATE_ROOT", tmp_path)
+    monkeypatch.setattr(lotro_probe_ui, "list_output_devices",
+                        lambda: (OutputDevice("dev-1", "Selected speaker"),))
     preview = PreviewWindow(Image.new("RGB", (5120, 1440)),
                             lambda _image, **_kwargs: _pass("Synthetic words"),
                             lambda _image, _runner: "Synthetic words")
@@ -192,5 +201,20 @@ def test_manual_controls_have_reserved_footer_in_ultrawide_preview() -> None:
         assert preview.voice_choice.master.master is preview.actions
         assert preview.read_button.master.master is preview.actions
         assert preview.root.winfo_reqheight() <= 950
+        preview.device_results.put((OutputDevice("dev-1", "Selected speaker"),))
+        preview._poll_read()
+        assert preview.voice_choice.get() == "Fable (British)"
+        assert preview.device_choice.get() in preview.devices
+        assert preview.keep_cache.get()
+        assert not preview.review.confirmed
+        preview.voice_choice.set("Emma (British)")
+        preview._speech_choice_changed(None)  # type: ignore[arg-type]
+        assert store.load()[0].voice_id == "bf_emma"
+        preview.preferences = preview.preferences.device("missing", "Old speaker")
+        preview.device_choice.set("")
+        preview.device_results.put((OutputDevice("current", "New speaker"),))
+        preview._poll_read()
+        assert not preview.device_choice.get()
+        assert "unavailable or changed" in preview.speech_status.get()
     finally:
         preview.close()
