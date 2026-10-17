@@ -10,10 +10,12 @@ from PIL import Image, ImageDraw
 from lvc.vision.auto_calibration import (
     Calibration,
     anchor_difference,
+    anchor_quality_issue,
     anchor_signature,
     body_digest,
     load_profile,
     save_profile,
+    scene_fingerprint,
 )
 from lvc.vision.binding import PixelRect
 
@@ -52,6 +54,28 @@ def test_anchor_and_body_change_are_observable_without_retention() -> None:
     changed = frame.copy()
     ImageDraw.Draw(changed).text((200, 190), "A new page.", fill="white")
     assert body_digest(changed, profile) != old_body
+
+
+def test_plain_anchor_is_rejected_and_thin_detail_survives_same_color_background() -> None:
+    frame, profile = fixture()
+    assert "plain color" in (anchor_quality_issue(frame, profile.anchor) or "")
+    positive = frame.copy()
+    ImageDraw.Draw(positive).line((100, 80, 149, 129), fill="#303030", width=5)
+    assert anchor_quality_issue(positive, profile.anchor) is None
+    reference = anchor_signature(positive, profile)
+    assert anchor_difference(reference, positive, profile) == 0
+    # The quest-specific line is gone, but the same gold is behind it.
+    assert anchor_difference(reference, frame, profile) > 0.16
+    moved = frame.copy()
+    ImageDraw.Draw(moved).line((200, 200, 249, 249), fill="#303030", width=5)
+    assert anchor_difference(reference, moved, profile) > 0.16
+    assert scene_fingerprint(positive) != scene_fingerprint(moved)
+    red = frame.copy()
+    green = frame.copy()
+    ImageDraw.Draw(red).rectangle((100, 80, 149, 129), fill=(255, 0, 0))
+    ImageDraw.Draw(green).rectangle((100, 80, 149, 129), fill=(0, 130, 0))
+    # Similar grayscale brightness still must not erase a real color change.
+    assert anchor_difference(anchor_signature(red, profile), green, profile) > 0.16
 
 
 def test_overlap_and_unvalidated_shapes_fail_closed(tmp_path: Path) -> None:
