@@ -102,7 +102,20 @@ def test_timeout_kills_and_reaps_ocr_child() -> None:
     assert runner._active is None
 
 
-def test_cancel_kills_and_reaps_ocr_child() -> None:
+def test_cancel_kills_and_reaps_ocr_child(tmp_path: Path) -> None:
+    if os.environ.get("MITHRIL_OCR_CANCEL_TEST_CHILD") != "1":
+        # A failed assertion must not leave this test's subprocess thread
+        # running into later Windows tests in the parent pytest process.
+        child = subprocess.run(
+            [sys.executable, "-m", "pytest",
+             f"{__file__}::test_cancel_kills_and_reaps_ocr_child",
+             "-q", "--tb=short", "--color=no", "-o", "addopts=",
+             "--basetemp", str(tmp_path / "child")],
+            env={**os.environ, "MITHRIL_OCR_CANCEL_TEST_CHILD": "1"},
+            capture_output=True, text=True, timeout=15, check=False,
+        )
+        assert child.returncode == 0, child.stdout[-1200:] + child.stderr[-1200:]
+        return
     runner = OcrProcessRunner(timeout=10)
     finished = threading.Event()
     failures: list[Exception] = []
@@ -118,14 +131,23 @@ def test_cancel_kills_and_reaps_ocr_child() -> None:
 
     thread = threading.Thread(target=work)
     thread.start()
-    deadline = time.monotonic() + 3
-    while runner._active is None and time.monotonic() < deadline:
-        time.sleep(0.01)
-    assert runner._active is not None
-    runner.cancel()
-    assert finished.wait(3)
-    thread.join()
+    child = None
+    try:
+        deadline = time.monotonic() + 3
+        while runner._active is None and time.monotonic() < deadline:
+            time.sleep(0.01)
+        child = runner._active
+        assert child is not None
+        runner.cancel()
+        assert finished.wait(3)
+    finally:
+        # Even an early assertion failure must not leave a Python child or
+        # its owner thread running into later Windows native-library tests.
+        runner.cancel()
+        thread.join(timeout=3)
+    assert not thread.is_alive()
     assert len(failures) == 1 and isinstance(failures[0], OcrCancelled)
+    assert child.returncode is not None
     assert runner._active is None
 
 
