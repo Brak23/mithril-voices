@@ -7,6 +7,7 @@ There is no unattended startup, global capture, network speech or saved text.
 # pyright: reportMissingImports=false
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import queue
@@ -21,15 +22,17 @@ from uuid import uuid4
 from PIL import Image
 
 from lvc.core import RequestToken
+from lvc.platform.windows.auto_profile_store import load_saved, save_saved
 from lvc.platform.windows.auto_windows_ocr import recognize_auto_crop
 from lvc.platform.windows.lotro_observation_ui import (
     ROOT,
-    CaptureRunner,
     ObservationWindow,
+    StreamCaptureRunner,
     anchor_difference,
     capture_preflight,
 )
 from lvc.platform.windows.lotro_probe_ui import OcrCancelled, OcrProcessRunner
+from lvc.platform.windows.lotro_user_probe import EXPECTED_STREAM_SHA256, STREAM_PROBE
 from lvc.platform.windows.manual_preferences import PreferencesStore
 from lvc.platform.windows.manual_read import (
     AUDIO_PYTHON,
@@ -40,7 +43,7 @@ from lvc.platform.windows.manual_read import (
 )
 from lvc.platform.windows.resident_auto_read import ResidentAutoReader
 from lvc.platform.windows.windows_ocr import windows_ocr_preflight
-from lvc.vision.auto_calibration import selection_issue
+from lvc.vision.auto_calibration import Calibration, selection_issue
 from lvc.vision.auto_core_adapter import AutoCoreAdapter
 from lvc.vision.auto_observation import Decision, Observation
 from lvc.vision.binding import PixelRect
@@ -54,7 +57,7 @@ SETTINGS = Path(os.environ.get("MITHRIL_AUTO_SETTINGS",
 class AutoNarrationWindow(ObservationWindow):
     def __init__(self, *, hidden: bool = False, silent: bool = False) -> None:
         super().__init__(hidden=hidden)
-        self.runner = CaptureRunner(require_tesseract=False)
+        self.runner = StreamCaptureRunner()
         self.root.title("Mithril Voices - automatic LOTRO quest narration")
         self.mode.set("anchor")
         self.capture_button.configure(text="1. Capture open quest window")
@@ -83,6 +86,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.active_token: RequestToken | None = None
         self.pending_speech: tuple[RequestToken, str] | None = None
         self.last_validation_reason = ""
+        self.saved_load_reason = ""
         self.devices: dict[str, OutputDevice] = {}
         self.device_results: queue.Queue[object] = queue.Queue()
         self.settings = PreferencesStore(SETTINGS,
@@ -146,6 +150,7 @@ class AutoNarrationWindow(ObservationWindow):
         """Keep the next action visible without hiding either saved selection."""
         if self.running:
             step = ("Automatic reading is armed for the selected LOTRO window. "
+                    "A steady yellow Windows capture outline may remain until Stop. "
                     "Pause or Stop fences the current page and audio.")
         elif self.selected is None:
             step = "Next: select the LOTRO window, then capture an open quest window."
@@ -179,7 +184,32 @@ class AutoNarrationWindow(ObservationWindow):
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
+        self.saved_load_reason = ""
         self._update_setup()
+
+    def _save_calibration(self, profile: Calibration) -> None:
+        if self.selected is None or self.frame is None:
+            raise ValueError("CALIBRATION_BINDING_INVALID")
+        save_saved(self.selected, self.frame, profile.dpi, profile)
+
+    def _load_calibration(self, frame: Image.Image, dpi: int) -> Calibration | None:
+        if self.selected is None:
+            return None
+        saved, self.saved_load_reason = load_saved(self.selected, frame, dpi)
+        return saved
+
+    def _calibration_status(self, loaded: bool) -> str:
+        if loaded:
+            source = ("Previous build's" if self.saved_load_reason == "PREVIOUS_BOXES_LOADED"
+                      else "Saved")
+            return (f"{source} yellow and blue boxes loaded for this window size. "
+                    "Check them against the current quest and UI scale; redraw if needed, "
+                    "then Save. Take both safety samples again before Start.")
+        if self.saved_load_reason == "SAVED_BOXES_INVALID":
+            return ("Saved boxes could not be read safely. Draw yellow and blue again, "
+                    "then Save; speech stays off.")
+        return ("No saved boxes match this game installation, capture size and DPI. "
+                "Draw yellow and blue, then Save. Both safety samples are required.")
 
     def release(self, event: tk.Event) -> None:
         before = self.anchor, self.body
@@ -211,7 +241,8 @@ class AutoNarrationWindow(ObservationWindow):
                     self.panel_locator = TemplatePanelLocator(self.frame, self.profile)
                 except ValueError:
                     pass
-            self.status.set("Yellow and blue boxes saved. Next capture the quest-closed and "
+            self.status.set("Yellow and blue boxes saved for this game installation and window "
+                            "size. Next capture the quest-closed and "
                             "journal/inventory safety samples. Moved-window preview cannot "
                             "start speech.")
         self._update_setup()
@@ -342,9 +373,11 @@ class AutoNarrationWindow(ObservationWindow):
         super().start()
         if self.running:
             self.status.set("Automatic reading armed for the selected LOTRO window. "
-                            "Return focus to the game within 8 seconds.")
+                            "Return focus to the game within 8 seconds. Windows may show "
+                            "one steady yellow capture outline until Stop.")
 
     def _arm_policy(self, binding: str) -> None:
+        self.runner.streaming = True
         self.bridge = AutoCoreAdapter(uuid4(), binding, 1, profile_qualified=True)
         result = self.bridge.enable(0)
         if result.reason != "WATCHING":
@@ -516,6 +549,10 @@ def main() -> int:
     if "--check" in sys.argv:
         try:
             capture_preflight(require_tesseract=False)
+            if (not STREAM_PROBE.is_file() or
+                    hashlib.sha256(STREAM_PROBE.read_bytes()).hexdigest()
+                    != EXPECTED_STREAM_SHA256):
+                raise RuntimeError("STREAM_CAPTURE_UNAVAILABLE")
             windows_ocr_preflight()
             if not TTS_PYTHON.is_file() or not AUDIO_PYTHON.is_file():
                 raise RuntimeError("VOICE_RUNTIME_UNAVAILABLE")

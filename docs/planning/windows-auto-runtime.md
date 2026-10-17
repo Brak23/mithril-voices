@@ -21,6 +21,11 @@ observation-only tool.
    stay visible; redrawing one color keeps the other. Use **Native-size refine**
    and scrollbars if needed, then click **4. Save yellow + blue boxes**. The
    app names the box to correct if it is too large, too small, or overlapping.
+   A new immutable build can offer saved boxes for the same LOTRO installation,
+   frame/client size and DPI. Inspect them on a fresh capture before Save. The
+   internal LOTRO UI scale cannot be verified automatically, so redraw boxes
+   if its pane layout changed. Saved boxes do not restore the two safety
+   controls or arm automatic speech.
    **Preview moved panel (speech off)** can display a provisional extent and
    body box after moving the pane, if the anchor has distinctive detail. Its
    similarity number is not a calibrated quest probability. This preview never
@@ -32,7 +37,9 @@ observation-only tool.
    fails, check the displayed scene and recapture; if it is correct, redraw
    yellow on a more distinctive border detail and save again.
 4. Return to an open quest dialogue, click **Start automatic reading**, and return
-   focus to LOTRO within eight seconds. The tool reads accepted stable new
+   focus to LOTRO within eight seconds. During automatic reading the Windows
+   capture outline can remain steadily visible; it should disappear on Stop.
+   The tool reads accepted stable new
    pages through the chosen local speaker. Try a same-NPC next page, close and
    reopen, then a non-quest surface. **Pause** fences capture and audio; click
    Start to resume a fresh session. **Stop** fences them and leaves the window
@@ -80,3 +87,37 @@ not the held-out 500-positive/500-negative G3 qualification set. Bryce's live
 run must verify it avoids non-quest speech, reads only complete quest text,
 and cancels immediately on real page changes/closure. Production G3 remains
 open, including game impact, session soak, rights and physical audio evidence.
+
+## Persistent capture and local box profile
+
+Bryce's first guided run saved a metrics-only summary with nine successful
+frames and one capture failure over about nine seconds. The UI displayed the
+initial switch-to-game instruction before each requested frame, and the
+one-shot native helper created a fresh Windows Graphics Capture session per
+frame. Those behaviors explain the repeated instruction and are consistent
+with a flashing capture outline. The summary does not prove the foreground
+state at the moment of the failure.
+
+The automatic observation path now owns one exact-window native capture
+session from Start through Stop. It checks the selected HWND, process, start
+time, executable and foreground state at startup and each requested frame.
+Capture, identity or focus failure ends that session and pauses automatic
+reading after one failure. There is no silent restart. Calibration and safety
+sample buttons continue to use bounded one-shot captures.
+
+Only the two rectangle coordinates and binding geometry persist in
+`mithril-auto-state/calibration-<hash>.json` outside immutable builds. A
+previous build's geometry-only file can be imported once as a suggestion
+when frame/client size and DPI match; that older file has no installation
+identity, so the user must check and save the boxes to bind them to the
+current installation.
+Pixels, OCR text, reference pixels, negative-control samples and armed state
+are not stored in this profile. New HWNDs and PIDs can reuse keyed saved
+rectangles; resolution, client size, DPI or install-path changes cannot. Every new session
+still requires a fresh open-panel capture, Save and both negative controls.
+
+The stream protocol, single-session ownership, cancellation and profile
+binding are covered by synthetic tests. A positive Windows Graphics Capture
+test of this stream helper against an owned window remains to be completed
+outside the restricted sandbox. The live LOTRO path and its effect on the
+game remain unqualified until Bryce elects to retest.
