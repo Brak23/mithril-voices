@@ -45,7 +45,7 @@ from lvc.vision.auto_calibration import (
     region,
     save_profile,
 )
-from lvc.vision.auto_observation import AutoObservation, Observation
+from lvc.vision.auto_observation import AutoObservation, Decision, Observation
 from lvc.vision.binding import PixelRect
 from lvc.vision.text_gate import TextDecision
 
@@ -187,8 +187,9 @@ class ObservationWindow:
         tk.Button(controls, text="Save regions", command=self.save_regions).pack(side="left", padx=8)
         tk.Button(controls, text="Native-size refine", command=self.zoom_native).pack(side="left")
         tk.Button(controls, text="Whole window", command=self.overview).pack(side="left", padx=5)
-        tk.Button(controls, text="Start observation (no speech)",
-                  command=self.start).pack(side="left")
+        self.start_button = tk.Button(controls, text="Start observation (no speech)",
+                                      command=self.start)
+        self.start_button.pack(side="left")
         tk.Button(controls, text="Stop", command=self.stop).pack(side="left", padx=5)
         tk.Label(self.root, textvariable=self.status, anchor="w", wraplength=1000,
                  justify="left").pack(fill="x", padx=8, pady=5)
@@ -406,12 +407,16 @@ class ObservationWindow:
             "confirmed_closes", "ocr_attempts", "ocr_text_gate_passes",
             "ocr_abstentions", "capture_failures")}
         self.started_ms = time.monotonic_ns() // 1_000_000
-        self.policy = AutoObservation()
         binding = f"{self.selected.hwnd}:{self.selected.pid}:{self.selected.process_started_ticks}"
-        self.policy.bind(binding, 1)
-        self.policy.auto_on()
+        self._arm_policy(binding)
         self.last_digest = None
         self.set_text("")
+        # The calibration screenshot is no longer needed once the bounded
+        # anchor signature and rectangle coordinates have been prepared.
+        self.canvas.delete("all")
+        self.photo = None
+        self.frame = None
+        self.viewport = None
         self._capture("observe")
 
     def stop(self) -> None:
@@ -428,6 +433,7 @@ class ObservationWindow:
         self.deferred_ocr = None
         self.policy.stop()
         self.policy.auto_off()
+        self._on_stop()
         if was_running:
             self._save_summary()
         self.status.set("Observation stopped. No audio was generated or played.")
@@ -460,6 +466,9 @@ class ObservationWindow:
         if not self.profile.matches(frame, self.selected.client_width,
                                     self.selected.client_height, dpi):
             self.stop()
+            self.profile = None
+            self.reference = None
+            self._on_calibration_invalidated()
             self.status.set("Frame size, client size, or DPI changed. Capture and recalibrate.")
             return
         reference = self.reference
@@ -474,7 +483,9 @@ class ObservationWindow:
         binding = f"{self.selected.hwnd}:{self.selected.pid}:{self.selected.process_started_ticks}"
         item = Observation(time.monotonic_ns() // 1_000_000 - self.started_ms,
                            binding, 1, True, present, digest)
-        decision = self.policy.observe(item)
+        decision = self._policy_observe(item)
+        if not self.running:
+            return
         if "CLOSED" in decision.effects:
             self.metrics["confirmed_closes"] += 1
             self.deferred_ocr = None
@@ -535,7 +546,7 @@ class ObservationWindow:
                         continue
                     if isinstance(result, TextDecision):
                         current = self.policy.can_accept_validation(token)
-                        outcome = self.policy.validated(token, result.accepted_text)
+                        outcome = self._validated(token, result.accepted_text)
                         if not current:
                             self.status.set("OCR result became stale after a panel change; discarded.")
                             self.set_text("")
@@ -548,8 +559,7 @@ class ObservationWindow:
                             self.set_text("")
                         else:
                             self.metrics["ocr_text_gate_passes"] += 1
-                            self.status.set("Two-pass OCR candidate passed its text gate. "
-                                            "Detector is unqualified; automatic speech remains off.")
+                            self.status.set(self._accepted_status())
                             self.set_text(result.raw_text[:3000])
                     else:
                         self.metrics["ocr_abstentions"] += 1
@@ -572,7 +582,9 @@ class ObservationWindow:
                                     "foreground and retry; reselect if it changed.")
                     continue
                 frame, dpi = cast(tuple[Image.Image, int], result)
-                if purpose == "calibration":
+                if self._handle_extra_capture(purpose, frame, dpi):
+                    pass
+                elif purpose == "calibration":
                     self.frame = frame
                     self.anchor = self.body = None
                     self.profile = None
@@ -594,6 +606,7 @@ class ObservationWindow:
                         self.root.after(CAPTURE_INTERVAL_MS, lambda: self._capture("observe"))
         except queue.Empty:
             pass
+        self._on_poll()
         self.root.after(100, self.poll)
 
     def close(self) -> None:
@@ -604,10 +617,42 @@ class ObservationWindow:
         self.frame = None
         self.reference = None
         self.set_text("")
+        self._on_close()
         self.root.destroy()
 
     def run(self) -> None:
         self.root.mainloop()
+
+    def _arm_policy(self, binding: str) -> None:
+        self.policy = AutoObservation()
+        self.policy.bind(binding, 1)
+        self.policy.auto_on()
+
+    def _policy_observe(self, item: Observation) -> Decision:
+        return self.policy.observe(item)
+
+    def _validated(self, token: tuple[int, str], text: str | None) -> Decision:
+        return self.policy.validated(token, text)
+
+    def _handle_extra_capture(self, _purpose: str, _frame: Image.Image,
+                              _dpi: int) -> bool:
+        return False
+
+    def _on_stop(self) -> None:
+        pass
+
+    def _on_poll(self) -> None:
+        pass
+
+    def _on_close(self) -> None:
+        pass
+
+    def _accepted_status(self) -> str:
+        return ("Two-pass OCR candidate passed its text gate. "
+                "Detector is unqualified; automatic speech remains off.")
+
+    def _on_calibration_invalidated(self) -> None:
+        pass
 
 
 def main() -> int:
