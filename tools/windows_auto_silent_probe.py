@@ -93,6 +93,13 @@ def run() -> dict[str, object]:
             raise RuntimeError("SILENT_VOICE_FAILED")
         if "COMPLETED" not in events:
             raise RuntimeError("SILENT_VOICE_TIMEOUT")
+        # COMPLETED is queued just before the request thread clears busy.
+        settled_deadline = time.monotonic() + 3
+        while window.reader.busy and time.monotonic() < settled_deadline:
+            window.root.update()
+            time.sleep(0.02)
+        if window.reader.busy:
+            raise RuntimeError("CANCEL_PROBE_DID_NOT_START")
         completed_before_cancel = event_log.count("COMPLETED")
         page = PageIdentity(uuid4(), 1, "quest_body", "c" * 64)
         cancel_token = RequestToken(uuid4(), uuid4(), 3, 3, "auto", page)
