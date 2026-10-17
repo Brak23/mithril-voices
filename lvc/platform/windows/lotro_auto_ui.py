@@ -49,6 +49,11 @@ class AutoNarrationWindow(ObservationWindow):
         super().__init__(hidden=hidden)
         self.root.title("Mithril Voices - automatic LOTRO quest narration")
         self.start_button.configure(text="Start automatic reading")
+        self.instructions_label.configure(text=(
+            "Capture and mark a stock quest pane, then capture closed and non-quest controls "
+            "from the same selected window. Prepare voice, choose a speaker, and click Start. "
+            "Accepted new quest pages can play through that speaker. Stop/Pause fences speech."))
+        self.candidate_label.configure(text="Current local OCR candidate and reason (memory only)")
         self.silent = silent
         self.controls: dict[str, float] = {}
         self.bridge: AutoCoreAdapter | None = None
@@ -310,6 +315,13 @@ class AutoNarrationWindow(ObservationWindow):
 
     def _on_calibration_invalidated(self) -> None:
         self.controls.clear()
+
+    def _stopped_status(self) -> str:
+        return "Automatic capture and speech stopped. The selected window remains available."
+
+    def _closed_status(self, difference: float) -> str:
+        return (f"Candidate quest pane closed (anchor difference {difference:.3f}); "
+                "prior speech canceled; watching for a new panel.")
 
 
 def main() -> int:

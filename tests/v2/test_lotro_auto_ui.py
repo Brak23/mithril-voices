@@ -1,6 +1,9 @@
 """One hidden synthetic UI session; no LOTRO window or audio device is used."""
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -18,6 +21,19 @@ from lvc.vision.text_gate import TextDecision
 
 def test_auto_ui_requires_controls_and_fences_stale_pages(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    if os.environ.get("MITHRIL_AUTO_UI_TEST_CHILD") != "1":
+        # Tk occasionally corrupts its second root in a long Windows pytest
+        # process. Keep this one real-root integration test process-local.
+        child = subprocess.run(
+            [sys.executable, "-m", "pytest",
+             f"{__file__}::test_auto_ui_requires_controls_and_fences_stale_pages",
+             "-q", "--tb=short", "--color=no", "-o", "addopts=",
+             "--basetemp", str(tmp_path / "child")],
+            env={**os.environ, "MITHRIL_AUTO_UI_TEST_CHILD": "1"},
+            capture_output=True, text=True, timeout=20, check=False,
+        )
+        assert child.returncode == 0, child.stdout[-1200:] + child.stderr[-1200:]
+        return
     monkeypatch.setattr(lotro_auto_ui, "SETTINGS", tmp_path / "auto-settings.json")
     clock = [1_000_000_000]
     monkeypatch.setattr(lotro_observation_ui.time, "monotonic_ns", lambda: clock[0])
@@ -34,6 +50,8 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
     candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
     window = AutoNarrationWindow(hidden=True, silent=True)
     try:
+        assert "Accepted new quest pages can play" in window.instructions_label.cget("text")
+        assert "never speech" not in window.candidate_label.cget("text")
         window.selected = candidate
         window.frame = positive
         window.anchor, window.body = profile.anchor, profile.body
@@ -121,6 +139,10 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         window.pause()
         assert not window.running
         assert window.pending_speech is None
+        window.start()
+        assert window.running
+        window.stop()
+        assert window.status.get().startswith("Automatic capture and speech stopped")
         window.start()
         assert window.running
         window._observe_frame(positive, 120)

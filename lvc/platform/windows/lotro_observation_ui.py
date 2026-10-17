@@ -193,11 +193,12 @@ class ObservationWindow:
         tk.Button(controls, text="Stop", command=self.stop).pack(side="left", padx=5)
         tk.Label(self.root, textvariable=self.status, anchor="w", wraplength=1000,
                  justify="left").pack(fill="x", padx=8, pady=5)
-        tk.Label(self.root, text=(
+        self.instructions_label = tk.Label(self.root, text=(
             "Open a stock quest pane, capture once, then draw a static border/logo patch "
             "and a complete text crop. Switch back to LOTRO within 8 seconds of Capture/Start. "
             "No speech or gameplay control occurs."), wraplength=1050,
-            justify="left").pack(anchor="w", padx=8)
+            justify="left")
+        self.instructions_label.pack(anchor="w", padx=8)
 
         holder = tk.Frame(self.root)
         holder.pack(fill="both", expand=True, padx=8, pady=4)
@@ -213,8 +214,9 @@ class ObservationWindow:
         self.canvas.bind("<Button-1>", self.press)
         self.canvas.bind("<B1-Motion>", self.drag)
         self.canvas.bind("<ButtonRelease-1>", self.release)
-        tk.Label(self.root, text="Current OCR candidate and reason (memory only; never speech)").pack(
-            anchor="w", padx=8)
+        self.candidate_label = tk.Label(
+            self.root, text="Current OCR candidate and reason (memory only; never speech)")
+        self.candidate_label.pack(anchor="w", padx=8)
         self.candidate_text = scrolledtext.ScrolledText(self.root, height=7, wrap="word")
         self.candidate_text.pack(fill="x", padx=8, pady=4)
         self.candidate_text.configure(state="disabled")
@@ -436,7 +438,7 @@ class ObservationWindow:
         self._on_stop()
         if was_running:
             self._save_summary()
-        self.status.set("Observation stopped. No audio was generated or played.")
+        self.status.set(self._stopped_status())
 
     def _save_summary(self) -> None:
         profile = self.profile
@@ -489,8 +491,7 @@ class ObservationWindow:
         if "CLOSED" in decision.effects:
             self.metrics["confirmed_closes"] += 1
             self.deferred_ocr = None
-            self.status.set(f"Candidate panel closed (anchor difference {difference:.3f}); "
-                            "watching for a new panel. Speech remains off.")
+            self.status.set(self._closed_status(difference))
             self.set_text("")
         elif not present:
             self.status.set(f"Anchor differs by {difference:.3f}; possible close or UI change. "
@@ -516,7 +517,7 @@ class ObservationWindow:
         epoch = self.epoch
         runner = OcrProcessRunner()
         self.ocr_runner = runner
-        self.status.set("Candidate stable. Running two local OCR passes; no speech.")
+        self.status.set("Candidate stable. Running two local OCR passes before any text admission.")
 
         def work() -> None:
             try:
@@ -653,6 +654,13 @@ class ObservationWindow:
 
     def _on_calibration_invalidated(self) -> None:
         pass
+
+    def _stopped_status(self) -> str:
+        return "Observation stopped. No audio was generated or played."
+
+    def _closed_status(self, difference: float) -> str:
+        return (f"Candidate panel closed (anchor difference {difference:.3f}); "
+                "watching for a new panel. Speech remains off.")
 
 
 def main() -> int:

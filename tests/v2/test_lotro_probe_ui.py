@@ -1,6 +1,7 @@
 """Synthetic-only crop, OCR, cancellation and preview lifecycle checks."""
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import threading
@@ -185,6 +186,18 @@ def test_ocr_runner_preserves_binary_output() -> None:
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows Tk preview layout")
 def test_manual_controls_and_saved_choices_in_ultrawide_preview(
         monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    if os.environ.get("MITHRIL_MANUAL_UI_TEST_CHILD") != "1":
+        # Tk's second Windows root is unreliable after the observation UI test.
+        child = subprocess.run(
+            [sys.executable, "-m", "pytest",
+             f"{__file__}::test_manual_controls_and_saved_choices_in_ultrawide_preview",
+             "-q", "--tb=short", "--color=no", "-o", "addopts=",
+             "--basetemp", str(tmp_path / "child")],
+            env={**os.environ, "MITHRIL_MANUAL_UI_TEST_CHILD": "1"},
+            capture_output=True, text=True, timeout=20, check=False,
+        )
+        assert child.returncode == 0, child.stdout[-1200:] + child.stderr[-1200:]
+        return
     store = PreferencesStore(tmp_path / "preferences.json", ("bf_emma", "bm_fable"))
     store.save(ManualPreferences("bm_fable", "dev-1", "Selected speaker", True))
     monkeypatch.setattr(lotro_probe_ui, "PRIVATE_ROOT", tmp_path)
