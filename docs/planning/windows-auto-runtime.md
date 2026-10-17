@@ -12,21 +12,26 @@ observation-only tool.
    **Mithril Automatic.cmd** on the Desktop. Select the verified retail LOTRO
    window. Choose a voice and the exact speaker, then click **Prepare voice**;
    wait for **Voice ready**. The first local model load takes several seconds.
-2. Open a stock quest offer. Click **Capture open quest panel** and return focus
-   to LOTRO within eight seconds. Draw a small distinctive static quest-pane
-   border/emblem as the yellow anchor, and the complete quest body as the blue
-   region. Use **Native-size refine** and scrollbars for exact edges. Click
-   **Save regions**.
+2. Open a quest dialogue window. Click **1. Capture open quest window** and
+   return focus to LOTRO within eight seconds. With **2. Yellow: small border
+   detail**, draw around one small decorative corner or border mark that does
+   not contain the changing title or dialogue. Do not outline the whole quest
+   window in yellow. Switch to **3. Blue: all dialogue words** and draw around
+   every dialogue line inside the pane without overlapping yellow. Both boxes
+   stay visible; redrawing one color keeps the other. Use **Native-size refine**
+   and scrollbars if needed, then click **4. Save yellow + blue boxes**. The
+   app names the box to correct if it is too large, too small, or overlapping.
    **Preview moved panel (speech off)** can display a provisional extent and
    body box after moving the pane, if the anchor has distinctive detail. Its
    similarity number is not a calibrated quest probability. This preview never
    authorizes speech; the current trial still speaks from the saved regions.
-3. Close the quest pane. Click **Capture closed-pane control** and return to
-   LOTRO within eight seconds. Show a journal or other non-quest surface; click
-   **Capture journal/non-quest control** and return to LOTRO. Both controls must
-   differ sufficiently from the quest anchor. If either fails, redraw a more
-   distinctive anchor and repeat.
-4. Return to a stock quest pane, click **Start automatic reading**, and return
+3. Close the quest window. Click **5. Capture with quest closed** and return to
+   LOTRO within eight seconds. Show a journal or inventory without quest
+   dialogue; click **6. Capture journal or inventory** and return to LOTRO.
+   Both safety samples must show that the yellow detail is absent. If one
+   fails, check the displayed scene and recapture; if it is correct, redraw
+   yellow on a more distinctive border detail and save again.
+4. Return to an open quest dialogue, click **Start automatic reading**, and return
    focus to LOTRO within eight seconds. The tool reads accepted stable new
    pages through the chosen local speaker. Try a same-NPC next page, close and
    reopen, then a non-quest surface. **Pause** fences capture and audio; click

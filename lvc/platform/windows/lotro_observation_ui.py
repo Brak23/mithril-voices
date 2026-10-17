@@ -44,6 +44,7 @@ from lvc.vision.auto_calibration import (
     load_profile,
     region,
     save_profile,
+    selection_issue,
 )
 from lvc.vision.auto_observation import AutoObservation, Decision, Observation
 from lvc.vision.binding import PixelRect
@@ -177,21 +178,31 @@ class ObservationWindow:
         self.picker = ttk.Combobox(top, textvariable=self.window_choice, state="readonly", width=72)
         self.picker.pack(side="left", padx=6, fill="x", expand=True)
         self.picker.bind("<<ComboboxSelected>>", self.choose_window)
-        tk.Button(top, text="Capture open quest panel", command=self.calibration_capture).pack(side="left")
+        self.capture_button = tk.Button(top, text="Capture open quest panel",
+                                        command=self.calibration_capture)
+        self.capture_button.pack(side="left")
 
-        controls = tk.Frame(self.root)
-        controls.pack(fill="x", padx=8)
-        tk.Radiobutton(controls, text="Mark static pane anchor", variable=self.mode,
-                       value="anchor").pack(side="left")
-        tk.Radiobutton(controls, text="Mark complete body text", variable=self.mode,
-                       value="body").pack(side="left")
-        tk.Button(controls, text="Save regions", command=self.save_regions).pack(side="left", padx=8)
-        tk.Button(controls, text="Native-size refine", command=self.zoom_native).pack(side="left")
-        tk.Button(controls, text="Whole window", command=self.overview).pack(side="left", padx=5)
-        self.start_button = tk.Button(controls, text="Start observation (no speech)",
+        mark_controls = tk.Frame(self.root)
+        mark_controls.pack(fill="x", padx=8)
+        self.anchor_button = tk.Radiobutton(mark_controls, text="Mark static pane anchor",
+                                            variable=self.mode, value="anchor")
+        self.anchor_button.pack(side="left")
+        self.body_button = tk.Radiobutton(mark_controls, text="Mark complete body text",
+                                          variable=self.mode, value="body")
+        self.body_button.pack(side="left")
+        self.save_button = tk.Button(mark_controls, text="Save regions",
+                                     command=self.save_regions)
+        self.save_button.pack(side="left", padx=8)
+        view_controls = tk.Frame(self.root)
+        view_controls.pack(fill="x", padx=8)
+        tk.Button(view_controls, text="Native-size refine",
+                  command=self.zoom_native).pack(side="left")
+        tk.Button(view_controls, text="Whole window",
+                  command=self.overview).pack(side="left", padx=5)
+        self.start_button = tk.Button(view_controls, text="Start observation (no speech)",
                                       command=self.start)
         self.start_button.pack(side="left")
-        tk.Button(controls, text="Stop", command=self.stop).pack(side="left", padx=5)
+        tk.Button(view_controls, text="Stop", command=self.stop).pack(side="left", padx=5)
         tk.Label(self.root, textvariable=self.status, anchor="w", wraplength=1000,
                  justify="left").pack(fill="x", padx=8, pady=5)
         self.instructions_label = tk.Label(self.root, text=(
@@ -356,7 +367,9 @@ class ObservationWindow:
         self.drag_start = None
         self.canvas.delete("drawing")
         if rect is None:
-            self.status.set("Draw a region of at least 20 x 20 frame pixels.")
+            color = "yellow border" if self.mode.get() == "anchor" else "blue dialogue"
+            self.status.set(f"{color.capitalize()} box is too small. Drag at least 20 x 20 "
+                            "image pixels; the other box remains in place.")
             return
         if self.mode.get() == "anchor":
             self.anchor = rect
@@ -365,13 +378,20 @@ class ObservationWindow:
         self.profile = None
         self.reference = None
         self._draw_rectangles()
-        self.status.set("Region marked. Mark the other region, then Save regions.")
+        self.status.set(selection_issue(self.frame, self.anchor, self.body)
+                        or "Both colored boxes are marked. Check the edges, then Save regions.")
 
     def save_regions(self) -> None:
-        if (self.frame is None or self.selected is None or self.anchor is None
-                or self.body is None or self.running):
-            self.status.set("Capture an open panel and mark separate anchor and body regions first.")
+        if self.running:
             return
+        if self.selected is None:
+            self.status.set("Select the verified LOTRO window before saving boxes.")
+            return
+        issue = selection_issue(self.frame, self.anchor, self.body)
+        if issue is not None:
+            self.status.set(issue)
+            return
+        assert self.frame is not None and self.anchor is not None and self.body is not None
         try:
             dpi = window_dpi(self.selected)
             profile = Calibration(self.frame.width, self.frame.height,
@@ -380,8 +400,9 @@ class ObservationWindow:
             save_profile(PROFILE, profile)
             self.profile = profile
             self.reference = anchor_signature(self.frame, profile)
-        except (OSError, ValueError) as exc:
-            self.status.set(f"Cannot save regions: {exc}. Check overlap and crop size.")
+        except (OSError, ValueError):
+            self.status.set("Could not save the two boxes. Check that this LOTRO window has "
+                            "not changed size or DPI, then retry Save.")
             return
         self.status.set("Geometry-only regions saved. Anchor pixels stay in memory for this session. "
                         "Start observation, then return focus to LOTRO.")

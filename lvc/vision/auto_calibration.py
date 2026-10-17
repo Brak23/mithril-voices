@@ -17,6 +17,34 @@ MAX_BODY_PIXELS = 2_000_000
 ANCHOR_SIZE = (16, 16)
 
 
+def selection_issue(frame: Image.Image | None, anchor: PixelRect | None,
+                    body: PixelRect | None) -> str | None:
+    """Give the next drawing action before constructing a saved calibration."""
+    if frame is None:
+        return "Capture an open quest window first, then mark the yellow and blue boxes."
+    if anchor is None:
+        return ("Draw the yellow box around a small corner or decorative border of the "
+                "quest window. Keep changing title and dialogue words outside it.")
+    if not anchor.inside(*frame.size) or anchor.width < 20 or anchor.height < 20:
+        return "Redraw the yellow border box inside the image, at least 20 x 20 pixels."
+    if anchor.width * anchor.height > 250_000:
+        return ("The yellow box is too large. It should mark a small fixed corner or "
+                "border detail, not the whole quest window. Redraw yellow and keep blue.")
+    if body is None:
+        return ("Switch to the blue box and draw around all dialogue words inside the "
+                "quest window. The yellow box stays in place.")
+    if not body.inside(*frame.size) or body.width < 20 or body.height < 20:
+        return "Redraw the blue dialogue box inside the image, at least 20 x 20 pixels."
+    if body.width * body.height > MAX_BODY_PIXELS:
+        return ("The blue box is too large. Include the complete dialogue area, "
+                "but leave out the rest of the screen and quest controls.")
+    if (anchor.x < body.x + body.width and anchor.x + anchor.width > body.x
+            and anchor.y < body.y + body.height and anchor.y + anchor.height > body.y):
+        return ("Yellow and blue overlap. Redraw yellow on a small fixed border or "
+                "corner outside the blue dialogue area. Switching colors keeps the other box.")
+    return None
+
+
 @dataclass(frozen=True)
 class Calibration:
     frame_width: int
