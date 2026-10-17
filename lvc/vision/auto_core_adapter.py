@@ -6,6 +6,8 @@ and the generation-fenced renderer. The calibration UI never uses this bridge.
 """
 from __future__ import annotations
 
+import hashlib
+import unicodedata
 from dataclasses import dataclass
 from uuid import UUID, uuid4, uuid5
 
@@ -55,6 +57,7 @@ class AutoCoreAdapter:
         self._last_interaction = self.observation.interaction
         self._revision = 0
         self._pending: ValidationRequest | None = None
+        self._last_spoken_hash: str | None = None
 
     def enable(self, now_ms: int) -> BridgeOutcome:
         if not self.profile_qualified:
@@ -93,6 +96,7 @@ class AutoCoreAdapter:
             self._last_digest = None
             self._last_interaction = self.observation.interaction
             self._revision = 0
+            self._last_spoken_hash = None
             return BridgeOutcome(effects, reason="CLOSED")
         if "SUSPENDED" in decision.effects:
             return BridgeOutcome(effects, reason="SUSPENDED")
@@ -103,6 +107,7 @@ class AutoCoreAdapter:
         if self._last_interaction != self.observation.interaction:
             self._last_interaction = self.observation.interaction
             self._last_digest = None
+            self._last_spoken_hash = None
             self._revision = 0
         if digest != self._last_digest:
             self._revision += 1
@@ -132,12 +137,18 @@ class AutoCoreAdapter:
                 or not self.observation.can_accept_validation(token)):
             return BridgeOutcome(reason="STALE_OCR")
         self._pending = None
-        decision = self.observation.validated(token, accepted_text)
+        normalized = unicodedata.normalize(
+            "NFC", " ".join((accepted_text or "").split())).casefold()
+        text_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest() if normalized else None
+        duplicate = text_hash is not None and text_hash == self._last_spoken_hash
+        decision = self.observation.validated(token, None if duplicate else accepted_text)
         text = decision.accepted_text or ""
         self.state, effects = reduce(self.state, ValidatedText(
             request.request_id, request.page, text), now_ms)
         if not text:
-            return BridgeOutcome(effects, reason="OCR_ABSTAINED_OR_HELD")
+            return BridgeOutcome(effects, reason=(
+                "DUPLICATE_TEXT" if duplicate else "OCR_ABSTAINED_OR_HELD"))
         if not any(effect.kind == "synthesize" for effect in effects):
             return BridgeOutcome(effects, reason="CORE_REJECTED_TEXT")
+        self._last_spoken_hash = text_hash
         return BridgeOutcome(effects, synthesis_text=text, reason="SYNTHESIS_ELIGIBLE")

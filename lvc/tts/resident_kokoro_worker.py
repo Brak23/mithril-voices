@@ -114,8 +114,15 @@ def messages(command: dict[str, object], voice: str, renderer: Renderer,
         row = write_unit(request_dir, index, wav)
         yield {"event": "UNIT_READY", "request_id": str(request),
                "generation": generation, "index": index, "total": len(units), **row}
-        if index + 1 < len(units) and not next_matches(next_command(), request, generation, index):
-            raise ValueError("NEXT_INVALID")
+        if index + 1 < len(units):
+            following = next_command()
+            if following == {"action": "cancel", "request_id": str(request),
+                             "generation": generation}:
+                yield {"event": "CANCELED", "request_id": str(request),
+                       "generation": generation}
+                return
+            if not next_matches(following, request, generation, index):
+                raise ValueError("NEXT_INVALID")
     yield {"event": "DONE", "request_id": str(request), "generation": generation,
            "total": len(units)}
 

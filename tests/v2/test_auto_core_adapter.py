@@ -8,6 +8,7 @@ from lvc.vision.auto_observation import Observation
 
 A = "a" * 64
 B = "b" * 64
+C = "c" * 64
 
 
 def frame(ms: int, digest: str | None = A, *, present: bool = True,
@@ -89,7 +90,7 @@ def test_confirmed_close_reopens_same_digest_as_new_interaction() -> None:
     second = stable(bridge, A, 900)
     assert second.validation is not None
     assert second.validation.page.interaction_id != first.validation.page.interaction_id
-    assert bridge.validated(second.validation.observation_token, "Second.", 1201).synthesis_text == "Second."
+    assert bridge.validated(second.validation.observation_token, "First.", 1201).synthesis_text == "First."
 
 
 def test_unqualified_observation_suspends_and_fences_active_synthesis() -> None:
@@ -103,3 +104,21 @@ def test_unqualified_observation_suspends_and_fences_active_synthesis() -> None:
     assert "cancel" in kind(suspended)
     assert bridge.observe(frame(700)).validation is None
     assert bridge.validated(first.validation.observation_token, "Late text.", 701).effects == ()
+
+
+def test_same_ocr_words_with_new_pixels_are_not_read_twice() -> None:
+    bridge = ready()
+    first = stable(bridge, A, 0)
+    assert first.validation is not None
+    assert bridge.validated(first.validation.observation_token,
+                            "The road is clear.", 301).synthesis_text == "The road is clear."
+    second = stable(bridge, B, 500)
+    assert second.validation is not None
+    repeated = bridge.validated(second.validation.observation_token,
+                                "  THE   road is clear.  ", 801)
+    assert repeated.synthesis_text is None
+    assert "synthesize" not in kind(repeated)
+    third = stable(bridge, C, 1000)
+    assert third.validation is not None
+    assert bridge.validated(third.validation.observation_token,
+                            "The gate is open.", 1301).synthesis_text == "The gate is open."

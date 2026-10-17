@@ -80,6 +80,19 @@ def test_invalid_next_does_not_render_following_unit(tmp_path: Path) -> None:
     assert len(renderer.calls) == 1
 
 
+def test_cancel_after_first_unit_keeps_resident_protocol_available(tmp_path: Path) -> None:
+    renderer = FakeRenderer()
+    produced = messages(command("First sentence. Second sentence."),
+                        "bf_emma", renderer, tmp_path,
+                        lambda: {"action": "cancel", "request_id": REQUEST,
+                                 "generation": 3})
+    assert next(produced)["event"] == "UNIT_READY"
+    assert next(produced)["event"] == "CANCELED"
+    with pytest.raises(StopIteration):
+        next(produced)
+    assert len(renderer.calls) == 1
+
+
 @pytest.mark.parametrize("payload", [
     b'{"x":1,"x":2}\n', b'{"x":NaN}\n', b'[]\n', b'{\n',
 ])
