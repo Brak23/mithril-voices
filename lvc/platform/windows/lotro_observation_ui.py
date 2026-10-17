@@ -556,7 +556,7 @@ class ObservationWindow:
                             self.status.set(f"OCR abstained: {result.reason}. Review/refine the crop.")
                             self.set_text(result.raw_text[:3000])
                         elif outcome.accepted_text is None:
-                            self.status.set("OCR result became stale or held after Stop; no admission.")
+                            self.status.set(self._held_status())
                             self.set_text("")
                         else:
                             self.metrics["ocr_text_gate_passes"] += 1
@@ -661,6 +661,9 @@ class ObservationWindow:
     def _closed_status(self, difference: float) -> str:
         return (f"Candidate panel closed (anchor difference {difference:.3f}); "
                 "watching for a new panel. Speech remains off.")
+
+    def _held_status(self) -> str:
+        return "OCR result became stale or held after Stop; no admission."
 
 
 def main() -> int:

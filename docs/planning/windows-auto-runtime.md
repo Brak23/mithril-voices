@@ -34,7 +34,9 @@ native helper also requires that window to be foreground. A replaced,
 minimized, resized, or DPI-changed window stops observation or requires new
 calibration. OCR uncertainty abstains. A page change or confirmed closure
 invalidates old OCR and requests speech cancellation before a new page can
-read. The native helper returns one full selected-game frame in memory; the
+read. Within one quest interaction, accepted words are also compared after
+space/case normalization so minor pixel changes cannot narrate the same text
+again. The native helper returns one full selected-game frame in memory; the
 app uses only the approved anchor and quest-body regions, then discards the
 full frame. No screenshot, OCR text or gameplay content is saved or uploaded
 by default. The geometry-only calibration and metrics-only summary remain local;

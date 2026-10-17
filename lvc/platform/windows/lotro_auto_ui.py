@@ -60,6 +60,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.reader = ResidentAutoReader()
         self.active_token: RequestToken | None = None
         self.pending_speech: tuple[RequestToken, str] | None = None
+        self.last_validation_reason = ""
         self.devices: dict[str, OutputDevice] = {}
         self.device_results: queue.Queue[object] = queue.Queue()
         self.settings = PreferencesStore(SETTINGS,
@@ -202,6 +203,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.policy = self.bridge.observation
         self.pending_speech = None
         self.active_token = None
+        self.last_validation_reason = ""
 
     def _fence_voice(self) -> None:
         self.pending_speech = None
@@ -232,6 +234,7 @@ class AutoNarrationWindow(ObservationWindow):
         if bridge is None:
             return Decision()
         outcome = bridge.validated(token, text, time.monotonic_ns() // 1_000_000 - self.started_ms)
+        self.last_validation_reason = outcome.reason
         if outcome.synthesis_text is None:
             return Decision()
         synthesis = next((effect.token for effect in outcome.effects
@@ -322,6 +325,11 @@ class AutoNarrationWindow(ObservationWindow):
     def _closed_status(self, difference: float) -> str:
         return (f"Candidate quest pane closed (anchor difference {difference:.3f}); "
                 "prior speech canceled; watching for a new panel.")
+
+    def _held_status(self) -> str:
+        if self.last_validation_reason == "DUPLICATE_TEXT":
+            return "Same quest words detected again; duplicate narration suppressed."
+        return "OCR result is stale or held; no new narration started."
 
 
 def main() -> int:
