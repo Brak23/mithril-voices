@@ -1,9 +1,12 @@
 """One hidden synthetic UI session; no LOTRO window or audio device is used."""
 from __future__ import annotations
 
+import hashlib
 import os
+import queue
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -12,10 +15,12 @@ from PIL import Image, ImageDraw
 from lvc.platform.windows import lotro_auto_ui, lotro_observation_ui
 from lvc.platform.windows.lotro_auto_ui import AutoNarrationWindow
 from lvc.platform.windows.lotro_observation_ui import CaptureRunner
+from lvc.platform.windows.lotro_probe_ui import OcrCancelled, OcrProcessRunner
 from lvc.platform.windows.lotro_user_probe import Candidate
 from lvc.platform.windows.manual_read import OutputDevice
 from lvc.vision.auto_calibration import Calibration, anchor_signature
 from lvc.vision.binding import PixelRect
+from lvc.vision.panel_locator import TemplatePanelLocator
 from lvc.vision.text_gate import TextDecision
 
 
@@ -74,6 +79,16 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         stops: list[int] = []
         monkeypatch.setattr(window.reader, "stop", lambda **_kw: stops.append(1))
 
+        template = positive.copy()
+        ImageDraw.Draw(template).line((103, 83, 145, 125), fill="black", width=4)
+        window.panel_locator = TemplatePanelLocator(template, profile)
+        moved = Image.new("RGB", (800, 500), "black")
+        moved.paste(template.crop((100, 80, 150, 130)), (200, 200))
+        assert window._handle_extra_capture("panel-preview", moved, 96)
+        assert window.preview_anchor == PixelRect(200, 200, 50, 50)
+        assert "does not authorize speech" in window.status.get()
+        window.frame = positive
+
         window.start()
         assert not window.running
         assert window._handle_extra_capture("closed-control", negative, 96)
@@ -101,8 +116,11 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         window._observe_frame(positive, 96)
         assert len(recognized) == 1  # Same stable page is never replayed.
         clock[0] += 100_000_000
+        old_runner = OcrProcessRunner()
+        window.ocr_runner = old_runner
         window._observe_frame(next_page, 96)
         assert stops  # Change fences currently playing speech before OCR.
+        assert old_runner.cancelled.is_set()
         assert window.bridge.validated(first, "Late old text.", 501).effects == ()
         clock[0] += 300_000_000
         window._observe_frame(next_page, 96)
@@ -151,10 +169,39 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         window.close()
 
 
+def test_auto_ocr_worker_cancellation_never_returns_accepted_text(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    window = object.__new__(AutoNarrationWindow)
+    window.metrics = {"ocr_attempts": 0}
+    window.results = queue.Queue()
+    window.epoch = 7
+    started = threading.Event()
+
+    class Status:
+        def set(self, _value: str) -> None:
+            pass
+
+    window.status = Status()  # type: ignore[assignment]
+
+    def delayed(_body: Image.Image, runner: OcrProcessRunner) -> object:
+        started.set()
+        assert runner.cancelled.wait(2)
+        raise OcrCancelled()
+
+    monkeypatch.setattr(lotro_auto_ui, "recognize_auto_crop", delayed)
+    window._recognize(Image.new("RGB", (100, 60)), (3, "a" * 64))
+    assert started.wait(2)
+    assert window.ocr_runner is not None
+    window.ocr_runner.cancel()
+    purpose, payload = window.results.get(timeout=3)
+    assert purpose == "ocr"
+    assert payload == (7, (3, "a" * 64), "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED")
+
+
 def test_capture_rejects_missing_or_resized_window_before_child(
         monkeypatch: pytest.MonkeyPatch) -> None:
     selected = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
-    monkeypatch.setattr(lotro_observation_ui, "capture_preflight", lambda: None)
+    monkeypatch.setattr(lotro_observation_ui, "capture_preflight", lambda **_kw: None)
     monkeypatch.setattr(lotro_observation_ui.subprocess, "Popen",
                         lambda *_a, **_kw: pytest.fail("native capture must not start"))
     for current in (None, Candidate(10, 20, 30, "C:/lotroclient64.exe",
@@ -165,3 +212,16 @@ def test_capture_rejects_missing_or_resized_window_before_child(
                             lambda _hwnd, value=current: value)
         with pytest.raises(RuntimeError, match="WINDOW_IDENTITY_OR_SIZE_CHANGED"):
             CaptureRunner().capture(selected)
+
+
+def test_auto_capture_preflight_requires_native_helper_without_tesseract(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    native = tmp_path / "native.exe"
+    native.write_bytes(b"synthetic native helper hash")
+    monkeypatch.setattr(lotro_observation_ui, "NATIVE_PROBE", native)
+    monkeypatch.setattr(lotro_observation_ui, "EXPECTED_NATIVE_SHA256",
+                        hashlib.sha256(native.read_bytes()).hexdigest())
+    monkeypatch.setattr(lotro_observation_ui, "TESSERACT", tmp_path / "missing.exe")
+    lotro_observation_ui.capture_preflight(require_tesseract=False)
+    with pytest.raises(RuntimeError, match="CAPTURE_OR_TESSERACT_UNAVAILABLE"):
+        lotro_observation_ui.capture_preflight()

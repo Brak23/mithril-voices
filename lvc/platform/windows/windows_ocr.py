@@ -19,12 +19,17 @@ MAX_TEXT_BYTES = 256 * 1024
 Runner = Callable[..., subprocess.CompletedProcess[bytes]]
 
 
-def recognize_windows(image: Image.Image, runner: Runner) -> str:
-    """No screen access, file output, confidence score, or speech side effect."""
+def windows_ocr_preflight() -> None:
+    """Check the exact local helper before an automatic session can arm."""
     if not NATIVE_OCR_HELPER.is_file():
         raise RuntimeError("WINDOWS_OCR_UNAVAILABLE")
     if hashlib.sha256(NATIVE_OCR_HELPER.read_bytes()).hexdigest() != EXPECTED_NATIVE_OCR_SHA256:
         raise RuntimeError("WINDOWS_OCR_HELPER_UNVERIFIED")
+
+
+def recognize_windows(image: Image.Image, runner: Runner) -> str:
+    """No screen access, file output, confidence score, or speech side effect."""
+    windows_ocr_preflight()
     encoded = io.BytesIO()
     image.convert("RGB").save(encoded, format="PNG")
     payload = encoded.getvalue()

@@ -21,12 +21,15 @@ from uuid import uuid4
 from PIL import Image
 
 from lvc.core import RequestToken
+from lvc.platform.windows.auto_windows_ocr import recognize_auto_crop
 from lvc.platform.windows.lotro_observation_ui import (
     ROOT,
+    CaptureRunner,
     ObservationWindow,
     anchor_difference,
     capture_preflight,
 )
+from lvc.platform.windows.lotro_probe_ui import OcrCancelled, OcrProcessRunner
 from lvc.platform.windows.manual_preferences import PreferencesStore
 from lvc.platform.windows.manual_read import (
     AUDIO_PYTHON,
@@ -36,8 +39,11 @@ from lvc.platform.windows.manual_read import (
     list_output_devices,
 )
 from lvc.platform.windows.resident_auto_read import ResidentAutoReader
+from lvc.platform.windows.windows_ocr import windows_ocr_preflight
 from lvc.vision.auto_core_adapter import AutoCoreAdapter
 from lvc.vision.auto_observation import Decision, Observation
+from lvc.vision.binding import PixelRect
+from lvc.vision.panel_locator import PanelLocator, TemplatePanelLocator
 
 MIN_NEGATIVE_DIFFERENCE = 0.16
 SETTINGS = Path(os.environ.get("MITHRIL_AUTO_SETTINGS",
@@ -47,15 +53,20 @@ SETTINGS = Path(os.environ.get("MITHRIL_AUTO_SETTINGS",
 class AutoNarrationWindow(ObservationWindow):
     def __init__(self, *, hidden: bool = False, silent: bool = False) -> None:
         super().__init__(hidden=hidden)
+        self.runner = CaptureRunner(require_tesseract=False)
         self.root.title("Mithril Voices - automatic LOTRO quest narration")
         self.start_button.configure(text="Start automatic reading")
         self.instructions_label.configure(text=(
             "Capture and mark a stock quest pane, then capture closed and non-quest controls "
             "from the same selected window. Prepare voice, choose a speaker, and click Start. "
-            "Accepted new quest pages can play through that speaker. Stop/Pause fences speech."))
+            "Windows OCR checks each stable page. Accepted new quest pages can play "
+            "through the chosen speaker. "
+            "Stop/Pause fences speech."))
         self.candidate_label.configure(text="Current local OCR candidate and reason (memory only)")
         self.silent = silent
         self.controls: dict[str, float] = {}
+        self.panel_locator: PanelLocator | None = None
+        self.preview_anchor: PixelRect | None = None
         self.bridge: AutoCoreAdapter | None = None
         self.reader = ResidentAutoReader()
         self.active_token: RequestToken | None = None
@@ -100,6 +111,13 @@ class AutoNarrationWindow(ObservationWindow):
             "the controls pass; Stop fences speech and capture. No screenshot/text is saved."),
                  wraplength=1050, justify="left").pack(
                      anchor="w", padx=8, before=self.candidate_text)
+        preview_controls = tk.Frame(self.root)
+        preview_controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
+        tk.Button(preview_controls, text="Preview moved panel (speech off)",
+                  command=self.preview_panel).pack(side="left")
+        tk.Label(preview_controls, text=(
+            "Shows provisional boxes only; Start still uses the saved calibration."),
+            anchor="w").pack(side="left", padx=8)
         if issue:
             self.status.set(f"Auto preferences could not be loaded ({issue}). Choose voice and speaker.")
         if not hidden:
@@ -110,6 +128,8 @@ class AutoNarrationWindow(ObservationWindow):
             return
         super().choose_window(event)
         self.controls.clear()
+        self.panel_locator = None
+        self.preview_anchor = None
 
     def save_regions(self) -> None:
         if self.running:
@@ -117,7 +137,21 @@ class AutoNarrationWindow(ObservationWindow):
         super().save_regions()
         if self.profile is not None:
             self.controls.clear()
-            self.status.set("Regions saved. Capture closed-pane and non-quest controls next.")
+            self.panel_locator = None
+            self.preview_anchor = None
+            if self.frame is not None:
+                try:
+                    self.panel_locator = TemplatePanelLocator(self.frame, self.profile)
+                except ValueError:
+                    pass
+            self.status.set("Regions saved. Capture both controls. A distinctive anchor also "
+                            "enables a moving-panel box preview; preview never starts speech.")
+
+    def preview_panel(self) -> None:
+        if self.running or self.panel_locator is None:
+            self.status.set("Save regions with a distinctive non-flat anchor before box preview.")
+            return
+        self._capture("panel-preview")
 
     def capture_control(self, purpose: str) -> None:
         if self.running or self.profile is None or self.reference is None:
@@ -126,6 +160,40 @@ class AutoNarrationWindow(ObservationWindow):
         self._capture(purpose)
 
     def _handle_extra_capture(self, purpose: str, frame: Image.Image, dpi: int) -> bool:
+        if purpose == "panel-preview":
+            locator = self.panel_locator
+            profile = self.profile
+            selected = self.selected
+            if (locator is None or profile is None or selected is None
+                    or not profile.matches(frame, selected.client_width,
+                                           selected.client_height, dpi)):
+                self.preview_anchor = None
+                self.status.set("Panel preview suspended: window geometry or DPI changed.")
+                return True
+            finding = locator.locate(frame, self.preview_anchor)
+            if (finding.reason != "FOUND" or finding.anchor is None
+                    or finding.body is None or finding.scale is None):
+                self.preview_anchor = None
+                self.status.set(f"Panel preview abstained: {finding.reason.lower()} "
+                                f"(visual similarity {finding.similarity:.3f}). Speech stays off.")
+                return True
+            self.preview_anchor = finding.anchor
+            self.frame = frame
+            self._show_frame(frame)
+            self.canvas.delete("regions")
+            viewport = self.viewport
+            if viewport is not None:
+                for rect, color in ((finding.panel, "#ffcc44"), (finding.body, "#37c4ff")):
+                    if rect is not None:
+                        scale = viewport.scale
+                        self.canvas.create_rectangle(
+                            rect.x * scale, rect.y * scale,
+                            (rect.x + rect.width) * scale, (rect.y + rect.height) * scale,
+                            outline=color, width=3, tags="preview")
+            self.status.set(f"Provisional panel extent and body box; visual similarity "
+                            f"{finding.similarity:.3f}, scale {finding.scale:.2f}. "
+                            "Check the boxes. This preview does not authorize speech.")
+            return True
         if purpose not in {"closed-control", "journal-control"}:
             return False
         profile = self.profile
@@ -210,6 +278,26 @@ class AutoNarrationWindow(ObservationWindow):
         self.active_token = None
         self.reader.stop()
 
+    def _recognize(self, body: Image.Image, token: tuple[int, str]) -> None:
+        """Windows OCR admission on a stable, separately identified body crop."""
+        self.ocr_busy = True
+        self.metrics["ocr_attempts"] += 1
+        epoch = self.epoch
+        runner = OcrProcessRunner()
+        self.ocr_runner = runner
+        self.status.set("Stable panel body: checking two local Windows OCR image variants.")
+
+        def work() -> None:
+            try:
+                result: object = recognize_auto_crop(body, runner)
+            except (OcrCancelled, OSError, ValueError, RuntimeError):
+                result = "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED"
+            except Exception:  # noqa: BLE001 - never expose crop or OCR text in status
+                result = "WINDOWS_OCR_FAILED"
+            self.results.put(("ocr", (epoch, token, result)))
+
+        threading.Thread(target=work, daemon=True).start()
+
     def _policy_observe(self, item: Observation) -> Decision:
         bridge = self.bridge
         if bridge is None:
@@ -217,6 +305,8 @@ class AutoNarrationWindow(ObservationWindow):
         outcome = bridge.observe(item)
         if any(effect.kind in {"fence", "cancel"} for effect in outcome.effects):
             self._fence_voice()
+            if self.ocr_runner is not None:
+                self.ocr_runner.cancel()
         if outcome.reason == "SUSPENDED":
             self.stop()
             self.status.set("Detector or window binding suspended. Recalibrate before Start.")
@@ -314,10 +404,15 @@ class AutoNarrationWindow(ObservationWindow):
             self.reader.close()
 
     def _accepted_status(self) -> str:
-        return "Two-pass OCR accepted the page; preparing the selected local voice."
+        return "Windows OCR variants agreed; preparing the selected local voice."
+
+    def _ocr_backend(self) -> str:
+        return "windows_media_ocr_dual_variant"
 
     def _on_calibration_invalidated(self) -> None:
         self.controls.clear()
+        self.panel_locator = None
+        self.preview_anchor = None
 
     def _stopped_status(self) -> str:
         return "Automatic capture and speech stopped. The selected window remains available."
@@ -337,10 +432,12 @@ def main() -> int:
         return 2
     if "--check" in sys.argv:
         try:
-            capture_preflight()
+            capture_preflight(require_tesseract=False)
+            windows_ocr_preflight()
             if not TTS_PYTHON.is_file() or not AUDIO_PYTHON.is_file():
                 raise RuntimeError("VOICE_RUNTIME_UNAVAILABLE")
             print(json.dumps({"status": "READY", "capture": "selected native window",
+                              "ocr_backend": "windows_media_ocr_dual_variant",
                               "speech": "user-armed", "game_tested": False}))
             return 0
         except (OSError, RuntimeError):

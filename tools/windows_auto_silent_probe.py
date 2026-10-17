@@ -121,6 +121,7 @@ def run() -> dict[str, object]:
                 or event_log.count("COMPLETED") != completed_before_cancel):
             raise RuntimeError("AUDIO_CANCEL_FENCE_FAILED")
         return {"status": "PASSED", "scope": "SYNTHETIC_WINDOW_REAL_OCR_VOICE_SILENT_QT",
+                "ocr_backend": "windows_media_ocr_dual_variant",
                 "ocr_gate_passes": window.metrics["ocr_text_gate_passes"],
                 "voice_warmup_ms": warmup_ms,
                 "audio_submission_ms": round(events.get("UNIT_STARTED", 0) * 1000),
