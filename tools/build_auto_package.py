@@ -41,7 +41,9 @@ def _settings_source(desktop: Path) -> Path | None:
             root = Path(data["active_snapshot"])
             if root.resolve().parent != TASK_ROOT.resolve() or not root.name.startswith(prefix):
                 continue
-            return root / ".audition" / settings
+            source = root / ".audition" / settings
+            if source.is_file():
+                return source
         except (OSError, ValueError, KeyError, TypeError):
             continue
     return None
