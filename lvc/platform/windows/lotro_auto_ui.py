@@ -40,6 +40,7 @@ from lvc.platform.windows.manual_read import (
 )
 from lvc.platform.windows.resident_auto_read import ResidentAutoReader
 from lvc.platform.windows.windows_ocr import windows_ocr_preflight
+from lvc.vision.auto_calibration import selection_issue
 from lvc.vision.auto_core_adapter import AutoCoreAdapter
 from lvc.vision.auto_observation import Decision, Observation
 from lvc.vision.binding import PixelRect
@@ -55,14 +56,24 @@ class AutoNarrationWindow(ObservationWindow):
         super().__init__(hidden=hidden)
         self.runner = CaptureRunner(require_tesseract=False)
         self.root.title("Mithril Voices - automatic LOTRO quest narration")
+        self.mode.set("anchor")
+        self.capture_button.configure(text="1. Capture open quest window")
+        self.anchor_button.configure(text="2. Yellow: small border detail")
+        self.body_button.configure(text="3. Blue: all dialogue words")
+        self.save_button.configure(text="4. Save yellow + blue boxes")
         self.start_button.configure(text="Start automatic reading")
         self.instructions_label.configure(text=(
-            "Capture and mark a stock quest pane, then capture closed and non-quest controls "
-            "from the same selected window. Prepare voice, choose a speaker, and click Start. "
-            "Windows OCR checks each stable page. Accepted new quest pages can play "
-            "through the chosen speaker. "
-            "Stop/Pause fences speech."))
-        self.candidate_label.configure(text="Current local OCR candidate and reason (memory only)")
+            "Select LOTRO, then capture an open quest window. Draw YELLOW around a small "
+            "unchanging corner or border detail, outside the words. Switch to BLUE and draw "
+            "around every dialogue line inside the pane. Both boxes remain visible; dragging "
+            "again replaces only the selected color. Save, then take the two safety samples "
+            "described below. Prepare voice and select a speaker before Start."))
+        self.candidate_text.configure(height=3)
+        self.setup_step = tk.StringVar()
+        tk.Label(self.root, textvariable=self.setup_step, wraplength=1050,
+                 justify="left", anchor="w", fg="#164b76").pack(
+                     fill="x", padx=8, pady=3, before=self.candidate_text)
+        self.candidate_label.configure(text="Recognized dialogue preview (this session only)")
         self.silent = silent
         self.controls: dict[str, float] = {}
         self.panel_locator: PanelLocator | None = None
@@ -87,28 +98,35 @@ class AutoNarrationWindow(ObservationWindow):
         self.active_device: OutputDevice | None = None
 
         controls = tk.Frame(self.root)
-        controls.pack(fill="x", padx=8, pady=4, before=self.candidate_text)
-        tk.Button(controls, text="Capture closed-pane control",
-                  command=lambda: self.capture_control("closed-control")).pack(side="left")
-        tk.Button(controls, text="Capture journal/non-quest control",
-                  command=lambda: self.capture_control("journal-control")).pack(side="left", padx=5)
-        tk.Label(controls, text="Voice").pack(side="left", padx=(12, 2))
-        self.voice_picker = ttk.Combobox(controls, textvariable=self.voice_choice,
+        controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
+        self.closed_button = tk.Button(
+            controls, text="5. Capture with quest closed",
+            command=lambda: self.capture_control("closed-control"))
+        self.closed_button.pack(side="left")
+        self.other_button = tk.Button(
+            controls, text="6. Capture journal or inventory",
+            command=lambda: self.capture_control("journal-control"))
+        self.other_button.pack(side="left", padx=5)
+        voice_controls = tk.Frame(self.root)
+        voice_controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
+        tk.Label(voice_controls, text="Voice").pack(side="left", padx=(0, 2))
+        self.voice_picker = ttk.Combobox(voice_controls, textvariable=self.voice_choice,
                                         values=tuple(self.voice_by_label),
                                         state="readonly", width=18)
         self.voice_picker.pack(side="left")
-        tk.Button(controls, text="Prepare voice", command=self.prepare_voice).pack(
+        tk.Button(voice_controls, text="Prepare voice", command=self.prepare_voice).pack(
             side="left", padx=(4, 0))
-        tk.Button(controls, text="Find speakers", command=self.refresh_devices).pack(
+        tk.Button(voice_controls, text="Find speakers", command=self.refresh_devices).pack(
             side="left", padx=(12, 2))
-        self.device_picker = ttk.Combobox(controls, textvariable=self.device_choice,
+        self.device_picker = ttk.Combobox(voice_controls, textvariable=self.device_choice,
                                          state="readonly", width=42)
         self.device_picker.pack(side="left", fill="x", expand=True)
-        tk.Button(controls, text="Pause", command=self.pause).pack(side="left", padx=5)
+        tk.Button(voice_controls, text="Pause", command=self.pause).pack(side="left", padx=5)
         tk.Label(self.root, text=(
-            "Automatic speech is an in-session trial. After saving regions, capture both "
-            "closed and non-quest controls from the same selected window. Start only after "
-            "the controls pass; Stop fences speech and capture. No screenshot/text is saved."),
+            "Safety samples: first close the quest window and capture the game. Then open a "
+            "journal or inventory (with no quest dialogue) and capture again. The app checks "
+            "that the yellow quest detail is absent in both. No speech starts during setup. "
+            "No screenshot or recognized words are saved."),
                  wraplength=1050, justify="left").pack(
                      anchor="w", padx=8, before=self.candidate_text)
         preview_controls = tk.Frame(self.root)
@@ -116,12 +134,43 @@ class AutoNarrationWindow(ObservationWindow):
         tk.Button(preview_controls, text="Preview moved panel (speech off)",
                   command=self.preview_panel).pack(side="left")
         tk.Label(preview_controls, text=(
-            "Shows provisional boxes only; Start still uses the saved calibration."),
+            "Preview cannot read aloud; speech still uses the saved yellow and blue boxes."),
             anchor="w").pack(side="left", padx=8)
         if issue:
             self.status.set(f"Auto preferences could not be loaded ({issue}). Choose voice and speaker.")
+        self._update_setup()
         if not hidden:
             self.refresh_devices()
+
+    def _update_setup(self) -> None:
+        """Keep the next action visible without hiding either saved selection."""
+        if self.running:
+            step = ("Automatic reading is armed for the selected LOTRO window. "
+                    "Pause or Stop fences the current page and audio.")
+        elif self.selected is None:
+            step = "Next: select the LOTRO window, then capture an open quest window."
+        elif self.frame is None and self.profile is None:
+            step = "Next: open a quest in LOTRO, click Capture, and return to the game."
+        elif self.profile is None:
+            issue = selection_issue(self.frame, self.anchor, self.body)
+            step = (f"Next: {issue}" if issue else
+                    "Both boxes are kept. Check their edges, then Save. Redraw either color "
+                    "to correct just that box.")
+        elif "closed-control" not in self.controls:
+            step = ("Boxes saved. Next: close the quest window in LOTRO, click "
+                    "'Capture with quest closed', then return to the game.")
+        elif "journal-control" not in self.controls:
+            step = ("Quest-closed sample passed. Next: show a journal or inventory with "
+                    "no quest dialogue, click its Capture button, and return to the game.")
+        else:
+            step = ("Both safety samples passed. Choose the exact speaker, click Prepare "
+                    "voice and wait for Voice ready, then Start automatic reading.")
+        self.setup_step.set(step)
+        available = "normal" if self.profile is not None and not self.running else "disabled"
+        self.closed_button.configure(state=available)
+        self.other_button.configure(state=available)
+        self.start_button.configure(state="normal" if not self.running and self.profile is not None
+                                    and len(self.controls) == 2 else "disabled")
 
     def choose_window(self, event: tk.Event | None = None) -> None:
         if self.running or self.busy:
@@ -130,6 +179,24 @@ class AutoNarrationWindow(ObservationWindow):
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
+        self._update_setup()
+
+    def release(self, event: tk.Event) -> None:
+        before = self.anchor, self.body
+        super().release(event)
+        if before != (self.anchor, self.body):
+            self.controls.clear()
+            self.panel_locator = None
+            self.preview_anchor = None
+        self._update_setup()
+
+    def calibration_capture(self) -> None:
+        self.mode.set("anchor")
+        self.controls.clear()
+        self.panel_locator = None
+        self.preview_anchor = None
+        self._update_setup()
+        super().calibration_capture()
 
     def save_regions(self) -> None:
         if self.running:
@@ -144,18 +211,22 @@ class AutoNarrationWindow(ObservationWindow):
                     self.panel_locator = TemplatePanelLocator(self.frame, self.profile)
                 except ValueError:
                     pass
-            self.status.set("Regions saved. Capture both controls. A distinctive anchor also "
-                            "enables a moving-panel box preview; preview never starts speech.")
+            self.status.set("Yellow and blue boxes saved. Next capture the quest-closed and "
+                            "journal/inventory safety samples. Moved-window preview cannot "
+                            "start speech.")
+        self._update_setup()
 
     def preview_panel(self) -> None:
         if self.running or self.panel_locator is None:
-            self.status.set("Save regions with a distinctive non-flat anchor before box preview.")
+            self.status.set("Save a small detailed yellow border box and blue dialogue box "
+                            "before previewing a moved quest window.")
             return
         self._capture("panel-preview")
 
     def capture_control(self, purpose: str) -> None:
         if self.running or self.profile is None or self.reference is None:
-            self.status.set("Save quest regions before taking negative controls.")
+            self.status.set("Save the separate yellow border box and blue dialogue box "
+                            "before taking safety samples.")
             return
         self._capture(purpose)
 
@@ -203,17 +274,26 @@ class AutoNarrationWindow(ObservationWindow):
                 or not profile.matches(frame, selected.client_width,
                                        selected.client_height, dpi)):
             self.controls.clear()
-            self.status.set("Control geometry changed. Reselect and recalibrate.")
+            self.status.set("Window size or DPI changed during the safety sample. "
+                            "Reselect the window and mark both boxes again.")
+            self._update_setup()
             return True
         difference = anchor_difference(reference, frame, profile)
         if difference < MIN_NEGATIVE_DIFFERENCE:
             self.controls.pop(purpose, None)
-            self.status.set(f"Control differs by only {difference:.3f}; choose a more distinctive "
-                            "quest-pane anchor and recapture the control.")
+            scene = ("close the quest window" if purpose == "closed-control"
+                     else "show a journal or inventory without quest dialogue")
+            self.status.set(f"Safety sample still shows the yellow quest detail. First {scene} "
+                            "and recapture. If it is already absent, redraw yellow on a more "
+                            "distinctive border detail outside blue, then save again.")
+            self._update_setup()
             return True
         self.controls[purpose] = difference
-        self.status.set(f"{purpose} passed ({difference:.3f} difference). "
-                        f"{len(self.controls)}/2 controls captured; speech remains off.")
+        label = ("Quest-closed sample" if purpose == "closed-control"
+                 else "Journal/inventory sample")
+        self.status.set(f"{label} passed. {len(self.controls)}/2 safety samples captured; "
+                        "speech remains off.")
+        self._update_setup()
         return True
 
     def refresh_devices(self) -> None:
@@ -241,7 +321,8 @@ class AutoNarrationWindow(ObservationWindow):
 
     def start(self) -> None:
         if set(self.controls) != {"closed-control", "journal-control"}:
-            self.status.set("Capture both closed-pane and non-quest controls before Start.")
+            self.status.set("Capture with the quest closed and then capture a journal or "
+                            "inventory before Start.")
             return
         voice = self.voice_by_label.get(self.voice_choice.get())
         device = self.devices.get(self.device_choice.get())
@@ -335,6 +416,7 @@ class AutoNarrationWindow(ObservationWindow):
         return Decision(("READ",), accepted_text=outcome.synthesis_text)
 
     def _on_poll(self) -> None:
+        self._update_setup()
         while True:
             try:
                 result = self.device_results.get_nowait()
@@ -359,7 +441,7 @@ class AutoNarrationWindow(ObservationWindow):
             except queue.Empty:
                 break
             if event == "VOICE_READY":
-                self.status.set("Voice ready. Complete both controls, then Start automatic reading.")
+                self.status.set("Voice ready. Complete both safety samples, then Start automatic reading.")
                 continue
             if self.active_token is None or not self.running:
                 if event == "ERROR":
@@ -413,6 +495,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
+        self._update_setup()
 
     def _stopped_status(self) -> str:
         return "Automatic capture and speech stopped. The selected window remains available."

@@ -55,7 +55,7 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
     candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
     window = AutoNarrationWindow(hidden=True, silent=True)
     try:
-        assert "Accepted new quest pages can play" in window.instructions_label.cget("text")
+        assert "small unchanging corner" in window.instructions_label.cget("text")
         assert "never speech" not in window.candidate_label.cget("text")
         window.selected = candidate
         window.frame = positive
