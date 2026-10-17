@@ -1,7 +1,7 @@
 # Mithril Automatic personal Windows trial
 
 This packet connects selected-window capture, calibrated quest-pane detection,
-two-pass local Tesseract OCR, the v2 page reducer, a warm offline Kokoro worker,
+local Windows OCR, the v2 page reducer, a warm offline Kokoro worker,
 and the guarded Qt audio child. It leaves the existing `Mithril Voices.cmd`
 manual launcher intact. `Mithril Auto Setup.cmd` remains the earlier
 observation-only tool.
@@ -17,6 +17,10 @@ observation-only tool.
    border/emblem as the yellow anchor, and the complete quest body as the blue
    region. Use **Native-size refine** and scrollbars for exact edges. Click
    **Save regions**.
+   **Preview moved panel (speech off)** can display a provisional extent and
+   body box after moving the pane, if the anchor has distinctive detail. Its
+   similarity number is not a calibrated quest probability. This preview never
+   authorizes speech; the current trial still speaks from the saved regions.
 3. Close the quest pane. Click **Capture closed-pane control** and return to
    LOTRO within eight seconds. Show a journal or other non-quest surface; click
    **Capture journal/non-quest control** and return to LOTRO. Both controls must
@@ -42,18 +46,28 @@ full frame. No screenshot, OCR text or gameplay content is saved or uploaded
 by default. The geometry-only calibration and metrics-only summary remain local;
 auto voice/speaker preferences are stored separately from manual preferences.
 
+Automatic text admission runs the verified local Windows OCR helper on the
+body and on a padded version. Empty, invalid or differing word sequences
+abstain, as does high-contrast content touching the crop edge. Padding checks
+input stability; it cannot reveal text omitted outside the crop. This helper
+does not return word confidence. Manual mode still puts Windows OCR into an
+editable draft for human confirmation; automatic mode uses panel evidence and
+fail-silent checks. The metrics-only summary records the actual backend name
+`windows_media_ocr_dual_variant`, never recognized words.
+
 ## Verification and current limits
 
 Synthetic owned-window tests cover the qualification controls, duplicate and
 changed pages, stale OCR, close, pause, resized/DPI windows, unavailable OCR,
 and identity failure before native capture. The real local software smoke uses
-a generated image, two-pass Tesseract, a warm Kokoro worker, verified private
+a generated image, Windows OCR, a warm Kokoro worker, verified private
 WAVs and a silent Qt sink. It also cancels an in-flight generation and a
 submitted silent-audio unit. This is **not** a LOTRO gameplay or physical
 speaker test.
 
-One warm synthetic run submitted audio at 1,875 ms after Start, following an
-8,922 ms initial voice warmup; another submitted at 2,156 ms. This measures
+One Windows OCR warm synthetic run submitted audio at 2,719 ms after Start,
+following 9,187 ms of initial voice warmup. Earlier 1,828–2,156 ms runs used
+the former Tesseract backend. This measures
 software audio submission, not audible onset. Foreground game capture cadence,
 actual speaker buffering and repeat-run latency can raise the live time.
 The detector uses a user-selected anchor and two negative in-session controls,

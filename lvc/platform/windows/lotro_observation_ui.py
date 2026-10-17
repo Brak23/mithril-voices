@@ -67,8 +67,8 @@ def window_dpi(candidate: Candidate) -> int:
     return value
 
 
-def capture_preflight() -> None:
-    if not NATIVE_PROBE.is_file() or not TESSERACT.is_file():
+def capture_preflight(*, require_tesseract: bool = True) -> None:
+    if not NATIVE_PROBE.is_file() or (require_tesseract and not TESSERACT.is_file()):
         raise RuntimeError("CAPTURE_OR_TESSERACT_UNAVAILABLE")
     if hashlib.sha256(NATIVE_PROBE.read_bytes()).hexdigest() != EXPECTED_NATIVE_SHA256:
         raise RuntimeError("CAPTURE_HELPER_CHANGED")
@@ -77,10 +77,11 @@ def capture_preflight() -> None:
 class CaptureRunner:
     """One owned native child; Stop kills only that child, never the game."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, require_tesseract: bool = True) -> None:
         self._lock = threading.Lock()
         self._process: subprocess.Popen[bytes] | None = None
         self._cancelled = threading.Event()
+        self.require_tesseract = require_tesseract
 
     def reset(self) -> None:
         self._cancelled.clear()
@@ -95,7 +96,7 @@ class CaptureRunner:
     def capture(self, candidate: Candidate) -> tuple[Image.Image, int]:
         if self._cancelled.is_set():
             raise RuntimeError("CAPTURE_CANCELED")
-        capture_preflight()
+        capture_preflight(require_tesseract=self.require_tesseract)
         if not same_window_and_size(candidate, candidate_for_hwnd(candidate.hwnd)):
             raise RuntimeError("WINDOW_IDENTITY_OR_SIZE_CHANGED")
         dpi = window_dpi(candidate)
@@ -447,7 +448,8 @@ class ObservationWindow:
         value = {"version": 1,
                  "elapsed_ms": max(0, time.monotonic_ns() // 1_000_000 - self.started_ms),
                  "frame": [profile.frame_width, profile.frame_height],
-                 "dpi": profile.dpi, "metrics": self.metrics,
+                 "dpi": profile.dpi, "ocr_backend": self._ocr_backend(),
+                 "metrics": self.metrics,
                  "contains_pixels_or_text": False}
         temporary = SUMMARY.with_name(f".{SUMMARY.name}.tmp")
         try:
@@ -647,6 +649,9 @@ class ObservationWindow:
 
     def _on_close(self) -> None:
         pass
+
+    def _ocr_backend(self) -> str:
+        return "tesseract_two_pass"
 
     def _accepted_status(self) -> str:
         return ("Two-pass OCR candidate passed its text gate. "
