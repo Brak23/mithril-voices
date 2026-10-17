@@ -23,8 +23,10 @@ from lvc.vision.text_gate import OcrPass, OcrWord
 
 TASK_ROOT = Path(__file__).resolve().parents[4]
 NATIVE_PROBE = TASK_ROOT / "test-tmp" / "lotro_frame_probe.exe"
+STREAM_PROBE = TASK_ROOT / "test-tmp" / "lotro_frame_stream_probe.exe"
 TESSERACT = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
 EXPECTED_NATIVE_SHA256 = "3e64737ea1feb5805e5f8430546b7c4d4566a6b40b97635502fad90db277d9ba"
+EXPECTED_STREAM_SHA256 = "e905059a0e61fe413053cda050b85e4d3cdfe18940925f8d84734fa51e247218"
 MAX_PIXELS = 32_000_000
 MAX_FRAME_BYTES = 12 + MAX_PIXELS * 3
 
@@ -154,6 +156,14 @@ def native_command(candidate: Candidate) -> list[str]:
     if not approved_executable(candidate.executable_path):
         raise ValueError("Selected process is not the approved retail 64-bit client")
     return [str(NATIVE_PROBE), "--explicit-lotro-window", str(candidate.hwnd),
+            str(candidate.pid), str(candidate.process_started_ticks),
+            candidate.executable_path]
+
+
+def stream_command(candidate: Candidate) -> list[str]:
+    if not approved_executable(candidate.executable_path):
+        raise ValueError("Selected process is not the approved retail 64-bit client")
+    return [str(STREAM_PROBE), "--explicit-lotro-window-stream", str(candidate.hwnd),
             str(candidate.pid), str(candidate.process_started_ticks),
             candidate.executable_path]
 

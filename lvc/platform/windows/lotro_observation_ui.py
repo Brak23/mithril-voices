@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import queue
+import struct
 import subprocess
 import sys
 import threading
@@ -25,8 +26,10 @@ from lvc.platform.windows.lotro_probe_ui import (
 )
 from lvc.platform.windows.lotro_user_probe import (
     EXPECTED_NATIVE_SHA256,
+    EXPECTED_STREAM_SHA256,
     MAX_FRAME_BYTES,
     NATIVE_PROBE,
+    STREAM_PROBE,
     TESSERACT,
     Candidate,
     candidate_for_hwnd,
@@ -35,6 +38,7 @@ from lvc.platform.windows.lotro_user_probe import (
     native_command,
     recognize,
     same_window_and_size,
+    stream_command,
 )
 from lvc.vision.auto_calibration import (
     Calibration,
@@ -132,6 +136,108 @@ class CaptureRunner:
             with self._lock:
                 if self._process is process:
                     self._process = None
+
+
+class StreamCaptureRunner(CaptureRunner):
+    """One exact-window WGC child per armed observation, owned until Stop."""
+
+    def __init__(self) -> None:
+        super().__init__(require_tesseract=False)
+        self.streaming = False
+        self.session_active = False
+        self._stream_candidate: Candidate | None = None
+        self._stream_dpi: int | None = None
+
+    def cancel(self) -> None:
+        self.streaming = False
+        self.session_active = False
+        super().cancel()
+        with self._lock:
+            self._process = None
+            self._stream_candidate = None
+            self._stream_dpi = None
+
+    def _discard(self, process: subprocess.Popen[bytes]) -> None:
+        """End only this capture's child; a later Start may own another one."""
+        with self._lock:
+            if self._process is not process:
+                return
+            self._cancelled.set()
+            self.session_active = False
+            self._process = None
+            self._stream_candidate = None
+            self._stream_dpi = None
+            if process.poll() is None:
+                process.kill()
+
+    def capture(self, candidate: Candidate) -> tuple[Image.Image, int]:
+        if not self.streaming:
+            return super().capture(candidate)
+        if self._cancelled.is_set():
+            raise RuntimeError("CAPTURE_CANCELED")
+        if not same_window_and_size(candidate, candidate_for_hwnd(candidate.hwnd)):
+            raise RuntimeError("WINDOW_IDENTITY_OR_SIZE_CHANGED")
+        dpi = window_dpi(candidate)
+        process = self._process
+        if process is None:
+            if (not STREAM_PROBE.is_file() or
+                    hashlib.sha256(STREAM_PROBE.read_bytes()).hexdigest()
+                    != EXPECTED_STREAM_SHA256):
+                raise RuntimeError("CAPTURE_HELPER_CHANGED")
+            process = subprocess.Popen(stream_command(candidate), stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+            with self._lock:
+                self._process = process
+                self._stream_candidate = candidate
+                self._stream_dpi = dpi
+                if self._cancelled.is_set() and process.poll() is None:
+                    process.kill()
+            try:
+                ready = process.stdout.readline(128) if process.stdout is not None else b""
+                if ready != b"READY\n":
+                    reason = (process.stderr.read(128) if process.poll() is not None
+                              and process.stderr is not None else b"")
+                    if b"SELECTED_WINDOW_NOT_FOREGROUND" in ready + reason:
+                        raise RuntimeError("SELECTED_WINDOW_NOT_FOREGROUND")
+                    if b"IDENTITY_CHANGED" in ready + reason or b"WINDOW_CHANGED" in ready + reason:
+                        raise RuntimeError("WINDOW_IDENTITY_CHANGED")
+                    raise RuntimeError("CAPTURE_SESSION_NOT_READY")
+                self.session_active = True
+            except Exception:
+                self._discard(process)
+                raise
+        if (process.poll() is not None or self._stream_candidate != candidate
+                or self._stream_dpi != dpi or process.stdin is None
+                or process.stdout is None):
+            self._discard(process)
+            raise RuntimeError("CAPTURE_SESSION_ENDED")
+        try:
+            process.stdin.write(b"FRAME\n")
+            process.stdin.flush()
+            header = process.stdout.read(12)
+            if len(header) != 12:
+                raise RuntimeError("CAPTURE_SESSION_ENDED")
+            if header[:4] == b"LVCE":
+                code, _ = struct.unpack_from("<II", header, 4)
+                raise RuntimeError({1: "SELECTED_WINDOW_NOT_FOREGROUND",
+                                    2: "WINDOW_IDENTITY_CHANGED",
+                                    3: "CAPTURE_SESSION_NO_FRESH_FRAME"}.get(
+                                        code, "CAPTURE_SESSION_ENDED"))
+            if header[:4] != b"LVCF":
+                raise RuntimeError("CAPTURE_SESSION_INVALID_FRAME")
+            width, height = struct.unpack_from("<II", header, 4)
+            if not width or not height or width * height > 32_000_000:
+                raise RuntimeError("CAPTURE_SESSION_INVALID_FRAME")
+            pixels = process.stdout.read(width * height * 3)
+            frame = decode_frame(header + pixels)
+            if (not same_window_and_size(candidate, candidate_for_hwnd(candidate.hwnd))
+                    or window_dpi(candidate) != dpi or self._cancelled.is_set()):
+                raise RuntimeError("WINDOW_GEOMETRY_CHANGED")
+            return frame, dpi
+        except (OSError, ValueError, RuntimeError):
+            self._discard(process)
+            raise
 
 
 class ObservationWindow:
@@ -280,7 +386,9 @@ class ObservationWindow:
         self.runner.reset()
         self.capture_serial += 1
         serial = self.capture_serial
-        self.status.set("Switch to the selected LOTRO window within 8 seconds; capturing one in-memory frame...")
+        if purpose != "observe" or not getattr(self.runner, "session_active", False):
+            self.status.set("Switch to the selected LOTRO window within 8 seconds; "
+                            "starting exact-window capture...")
 
         def work() -> None:
             try:
@@ -291,7 +399,9 @@ class ObservationWindow:
                     "SELECTED_WINDOW_NOT_FOREGROUND", "WINDOW_IDENTITY_CHANGED",
                     "WINDOW_GEOMETRY_CHANGED", "CAPTURE_UNAVAILABLE", "CAPTURE_TIMEOUT",
                     "CAPTURE_HELPER_CHANGED", "CAPTURE_OR_TESSERACT_UNAVAILABLE",
-                    "FRAME_TOO_LARGE"} else "CAPTURE_FAILED"
+                    "FRAME_TOO_LARGE", "CAPTURE_SESSION_NOT_READY",
+                    "CAPTURE_SESSION_ENDED", "CAPTURE_SESSION_NO_FRESH_FRAME",
+                    "CAPTURE_SESSION_INVALID_FRAME"} else "CAPTURE_FAILED"
             self.results.put((purpose, (serial, result)))
 
         threading.Thread(target=work, daemon=True).start()
@@ -397,7 +507,7 @@ class ObservationWindow:
             profile = Calibration(self.frame.width, self.frame.height,
                                   self.selected.client_width, self.selected.client_height,
                                   dpi, self.anchor, self.body)
-            save_profile(PROFILE, profile)
+            self._save_calibration(profile)
             self.profile = profile
             self.reference = anchor_signature(self.frame, profile)
         except (OSError, ValueError):
@@ -406,6 +516,17 @@ class ObservationWindow:
             return
         self.status.set("Geometry-only regions saved. Anchor pixels stay in memory for this session. "
                         "Start observation, then return focus to LOTRO.")
+
+    def _save_calibration(self, profile: Calibration) -> None:
+        save_profile(PROFILE, profile)
+
+    def _load_calibration(self, frame: Image.Image, dpi: int) -> Calibration | None:
+        return load_profile(PROFILE)
+
+    def _calibration_status(self, loaded: bool) -> str:
+        return ("Saved rectangles loaded. Check both before Save regions." if loaded else
+                "Fresh selected-window frame. Yellow: anchor; blue: body. "
+                "Draw both, then Save regions.")
 
     def start(self) -> None:
         if (self.running or self.busy or self.selected is None or self.profile is None
@@ -602,8 +723,13 @@ class ObservationWindow:
                     if purpose == "observe":
                         self.metrics["capture_failures"] += 1
                         self.stop()
-                    self.status.set(f"Capture stopped: {result}. Keep the exact selected window "
-                                    "foreground and retry; reselect if it changed.")
+                        self.status.set(
+                            "Automatic reading paused after one capture failure: "
+                            f"{result}. Keep the selected LOTRO window foreground and "
+                            "click Start once to retry; reselect if its size or identity changed.")
+                    else:
+                        self.status.set(f"Capture stopped: {result}. Keep the exact selected "
+                                        "window foreground and retry; reselect if it changed.")
                     continue
                 frame, dpi = cast(tuple[Image.Image, int], result)
                 if self._handle_extra_capture(purpose, frame, dpi):
@@ -613,17 +739,19 @@ class ObservationWindow:
                     self.anchor = self.body = None
                     self.profile = None
                     self.reference = None
+                    loaded = False
                     try:
-                        saved = load_profile(PROFILE)
+                        saved = self._load_calibration(frame, dpi)
                         if (self.selected is not None
+                                and saved is not None
                                 and saved.matches(frame, self.selected.client_width,
                                                   self.selected.client_height, dpi)):
                             self.anchor, self.body = saved.anchor, saved.body
+                            loaded = True
                     except (FileNotFoundError, OSError, ValueError):
                         pass
                     self._show_frame(frame)
-                    self.status.set("Fresh selected-window frame. Yellow: anchor; blue: body. "
-                                    "Check saved rectangles or draw both, then Save regions.")
+                    self.status.set(self._calibration_status(loaded))
                 elif purpose == "observe" and self.running:
                     self._observe_frame(frame, dpi)
                     if self.running:

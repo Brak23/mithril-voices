@@ -151,6 +151,12 @@ def preflight() -> tuple[str, list[str], list[str]]:
             errors.append(absent)
         elif not matches(path, helpers.get(name)):
             errors.append(changed)
+    if "lotro_frame_stream_probe.exe" in helpers:
+        stream_path = TASK_ROOT / "test-tmp" / "lotro_frame_stream_probe.exe"
+        if not stream_path.is_file():
+            errors.append("CAPTURE_HELPER_MISSING")
+        elif not matches(stream_path, helpers["lotro_frame_stream_probe.exe"]):
+            errors.append("CAPTURE_HELPER_CHANGED")
     assets = manifest["assets"]
     assert isinstance(assets, dict)
     for name, digest in assets.items():

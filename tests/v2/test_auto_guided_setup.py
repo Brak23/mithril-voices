@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 from PIL import Image, ImageDraw
 
-from lvc.platform.windows import lotro_auto_ui, lotro_observation_ui
+from lvc.platform.windows import auto_profile_store, lotro_auto_ui, lotro_observation_ui
 from lvc.platform.windows.lotro_auto_ui import AutoNarrationWindow
 from lvc.platform.windows.lotro_user_probe import Candidate
 from lvc.vision.auto_calibration import selection_issue
@@ -45,6 +45,14 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
 
     monkeypatch.setattr(lotro_auto_ui, "SETTINGS", tmp_path / "preferences.json")
     monkeypatch.setattr(lotro_observation_ui, "PROFILE", tmp_path / "calibration.json")
+    monkeypatch.setattr(lotro_auto_ui, "save_saved",
+                        lambda candidate, frame, dpi, profile:
+                        auto_profile_store.save_saved(candidate, frame, dpi, profile,
+                                                      root=tmp_path))
+    monkeypatch.setattr(lotro_auto_ui, "load_saved",
+                        lambda candidate, frame, dpi:
+                        auto_profile_store.load_saved(candidate, frame, dpi,
+                                                      root=tmp_path))
     monkeypatch.setattr(lotro_observation_ui, "window_dpi", lambda _candidate: 96)
     candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
     frame = Image.new("RGB", (800, 500), "#202020")
@@ -90,17 +98,17 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
         assert window.anchor == PixelRect(100, 80, 50, 50)
         assert window.body == PixelRect(190, 140, 500, 100)
         assert len(window.canvas.find_withtag("regions")) == 2
-        real_save = lotro_observation_ui.save_profile
-        monkeypatch.setattr(lotro_observation_ui, "save_profile",
+        real_save = lotro_auto_ui.save_saved
+        monkeypatch.setattr(lotro_auto_ui, "save_saved",
                             lambda *_args: (_ for _ in ()).throw(OSError("private path")))
         window.save_regions()
         assert "Could not save" in window.status.get()
         assert window.profile is None
         assert window.body is not None
-        monkeypatch.setattr(lotro_observation_ui, "save_profile", real_save)
+        monkeypatch.setattr(lotro_auto_ui, "save_saved", real_save)
         window.save_regions()
         assert window.profile is not None
-        assert (tmp_path / "calibration.json").is_file()
+        assert len(list(tmp_path.glob("calibration-*.json"))) == 1
         assert window.closed_button.cget("state") == "normal"
         assert window.other_button.cget("state") == "normal"
         assert window.start_button.cget("state") == "disabled"
@@ -129,5 +137,15 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
         assert window.selected == candidate
         assert window.anchor is None and window.body is None
         assert window.closed_button.cget("state") == "disabled"
+        window.selected = Candidate(55, 66, 70, candidate.executable_path,
+                                    "New game process", 800, 500)
+        window.capture_serial += 1
+        window.results.put(("calibration", (window.capture_serial, (frame, 96))))
+        window.poll()
+        assert window.anchor == PixelRect(100, 80, 50, 50)
+        assert window.body == PixelRect(190, 140, 500, 100)
+        assert window.profile is None and not window.controls
+        assert window.start_button.cget("state") == "disabled"
+        assert "Saved yellow and blue boxes loaded" in window.status.get()
     finally:
         window.close()

@@ -1,6 +1,7 @@
 """Stage a checked, immutable-source personal Auto snapshot and Desktop launcher."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -8,7 +9,9 @@ import subprocess
 from pathlib import Path
 from uuid import uuid4
 
+from lvc.platform.windows.auto_profile_store import LEGACY_PROFILE
 from lvc.platform.windows.manual_preferences import PreferencesStore
+from lvc.vision.auto_calibration import load_profile, save_profile
 from tools.build_personal_package import (
     ASSETS,
     HELPERS,
@@ -25,6 +28,10 @@ from tools.build_personal_package import (
 )
 
 VOICES = ("bf_emma", "bm_fable")
+STREAM_HELPERS = {
+    "lotro_frame_stream_probe.exe":
+    "e905059a0e61fe413053cda050b85e4d3cdfe18940925f8d84734fa51e247218",
+}
 
 
 def _settings_source(desktop: Path) -> Path | None:
@@ -66,6 +73,17 @@ def _cmd(snapshot: Path) -> str:
     ])
 
 
+def _carry_previous_boxes(source: Path | None, destination: Path) -> bool:
+    """Import prior geometry once; it never carries safety-sample authority."""
+    if source is None or source.name != "auto-preferences.json" or destination.exists():
+        return False
+    try:
+        save_profile(destination, load_profile(source.with_name("auto-calibration.json")))
+        return True
+    except (OSError, ValueError):
+        return False
+
+
 def stage(desktop: Path) -> dict[str, str]:
     if not desktop.is_dir():
         raise RuntimeError("DESKTOP_UNAVAILABLE")
@@ -77,6 +95,11 @@ def stage(desktop: Path) -> dict[str, str]:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise RuntimeError("SOURCE_COMMIT_INVALID")
     qt_version = _verified_dependencies()
+    for name, expected in STREAM_HELPERS.items():
+        if not (TASK_ROOT / "test-tmp" / name).is_file() or (
+                hashlib.sha256((TASK_ROOT / "test-tmp" / name).read_bytes())
+                .hexdigest() != expected):
+            raise RuntimeError("STREAM_CAPTURE_HELPER_UNAVAILABLE_OR_CHANGED")
     temporary = TASK_ROOT / f".mithril-package-building-{uuid4().hex}"
     temporary.mkdir(exist_ok=False)
     try:
@@ -85,7 +108,7 @@ def stage(desktop: Path) -> dict[str, str]:
         build_id = _build_id(commit, files)
         destination = TASK_ROOT / f"Mithril Voices Automatic {build_id}"
         manifest = {"format": 1, "build_id": build_id, "source_commit": commit,
-                    "files": files, "helpers": HELPERS, "assets": ASSETS,
+                    "files": files, "helpers": {**HELPERS, **STREAM_HELPERS}, "assets": ASSETS,
                     "runtime_versions": RUNTIME_VERSIONS, "qt_version": qt_version}
         (temporary / "personal-build.json").write_text(
             json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
@@ -114,6 +137,7 @@ def stage(desktop: Path) -> dict[str, str]:
             saved, issue = PreferencesStore(source, VOICES).load()
             if issue is None:
                 PreferencesStore(settings, VOICES).save(saved)
+        _carry_previous_boxes(source, LEGACY_PROFILE)
         package = desktop / "Mithril Automatic"
         package.mkdir(exist_ok=True)
         metadata = {"build_id": build_id, "source_commit": commit,
