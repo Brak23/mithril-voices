@@ -203,9 +203,10 @@ class ResidentAutoReader:
             self._generation += 1
             generation = self._generation
             self._cancel = threading.Event()
-        self._request_thread = threading.Thread(
-            target=self._run, args=(generation, text, token, device, silent), daemon=True)
-        self._request_thread.start()
+            # Publish and start the thread before Stop can observe this request.
+            self._request_thread = threading.Thread(
+                target=self._run, args=(generation, text, token, device, silent), daemon=True)
+            self._request_thread.start()
         return True
 
     def _reply(self, timeout: float) -> dict[str, object]:
@@ -226,6 +227,8 @@ class ResidentAutoReader:
         directory = spool / request
         rows: list[dict[str, object]] = []
         try:
+            if not self._current(generation):
+                return
             self.events.put(("SYNTHESIZING", ""))
             _send(worker, {"action": "render", "request_id": request,
                            "generation": generation, "voice": self._voice, "text": text})
@@ -300,13 +303,20 @@ class ResidentAutoReader:
         command = [str(AUDIO_PYTHON), "-u", "-m", "lvc.platform.windows.manual_audio_child"]
         if silent:
             command.append("--silent")
+        if not self._current(generation):
+            return
         audio, job = _owned_process(command, temp=temp)
-        with self._lock:
-            self._audio, self._audio_job = audio, job
-        replies: queue.Queue[dict[str, object]] = queue.Queue()
-        assert audio.stdout is not None
-        threading.Thread(target=_receive, args=(audio.stdout, replies), daemon=True).start()
         try:
+            with self._lock:
+                if (self.closed or generation != self._generation
+                        or self._cancel.is_set()):
+                    return
+                self._audio, self._audio_job = audio, job
+            replies: queue.Queue[dict[str, object]] = queue.Queue()
+            assert audio.stdout is not None
+            threading.Thread(target=_receive, args=(audio.stdout, replies), daemon=True).start()
+            if not self._current(generation):
+                return
             _send(audio, payload)
             deadline = time.monotonic() + sum(cast(int, row["frames"]) for row in rows) / 48_000 + 30
             stopping_at: float | None = None

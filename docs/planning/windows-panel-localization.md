@@ -38,6 +38,25 @@ latency. If later qualified for continuous use, discovery should be periodic,
 tracking should use a bounded latest-frame queue, and inference must yield to
 the game. Do not run a large model on every 500 ms capture by default.
 
+## Historical local screenshot check
+
+The repository already contains eleven August 2025 game screenshots under
+`experiments/test_screenshots/`. All eleven visibly show an open quest pane in
+roughly the same position and UI scale; they provide no closed-pane negatives
+or moved-panel examples. A local probe calibrated an 80 x 38 border anchor and
+600 x 750 body box on `195436`, then searched the other ten without changing
+the similarity threshold. It found 10/11 open panes; `201322` returned
+`NOT_FOUND` at similarity 0.860, below the 0.88 threshold. The changed title
+art appears to affect this anchor. Lowering the threshold without negatives
+would give no evidence about false starts.
+
+The current Windows OCR adapter admitted text from both variants of each of
+the ten located body crops. This establishes only that the output was nonempty
+and internally consistent. No manual transcription, word accuracy, crop
+completeness, or live-game behavior was scored. These related screenshots are
+development examples, not an independent held-out set. No screenshot or OCR
+content was copied into a new artifact by this check.
+
 ## Evidence needed before autonomous localization
 
 Collect local, owner-approved frames of a stock quest pane at moved positions,

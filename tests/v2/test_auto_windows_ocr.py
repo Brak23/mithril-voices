@@ -21,6 +21,19 @@ def test_windows_text_requires_two_nonempty_agreeing_variants() -> None:
         "OCR_TEXT_INVALID")
 
 
+def test_windows_text_normalization_does_not_rewrite_spoken_text() -> None:
+    original = "Caf\u00e9,  TWO\nLines."
+    alternative = "Cafe\u0301, two lines."
+    decision = decide_windows_text(original, alternative, clear_edge=True)
+    assert decision.accepted_text == original
+    assert decide_windows_text("Words\x00", "Words\x00", clear_edge=True).reason == (
+        "OCR_TEXT_INVALID")
+    assert decide_windows_text("...", "...", clear_edge=True).reason == (
+        "OCR_TEXT_INVALID")
+    assert decide_windows_text("a" * 3001, "a" * 3001, clear_edge=True).reason == (
+        "OCR_TEXT_INVALID")
+
+
 def test_edge_check_abstains_on_truncated_or_decorated_crop() -> None:
     clear = Image.new("RGB", (160, 75), "#202020")
     ImageDraw.Draw(clear).text((10, 22), "Quest words", fill="white")
