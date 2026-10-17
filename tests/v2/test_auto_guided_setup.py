@@ -57,6 +57,7 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
     candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
     frame = Image.new("RGB", (800, 500), "#202020")
     ImageDraw.Draw(frame).rectangle((100, 80, 149, 129), fill="#fccc31")
+    ImageDraw.Draw(frame).line((100, 80, 149, 129), fill="#303030", width=5)
     window = AutoNarrationWindow(hidden=True, silent=True)
     try:
         window.selected = candidate
@@ -98,6 +99,14 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
         assert window.anchor == PixelRect(100, 80, 50, 50)
         assert window.body == PixelRect(190, 140, 500, 100)
         assert len(window.canvas.find_withtag("regions")) == 2
+        plain = frame.copy()
+        ImageDraw.Draw(plain).rectangle((100, 80, 149, 129), fill="#fccc31")
+        window.frame = plain
+        window.save_regions()
+        assert "mostly plain color" in window.status.get()
+        assert window.body == PixelRect(190, 140, 500, 100)
+        assert window.profile is None
+        window.frame = frame
         real_save = lotro_auto_ui.save_saved
         monkeypatch.setattr(lotro_auto_ui, "save_saved",
                             lambda *_args: (_ for _ in ()).throw(OSError("private path")))
@@ -114,11 +123,27 @@ def test_guided_setup_saves_two_boxes_then_requires_both_samples(
         assert window.start_button.cget("state") == "disabled"
         assert "close the quest" in window.setup_step.get()
 
+        assert window._handle_extra_capture("closed-control", frame.copy(), 96)
+        assert "identical" in window.status.get()
+        assert "closed-control" not in window.controls
+        changed_scene_same_anchor = frame.copy()
+        ImageDraw.Draw(changed_scene_same_anchor).rectangle(
+            (600, 300, 750, 450), fill="#4b665c")
+        assert window._handle_extra_capture("closed-control", changed_scene_same_anchor, 96)
+        assert "yellow area still looks like" in window.status.get()
+        assert window.control_crop_photo is not None
+        assert "closed-control" not in window.controls
+
         negative = Image.new("RGB", frame.size, "#202020")
+        journal = negative.copy()
+        ImageDraw.Draw(journal).rectangle((600, 300, 750, 450), fill="#4b665c")
         assert window._handle_extra_capture("closed-control", negative, 96)
         assert "Quest-closed sample passed" in window.status.get()
         assert window.start_button.cget("state") == "disabled"
-        assert window._handle_extra_capture("journal-control", negative, 96)
+        assert window._handle_extra_capture("journal-control", negative.copy(), 96)
+        assert "identical" in window.status.get()
+        assert window.start_button.cget("state") == "disabled"
+        assert window._handle_extra_capture("journal-control", journal, 96)
         assert "Journal/inventory sample passed" in window.status.get()
         assert window.start_button.cget("state") == "normal"
 

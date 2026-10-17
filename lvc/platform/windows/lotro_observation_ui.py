@@ -491,16 +491,16 @@ class ObservationWindow:
         self.status.set(selection_issue(self.frame, self.anchor, self.body)
                         or "Both colored boxes are marked. Check the edges, then Save regions.")
 
-    def save_regions(self) -> None:
+    def save_regions(self) -> bool:
         if self.running:
-            return
+            return False
         if self.selected is None:
             self.status.set("Select the verified LOTRO window before saving boxes.")
-            return
+            return False
         issue = selection_issue(self.frame, self.anchor, self.body)
         if issue is not None:
             self.status.set(issue)
-            return
+            return False
         assert self.frame is not None and self.anchor is not None and self.body is not None
         try:
             dpi = window_dpi(self.selected)
@@ -513,9 +513,10 @@ class ObservationWindow:
         except (OSError, ValueError):
             self.status.set("Could not save the two boxes. Check that this LOTRO window has "
                             "not changed size or DPI, then retry Save.")
-            return
+            return False
         self.status.set("Geometry-only regions saved. Anchor pixels stay in memory for this session. "
                         "Start observation, then return focus to LOTRO.")
+        return True
 
     def _save_calibration(self, profile: Calibration) -> None:
         save_profile(PROFILE, profile)

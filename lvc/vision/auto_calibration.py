@@ -14,7 +14,8 @@ from lvc.vision.binding import PixelRect
 
 MAX_PROFILE_BYTES = 2048
 MAX_BODY_PIXELS = 2_000_000
-ANCHOR_SIZE = (16, 16)
+ANCHOR_SIZE = (32, 32)
+MIN_ANCHOR_STDDEV = 12.0
 
 
 def selection_issue(frame: Image.Image | None, anchor: PixelRect | None,
@@ -89,15 +90,39 @@ def region(frame: Image.Image, rect: PixelRect) -> Image.Image:
 def anchor_signature(frame: Image.Image, profile: Calibration) -> Image.Image:
     if frame.size != (profile.frame_width, profile.frame_height):
         raise ValueError("FRAME_GEOMETRY_CHANGED")
-    return region(frame, profile.anchor).convert("L").resize(ANCHOR_SIZE)
+    return region(frame, profile.anchor).convert("RGB").resize(ANCHOR_SIZE)
+
+
+def anchor_quality_issue(frame: Image.Image, anchor: PixelRect) -> str | None:
+    """Reject a plain patch that can match ordinary backgrounds at the same spot."""
+    if not anchor.inside(*frame.size):
+        return "Yellow box is outside the captured frame. Redraw yellow."
+    sample = region(frame, anchor).convert("RGB").resize(ANCHOR_SIZE)
+    if max(ImageStat.Stat(sample).stddev) < MIN_ANCHOR_STDDEV:
+        return ("Yellow covers a mostly plain color. Keep blue; redraw only yellow "
+                "around a visible corner, line or emblem of the quest pane, then Save.")
+    return None
 
 
 def anchor_difference(reference: Image.Image, frame: Image.Image,
                       profile: Calibration) -> float:
-    if reference.mode != "L" or reference.size != ANCHOR_SIZE:
+    if reference.mode != "RGB" or reference.size != ANCHOR_SIZE:
         raise ValueError("ANCHOR_REFERENCE_INVALID")
     current = anchor_signature(frame, profile)
-    return ImageStat.Stat(ImageChops.difference(reference, current)).mean[0] / 255
+    delta = ImageChops.difference(reference, current)
+    average = sum(ImageStat.Stat(delta).mean) / (3 * 255)
+    # A narrow emblem/line can disappear while most of its same-colored
+    # background stays unchanged. Mean-only scoring loses that evidence.
+    channels = delta.tobytes()
+    pixel_changes = sorted(max(channels[index:index + 3])
+                           for index in range(0, len(channels), 3))
+    upper_tail = pixel_changes[int(0.95 * (len(pixel_changes) - 1))] / 255
+    return max(average, upper_tail * 0.5)
+
+
+def scene_fingerprint(frame: Image.Image) -> bytes:
+    """Transient exact scene identity for rejecting repeated safety frames."""
+    return hashlib.sha256(frame.convert("RGB").tobytes()).digest()
 
 
 def body_digest(frame: Image.Image, profile: Calibration) -> str:

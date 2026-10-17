@@ -34,8 +34,11 @@ observation-only tool.
    LOTRO within eight seconds. Show a journal or inventory without quest
    dialogue; click **6. Capture journal or inventory** and return to LOTRO.
    Both safety samples must show that the yellow detail is absent. If one
-   fails, check the displayed scene and recapture; if it is correct, redraw
-   yellow on a more distinctive border detail and save again.
+   fails, check the small local preview of the yellow area from that capture.
+   If the capture is identical to the earlier setup scene, change to the
+   requested game view and capture again. If the scene changed but the yellow
+   area still matches, the chosen patch is too generic: keep blue, redraw only
+   yellow around a visible quest-pane corner, line or emblem, then Save again.
 4. Return to an open quest dialogue, click **Start automatic reading**, and return
    focus to LOTRO within eight seconds. During automatic reading the Windows
    capture outline can remain steadily visible; it should disappear on Stop.
@@ -121,3 +124,26 @@ binding are covered by synthetic tests. A positive Windows Graphics Capture
 test of this stream helper against an owned window remains to be completed
 outside the restricted sandbox. The live LOTRO path and its effect on the
 game remain unqualified until Bryce elects to retest.
+
+## Negative-control discrimination
+
+The first live calibration report said the quest detail was detected even
+with the quest closed and inventory open. The two safety buttons launch
+separate one-shot native capture sessions, but that run did not retain pixels
+or capture timestamps, so the actual returned frames cannot be reconstructed.
+The earlier detector reduced the yellow crop to 16×16 grayscale and compared
+only average pixel difference. A thin border line can disappear against a
+similar-colored background while that average remains low; a flat patch can
+also match ordinary scenery. That is a demonstrated synthetic failure mode,
+not proof of the exact pixels in Bryce's run.
+
+Calibration now rejects a mostly plain yellow patch before Save. Matching
+uses a 32×32 RGB signature and includes the upper tail of per-pixel changes
+so a vanished narrow line is not buried by an unchanged background. The
+existing two negative controls and conservative presence/absence thresholds
+remain. Each safety capture is checked against exact in-memory scene
+fingerprints from the positive capture and any prior control; an identical
+frame is refused. The UI shows only the newly captured yellow crop in memory,
+with a reason and a one-step recovery. It saves no crop, frame or fingerprint.
+The native one-shot wire format does not expose capture timestamps, so a live
+game retest must still confirm the preview follows the visible scene.

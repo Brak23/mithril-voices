@@ -19,7 +19,7 @@ from pathlib import Path
 from tkinter import ttk
 from uuid import uuid4
 
-from PIL import Image
+from PIL import Image, ImageTk
 
 from lvc.core import RequestToken
 from lvc.platform.windows.auto_profile_store import load_saved, save_saved
@@ -43,7 +43,13 @@ from lvc.platform.windows.manual_read import (
 )
 from lvc.platform.windows.resident_auto_read import ResidentAutoReader
 from lvc.platform.windows.windows_ocr import windows_ocr_preflight
-from lvc.vision.auto_calibration import Calibration, selection_issue
+from lvc.vision.auto_calibration import (
+    Calibration,
+    anchor_quality_issue,
+    region,
+    scene_fingerprint,
+    selection_issue,
+)
 from lvc.vision.auto_core_adapter import AutoCoreAdapter
 from lvc.vision.auto_observation import Decision, Observation
 from lvc.vision.binding import PixelRect
@@ -87,6 +93,9 @@ class AutoNarrationWindow(ObservationWindow):
         self.pending_speech: tuple[RequestToken, str] | None = None
         self.last_validation_reason = ""
         self.saved_load_reason = ""
+        self.positive_scene: bytes | None = None
+        self.control_scenes: dict[str, bytes] = {}
+        self.control_crop_photo: ImageTk.PhotoImage | None = None
         self.devices: dict[str, OutputDevice] = {}
         self.device_results: queue.Queue[object] = queue.Queue()
         self.settings = PreferencesStore(SETTINGS,
@@ -133,6 +142,11 @@ class AutoNarrationWindow(ObservationWindow):
             "No screenshot or recognized words are saved."),
                  wraplength=1050, justify="left").pack(
                      anchor="w", padx=8, before=self.candidate_text)
+        self.control_preview_title = tk.StringVar(value="")
+        tk.Label(self.root, textvariable=self.control_preview_title,
+                 anchor="w").pack(fill="x", padx=8, before=self.candidate_text)
+        self.control_preview = tk.Label(self.root)
+        self.control_preview.pack(anchor="w", padx=8, before=self.candidate_text)
         preview_controls = tk.Frame(self.root)
         preview_controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
         tk.Button(preview_controls, text="Preview moved panel (speech off)",
@@ -158,6 +172,12 @@ class AutoNarrationWindow(ObservationWindow):
             step = "Next: open a quest in LOTRO, click Capture, and return to the game."
         elif self.profile is None:
             issue = selection_issue(self.frame, self.anchor, self.body)
+            if ((issue is None or issue.startswith("Switch to the blue"))
+                    and self.frame is not None and self.anchor is not None
+                    and self.anchor.inside(*self.frame.size)
+                    and self.anchor.width >= 20 and self.anchor.height >= 20
+                    and self.anchor.width * self.anchor.height <= 250_000):
+                issue = anchor_quality_issue(self.frame, self.anchor) or issue
             step = (f"Next: {issue}" if issue else
                     "Both boxes are kept. Check their edges, then Save. Redraw either color "
                     "to correct just that box.")
@@ -174,8 +194,12 @@ class AutoNarrationWindow(ObservationWindow):
         available = "normal" if self.profile is not None and not self.running else "disabled"
         self.closed_button.configure(state=available)
         self.other_button.configure(state=available)
-        self.start_button.configure(state="normal" if not self.running and self.profile is not None
-                                    and len(self.controls) == 2 else "disabled")
+        self.start_button.configure(
+            state="normal" if (not self.running and self.profile is not None
+                               and self.positive_scene is not None
+                               and set(self.controls) == {"closed-control", "journal-control"}
+                               and set(self.control_scenes) ==
+                               {"closed-control", "journal-control"}) else "disabled")
 
     def choose_window(self, event: tk.Event | None = None) -> None:
         if self.running or self.busy:
@@ -185,6 +209,9 @@ class AutoNarrationWindow(ObservationWindow):
         self.panel_locator = None
         self.preview_anchor = None
         self.saved_load_reason = ""
+        self.positive_scene = None
+        self.control_scenes.clear()
+        self._clear_control_preview()
         self._update_setup()
 
     def _save_calibration(self, profile: Calibration) -> None:
@@ -218,6 +245,9 @@ class AutoNarrationWindow(ObservationWindow):
             self.controls.clear()
             self.panel_locator = None
             self.preview_anchor = None
+            self.positive_scene = None
+            self.control_scenes.clear()
+            self._clear_control_preview()
         self._update_setup()
 
     def calibration_capture(self) -> None:
@@ -225,14 +255,33 @@ class AutoNarrationWindow(ObservationWindow):
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
+        self.positive_scene = None
+        self.control_scenes.clear()
+        self._clear_control_preview()
         self._update_setup()
         super().calibration_capture()
 
-    def save_regions(self) -> None:
+    def save_regions(self) -> bool:
         if self.running:
-            return
-        super().save_regions()
-        if self.profile is not None:
+            return False
+        if (self.frame is not None and self.anchor is not None
+                and selection_issue(self.frame, self.anchor, self.body) is None):
+            issue = anchor_quality_issue(self.frame, self.anchor)
+            if issue is not None:
+                self.profile = None
+                self.reference = None
+                self.positive_scene = None
+                self.control_scenes.clear()
+                self.controls.clear()
+                self.status.set(issue)
+                self._update_setup()
+                return False
+        saved = super().save_regions()
+        if saved and self.profile is not None:
+            assert self.frame is not None
+            self.positive_scene = scene_fingerprint(self.frame)
+            self.control_scenes.clear()
+            self._clear_control_preview()
             self.controls.clear()
             self.panel_locator = None
             self.preview_anchor = None
@@ -246,6 +295,7 @@ class AutoNarrationWindow(ObservationWindow):
                             "journal/inventory safety samples. Moved-window preview cannot "
                             "start speech.")
         self._update_setup()
+        return saved
 
     def preview_panel(self) -> None:
         if self.running or self.panel_locator is None:
@@ -255,11 +305,29 @@ class AutoNarrationWindow(ObservationWindow):
         self._capture("panel-preview")
 
     def capture_control(self, purpose: str) -> None:
-        if self.running or self.profile is None or self.reference is None:
+        if (self.running or self.profile is None or self.reference is None
+                or self.positive_scene is None):
             self.status.set("Save the separate yellow border box and blue dialogue box "
                             "before taking safety samples.")
             return
         self._capture(purpose)
+
+    def _clear_control_preview(self) -> None:
+        self.control_preview_title.set("")
+        self.control_preview.configure(image="")
+        self.control_crop_photo = None
+
+    def _show_control_crop(self, frame: Image.Image, profile: Calibration,
+                           purpose: str) -> None:
+        crop = region(frame, profile.anchor).convert("RGB")
+        scale = min(3.0, 320 / crop.width, 120 / crop.height)
+        shown = crop.resize((max(1, round(crop.width * scale)),
+                             max(1, round(crop.height * scale))))
+        self.control_crop_photo = ImageTk.PhotoImage(shown, master=self.root)
+        self.control_preview.configure(image=self.control_crop_photo)
+        label = ("quest-closed" if purpose == "closed-control" else "journal/inventory")
+        self.control_preview_title.set(
+            f"Yellow area in the latest {label} capture (local preview only):")
 
     def _handle_extra_capture(self, purpose: str, frame: Image.Image, dpi: int) -> bool:
         if purpose == "panel-preview":
@@ -280,8 +348,9 @@ class AutoNarrationWindow(ObservationWindow):
                                 f"(visual similarity {finding.similarity:.3f}). Speech stays off.")
                 return True
             self.preview_anchor = finding.anchor
-            self.frame = frame
             self._show_frame(frame)
+            # A preview must never become the source for Save/controls.
+            self.frame = None
             self.canvas.delete("regions")
             viewport = self.viewport
             if viewport is not None:
@@ -301,6 +370,11 @@ class AutoNarrationWindow(ObservationWindow):
         profile = self.profile
         reference = self.reference
         selected = self.selected
+        if self.positive_scene is None:
+            self.controls.clear()
+            self.status.set("Capture an open quest pane and Save its boxes before safety samples.")
+            self._update_setup()
+            return True
         if (profile is None or reference is None or selected is None
                 or not profile.matches(frame, selected.client_width,
                                        selected.client_height, dpi)):
@@ -309,17 +383,30 @@ class AutoNarrationWindow(ObservationWindow):
                             "Reselect the window and mark both boxes again.")
             self._update_setup()
             return True
+        self._show_control_crop(frame, profile, purpose)
+        scene = scene_fingerprint(frame)
+        if scene == self.positive_scene or scene in self.control_scenes.values():
+            self.controls.pop(purpose, None)
+            self.control_scenes.pop(purpose, None)
+            self.status.set("This safety capture looks identical to an earlier setup scene. "
+                            "Check the small yellow-area preview, change to the requested "
+                            "game view, then capture once more. Speech stays off.")
+            self._update_setup()
+            return True
         difference = anchor_difference(reference, frame, profile)
         if difference < MIN_NEGATIVE_DIFFERENCE:
             self.controls.pop(purpose, None)
-            scene = ("close the quest window" if purpose == "closed-control"
-                     else "show a journal or inventory without quest dialogue")
-            self.status.set(f"Safety sample still shows the yellow quest detail. First {scene} "
-                            "and recapture. If it is already absent, redraw yellow on a more "
-                            "distinctive border detail outside blue, then save again.")
+            self.control_scenes.pop(purpose, None)
+            self.status.set(
+                f"The game scene changed, but the yellow area still looks like the quest "
+                f"sample (difference {difference:.3f}; needs {MIN_NEGATIVE_DIFFERENCE:.2f}). "
+                "Check the small preview above. If the quest pane is absent there, this "
+                "yellow area is too generic; keep blue and redraw yellow around a visible "
+                "quest-pane corner or line, then Save. Speech stays off.")
             self._update_setup()
             return True
         self.controls[purpose] = difference
+        self.control_scenes[purpose] = scene
         label = ("Quest-closed sample" if purpose == "closed-control"
                  else "Journal/inventory sample")
         self.status.set(f"{label} passed. {len(self.controls)}/2 safety samples captured; "
@@ -351,7 +438,9 @@ class AutoNarrationWindow(ObservationWindow):
         self.status.set("Preparing the selected offline voice. Wait for Voice ready before Start.")
 
     def start(self) -> None:
-        if set(self.controls) != {"closed-control", "journal-control"}:
+        if (self.positive_scene is None
+                or set(self.controls) != {"closed-control", "journal-control"}
+                or set(self.control_scenes) != {"closed-control", "journal-control"}):
             self.status.set("Capture with the quest closed and then capture a journal or "
                             "inventory before Start.")
             return
@@ -525,6 +614,9 @@ class AutoNarrationWindow(ObservationWindow):
         return "windows_media_ocr_dual_variant"
 
     def _on_calibration_invalidated(self) -> None:
+        self.positive_scene = None
+        self.control_scenes.clear()
+        self._clear_control_preview()
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None

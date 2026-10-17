@@ -18,7 +18,7 @@ from lvc.platform.windows.lotro_observation_ui import CaptureRunner
 from lvc.platform.windows.lotro_probe_ui import OcrCancelled, OcrProcessRunner
 from lvc.platform.windows.lotro_user_probe import Candidate
 from lvc.platform.windows.manual_read import OutputDevice
-from lvc.vision.auto_calibration import Calibration, anchor_signature
+from lvc.vision.auto_calibration import Calibration, anchor_signature, scene_fingerprint
 from lvc.vision.binding import PixelRect
 from lvc.vision.panel_locator import TemplatePanelLocator
 from lvc.vision.text_gate import TextDecision
@@ -45,8 +45,11 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
     positive = Image.new("RGB", (800, 500), "black")
     drawer = ImageDraw.Draw(positive)
     drawer.rectangle((100, 80, 149, 129), fill="#ffcc44")
+    drawer.line((100, 80, 149, 129), fill="#303030", width=5)
     drawer.text((200, 150), "The gate is open.", fill="white")
     negative = Image.new("RGB", (800, 500), "black")
+    journal = negative.copy()
+    ImageDraw.Draw(journal).rectangle((600, 300, 750, 450), fill="#405e57")
     next_page = positive.copy()
     ImageDraw.Draw(next_page).text((200, 180), "Another page.", fill="white")
     profile = Calibration(800, 500, 800, 500, 96,
@@ -62,6 +65,7 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         window.anchor, window.body = profile.anchor, profile.body
         window.profile = profile
         window.reference = anchor_signature(positive, profile)
+        window.positive_scene = scene_fingerprint(positive)
         window.devices = {"Synthetic": OutputDevice("synthetic", "Synthetic")}
         window.device_choice.set("Synthetic")
         window.reader.ready = True
@@ -87,12 +91,15 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         assert window._handle_extra_capture("panel-preview", moved, 96)
         assert window.preview_anchor == PixelRect(200, 200, 50, 50)
         assert "does not authorize speech" in window.status.get()
+        assert window.frame is None  # Preview cannot replace the open-pane Save source.
+        assert not window.save_regions()
+        assert "Capture an open quest window" in window.status.get()
         window.frame = positive
 
         window.start()
         assert not window.running
         assert window._handle_extra_capture("closed-control", negative, 96)
-        assert window._handle_extra_capture("journal-control", negative, 96)
+        assert window._handle_extra_capture("journal-control", journal, 96)
         current[0] = None  # A minimized, closed or replaced game cannot arm Auto.
         window.start()
         assert not window.running
@@ -143,7 +150,10 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         assert not window.running
         window.profile = profile
         window.reference = anchor_signature(positive, profile)
+        window.positive_scene = scene_fingerprint(positive)
         window.controls = {"closed-control": 0.8, "journal-control": 0.8}
+        window.control_scenes = {"closed-control": scene_fingerprint(negative),
+                                 "journal-control": scene_fingerprint(journal)}
         window.start()
         assert window.running
         window._observe_frame(positive, 96)
