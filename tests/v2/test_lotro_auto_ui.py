@@ -21,7 +21,8 @@ from lvc.platform.windows.manual_read import OutputDevice
 from lvc.vision.auto_calibration import Calibration, anchor_signature, scene_fingerprint
 from lvc.vision.binding import PixelRect
 from lvc.vision.panel_locator import TemplatePanelLocator
-from lvc.vision.text_gate import TextDecision
+from lvc.vision.structural_panel import StructuralPanelDetector, readable_body
+from lvc.vision.text_gate import OcrPass, OcrWord, TextDecision
 
 
 def test_auto_ui_requires_controls_and_fences_stale_pages(
@@ -58,7 +59,7 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
     candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)
     window = AutoNarrationWindow(hidden=True, silent=True)
     try:
-        assert "small unchanging corner" in window.instructions_label.cget("text")
+        assert "Find quest pane automatically" in window.instructions_label.cget("text")
         assert "never speech" not in window.candidate_label.cget("text")
         window.selected = candidate
         window.frame = positive
@@ -73,6 +74,7 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         current: list[Candidate | None] = [candidate]
         monkeypatch.setattr(lotro_observation_ui, "candidate_for_hwnd", lambda _hwnd: current[0])
         monkeypatch.setattr(lotro_observation_ui, "window_dpi", lambda _candidate: 96)
+        monkeypatch.setattr(lotro_auto_ui, "window_dpi", lambda _candidate: 96)
         monkeypatch.setattr(window, "_capture", lambda _purpose: None)
         recognized: list[tuple[int, str]] = []
         monkeypatch.setattr(window, "_recognize", lambda _body, token: recognized.append(token))
@@ -175,6 +177,79 @@ def test_auto_ui_requires_controls_and_fences_stale_pages(
         assert window.running
         window._observe_frame(positive, 120)
         assert not window.running and not window.controls
+
+        # A new session can locate the narrative pane without drawn boxes.
+        auto_open = Image.new("RGB", (1400, 900), "#394437")
+        art = ImageDraw.Draw(auto_open)
+        art.rectangle((60, 40, 710, 560), fill="#10151c",
+                      outline="#b6abb8", width=2)
+        for x in (72, 496, 698):
+            art.line((x, 62, x, 538), fill="#b6abb8", width=2)
+        for y in (62, 538):
+            art.line((72, y, 698, y), fill="#b6abb8", width=2)
+        for index in range(5):
+            art.text((85, 90 + index * 20), "Dialogue words from the quest.",
+                     fill="white")
+        auto_closed = Image.new("RGB", auto_open.size, "#394437")
+        auto_inventory = auto_closed.copy()
+        ImageDraw.Draw(auto_inventory).rectangle(
+            (1050, 120, 1280, 370), outline="#b6abb8", width=3)
+        monkeypatch.setattr(lotro_auto_ui, "recognize", lambda *_a, **_kw:
+                            OcrPass("First dialogue line.\nSecond dialogue line.",
+                                    tuple(OcrWord(f"word{index}", 90)
+                                          for index in range(10))))
+        window.frame = auto_open
+        auto_candidate = Candidate(10, 20, 30, "C:/lotroclient64.exe",
+                                   "Synthetic", 1400, 900)
+        window.selected = auto_candidate
+        current[0] = auto_candidate
+        detected = StructuralPanelDetector().detect(auto_open)
+        assert detected.reason == "FOUND"
+        assert detected.selected is not None
+        assert readable_body(lotro_auto_ui.recognize(auto_open, alternative=False))
+        window._structural_profile(auto_open, 96, 1400, 900, detected.selected)
+        window.find_quest_pane()
+        assert window.structural_guard is not None and window.anchor is None, window.status.get()
+        assert window.body is not None
+        assert window._handle_extra_capture("closed-control", auto_closed, 96)
+        assert window._handle_extra_capture("journal-control", auto_inventory, 96)
+        assert window.structural_guard.ready
+        window.start()
+        assert window.running and window.structural_active
+        first_body = window._observation_profile(auto_open)
+        assert first_body is not None
+        shifted = Image.new("RGB", auto_open.size, "#394437")
+        shifted.paste(auto_open.crop((60, 40, 711, 561)), (660, 250))
+        moved_body = window._observation_profile(shifted)
+        assert moved_body is not None
+        assert moved_body.body.x > first_body.body.x
+        assert window._observation_digest("same words", moved_body) != (
+            window._observation_digest("same words", first_body))
+        before = len(recognized)
+        window._observe_frame(auto_open, 96)
+        clock[0] += 300_000_000
+        window._observe_frame(auto_open, 96)
+        assert len(recognized) == before + 1, (window.status.get(),
+                                               window.bridge.state if window.bridge else None)
+        token = recognized[-1]
+        window.results.put(("ocr", (window.epoch, token,
+                                    TextDecision("Synthetic page.",
+                                                 "Synthetic page.", "ACCEPTED"))))
+        window.poll()
+        assert sent[-1] == "Synthetic page."
+        before_stops = len(stops)
+        clock[0] += 100_000_000
+        window._observe_frame(shifted, 96)
+        assert len(stops) > before_stops
+        assert window.bridge is not None
+        assert window.bridge.validated(token, "stale old words", 500).effects == ()
+        assert window._observation_profile(auto_closed) is None
+        window.stop()
+        assert not window.structural_active and window.pending_speech is None
+        window.start()
+        assert window.running and window.structural_active
+        window._observe_frame(auto_open, 120)
+        assert not window.running and window.structural_guard is None
     finally:
         window.close()
 
@@ -206,6 +281,28 @@ def test_auto_ocr_worker_cancellation_never_returns_accepted_text(
     purpose, payload = window.results.get(timeout=3)
     assert purpose == "ocr"
     assert payload == (7, (3, "a" * 64), "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED")
+
+
+def test_structural_unreadable_crop_never_reaches_speech_ocr(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    window = object.__new__(AutoNarrationWindow)
+    window.metrics = {"ocr_attempts": 0}
+    window.results = queue.Queue()
+    window.epoch = 9
+    window.structural_active = True
+
+    class Status:
+        def set(self, _value: str) -> None:
+            pass
+
+    window.status = Status()  # type: ignore[assignment]
+    monkeypatch.setattr(lotro_auto_ui, "recognize", lambda *_a, **_kw:
+                        OcrPass("One line", (OcrWord("One", 90),)))
+    monkeypatch.setattr(lotro_auto_ui, "recognize_auto_crop",
+                        lambda *_a, **_kw: pytest.fail("unreadable crop reached speech OCR"))
+    window._recognize(Image.new("RGB", (300, 300)), (4, "b" * 64))
+    assert window.results.get(timeout=3) == (
+        "ocr", (9, (4, "b" * 64), "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED"))
 
 
 def test_capture_rejects_missing_or_resized_window_before_child(

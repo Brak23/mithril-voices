@@ -30,9 +30,14 @@ from lvc.platform.windows.lotro_observation_ui import (
     StreamCaptureRunner,
     anchor_difference,
     capture_preflight,
+    window_dpi,
 )
 from lvc.platform.windows.lotro_probe_ui import OcrCancelled, OcrProcessRunner
-from lvc.platform.windows.lotro_user_probe import EXPECTED_STREAM_SHA256, STREAM_PROBE
+from lvc.platform.windows.lotro_user_probe import (
+    EXPECTED_STREAM_SHA256,
+    STREAM_PROBE,
+    recognize,
+)
 from lvc.platform.windows.manual_preferences import PreferencesStore
 from lvc.platform.windows.manual_read import (
     AUDIO_PYTHON,
@@ -46,6 +51,7 @@ from lvc.platform.windows.windows_ocr import windows_ocr_preflight
 from lvc.vision.auto_calibration import (
     Calibration,
     anchor_quality_issue,
+    anchor_signature,
     region,
     scene_fingerprint,
     selection_issue,
@@ -54,6 +60,12 @@ from lvc.vision.auto_core_adapter import AutoCoreAdapter
 from lvc.vision.auto_observation import Decision, Observation
 from lvc.vision.binding import PixelRect
 from lvc.vision.panel_locator import PanelLocator, TemplatePanelLocator
+from lvc.vision.structural_panel import (
+    PanelProposal,
+    StructuralPanelDetector,
+    StructuralSessionGuard,
+    readable_body,
+)
 
 MIN_NEGATIVE_DIFFERENCE = 0.16
 SETTINGS = Path(os.environ.get("MITHRIL_AUTO_SETTINGS",
@@ -72,11 +84,11 @@ class AutoNarrationWindow(ObservationWindow):
         self.save_button.configure(text="4. Save yellow + blue boxes")
         self.start_button.configure(text="Start automatic reading")
         self.instructions_label.configure(text=(
-            "Select LOTRO, then capture an open quest window. Draw YELLOW around a small "
-            "unchanging corner or border detail, outside the words. Switch to BLUE and draw "
-            "around every dialogue line inside the pane. Both boxes remain visible; dragging "
-            "again replaces only the selected color. Save, then take the two safety samples "
-            "described below. Prepare voice and select a speaker before Start."))
+            "Select LOTRO, then capture an open quest window. Try Find quest pane automatically "
+            "for a session-only, experimental setup, and review its blue dialogue box. "
+            "For manual setup, draw YELLOW around a fixed border detail outside the words, "
+            "then BLUE around every dialogue line and Save. Both methods require the two "
+            "safety samples below, a prepared local voice, and an exact speaker before Start."))
         self.candidate_text.configure(height=3)
         self.setup_step = tk.StringVar()
         tk.Label(self.root, textvariable=self.setup_step, wraplength=1050,
@@ -86,6 +98,8 @@ class AutoNarrationWindow(ObservationWindow):
         self.silent = silent
         self.controls: dict[str, float] = {}
         self.panel_locator: PanelLocator | None = None
+        self.structural_guard: StructuralSessionGuard | None = None
+        self.structural_active = False
         self.preview_anchor: PixelRect | None = None
         self.bridge: AutoCoreAdapter | None = None
         self.reader = ResidentAutoReader()
@@ -110,6 +124,15 @@ class AutoNarrationWindow(ObservationWindow):
         self.active_voice: str | None = None
         self.active_device: OutputDevice | None = None
 
+        find_controls = tk.Frame(self.root)
+        find_controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
+        self.find_button = tk.Button(
+            find_controls, text="Find quest pane automatically (trial)",
+            command=self.find_quest_pane)
+        self.find_button.pack(side="left")
+        tk.Label(find_controls, text=(
+            "Finds narrative geometry without drawing boxes. Review the blue crop; "
+            "two fresh safety samples are still required."), anchor="w").pack(side="left", padx=8)
         controls = tk.Frame(self.root)
         controls.pack(fill="x", padx=8, pady=2, before=self.candidate_text)
         self.closed_button = tk.Button(
@@ -152,7 +175,7 @@ class AutoNarrationWindow(ObservationWindow):
         tk.Button(preview_controls, text="Preview moved panel (speech off)",
                   command=self.preview_panel).pack(side="left")
         tk.Label(preview_controls, text=(
-            "Preview cannot read aloud; speech still uses the saved yellow and blue boxes."),
+            "This manual-box preview never reads aloud or changes the armed crop."),
             anchor="w").pack(side="left", padx=8)
         if issue:
             self.status.set(f"Auto preferences could not be loaded ({issue}). Choose voice and speaker.")
@@ -178,19 +201,24 @@ class AutoNarrationWindow(ObservationWindow):
                     and self.anchor.width >= 20 and self.anchor.height >= 20
                     and self.anchor.width * self.anchor.height <= 250_000):
                 issue = anchor_quality_issue(self.frame, self.anchor) or issue
-            step = (f"Next: {issue}" if issue else
-                    "Both boxes are kept. Check their edges, then Save. Redraw either color "
-                    "to correct just that box.")
+            step = ("Next: try Find quest pane automatically, or use the manual boxes. "
+                    + (issue or "Check both drawn boxes, then Save."))
         elif "closed-control" not in self.controls:
-            step = ("Boxes saved. Next: close the quest window in LOTRO, click "
+            source = ("Automatic crop located" if self.structural_guard is not None
+                      else "Boxes saved")
+            step = (f"{source}. Next: close the quest window in LOTRO, click "
                     "'Capture with quest closed', then return to the game.")
         elif "journal-control" not in self.controls:
             step = ("Quest-closed sample passed. Next: show a journal or inventory with "
                     "no quest dialogue, click its Capture button, and return to the game.")
         else:
-            step = ("Both safety samples passed. Choose the exact speaker, click Prepare "
+            prefix = ("Automatic boxes are session-only. "
+                      if self.structural_guard is not None else "")
+            step = (prefix + "Both safety samples passed. Choose the exact speaker, click Prepare "
                     "voice and wait for Voice ready, then Start automatic reading.")
         self.setup_step.set(step)
+        self.find_button.configure(state=("normal" if self.frame is not None
+                                          and not self.running else "disabled"))
         available = "normal" if self.profile is not None and not self.running else "disabled"
         self.closed_button.configure(state=available)
         self.other_button.configure(state=available)
@@ -207,6 +235,8 @@ class AutoNarrationWindow(ObservationWindow):
         super().choose_window(event)
         self.controls.clear()
         self.panel_locator = None
+        self.structural_guard = None
+        self.structural_active = False
         self.preview_anchor = None
         self.saved_load_reason = ""
         self.positive_scene = None
@@ -242,6 +272,8 @@ class AutoNarrationWindow(ObservationWindow):
         before = self.anchor, self.body
         super().release(event)
         if before != (self.anchor, self.body):
+            self.structural_guard = None
+            self.structural_active = False
             self.controls.clear()
             self.panel_locator = None
             self.preview_anchor = None
@@ -252,6 +284,8 @@ class AutoNarrationWindow(ObservationWindow):
 
     def calibration_capture(self) -> None:
         self.mode.set("anchor")
+        self.structural_guard = None
+        self.structural_active = False
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
@@ -278,6 +312,8 @@ class AutoNarrationWindow(ObservationWindow):
                 return False
         saved = super().save_regions()
         if saved and self.profile is not None:
+            self.structural_guard = None
+            self.structural_active = False
             assert self.frame is not None
             self.positive_scene = scene_fingerprint(self.frame)
             self.control_scenes.clear()
@@ -296,6 +332,54 @@ class AutoNarrationWindow(ObservationWindow):
                             "start speech.")
         self._update_setup()
         return saved
+
+    @staticmethod
+    def _structural_profile(frame: Image.Image, dpi: int,
+                            client_width: int, client_height: int,
+                            proposal: PanelProposal) -> Calibration:
+        # Calibration requires a nonoverlapping anchor. The structural path
+        # never uses this placeholder patch for panel authority.
+        panel = proposal.panel
+        anchor = PixelRect(panel.x + panel.width - 40, panel.y + 5, 32, 32)
+        return Calibration(frame.width, frame.height, client_width,
+                           client_height, dpi, anchor, proposal.body)
+
+    def find_quest_pane(self) -> None:
+        frame, selected = self.frame, self.selected
+        if self.running or frame is None or selected is None:
+            self.status.set("Capture an open quest pane in the selected LOTRO window first.")
+            return
+        detector = StructuralPanelDetector()
+        try:
+            guard = StructuralSessionGuard(detector, frame)
+            proposal = guard.positive
+            sample = recognize(region(frame, proposal.body), alternative=False,
+                               runner=OcrProcessRunner(timeout=3))
+            if not readable_body(sample):
+                raise ValueError("STRUCTURAL_BODY_NOT_READABLE")
+            profile = self._structural_profile(frame, window_dpi(selected),
+                                               selected.client_width,
+                                               selected.client_height, proposal)
+        except (OcrCancelled, OSError, RuntimeError, ValueError):
+            self.status.set("Automatic detector could not uniquely locate a readable two-column "
+                            "quest pane. Use the manual boxes or try a clearer open quest view.")
+            return
+        self.structural_guard = guard
+        self.structural_active = False
+        self.profile = profile
+        self.reference = anchor_signature(frame, profile)
+        self.anchor = None  # Blue crop is reviewable; no yellow box was requested.
+        self.body = proposal.body
+        self.positive_scene = scene_fingerprint(frame)
+        self.controls.clear()
+        self.control_scenes.clear()
+        self.panel_locator = None
+        self._clear_control_preview()
+        self._draw_rectangles()
+        self.status.set("Experimental quest pane and complete narrative crop located in this "
+                        "session. Review the blue box. Capture quest-closed and journal/inventory "
+                        "safety samples before Start; manual boxes remain available.")
+        self._update_setup()
 
     def preview_panel(self) -> None:
         if self.running or self.panel_locator is None:
@@ -383,7 +467,10 @@ class AutoNarrationWindow(ObservationWindow):
                             "Reselect the window and mark both boxes again.")
             self._update_setup()
             return True
-        self._show_control_crop(frame, profile, purpose)
+        if self.structural_guard is None:
+            self._show_control_crop(frame, profile, purpose)
+        else:
+            self._clear_control_preview()
         scene = scene_fingerprint(frame)
         if scene == self.positive_scene or scene in self.control_scenes.values():
             self.controls.pop(purpose, None)
@@ -391,6 +478,22 @@ class AutoNarrationWindow(ObservationWindow):
             self.status.set("This safety capture looks identical to an earlier setup scene. "
                             "Check the small yellow-area preview, change to the requested "
                             "game view, then capture once more. Speech stays off.")
+            self._update_setup()
+            return True
+        guard = self.structural_guard
+        if guard is not None:
+            if not guard.negative(purpose, frame):
+                self.controls.pop(purpose, None)
+                self.control_scenes.pop(purpose, None)
+                self.status.set("The automatic detector still sees a quest-shaped pane, or "
+                                "several competing panes, in this negative scene. "
+                                "Speech stays off; use the manual reader or another clear sample.")
+                self._update_setup()
+                return True
+            self.controls[purpose] = 1.0
+            self.control_scenes[purpose] = scene
+            self.status.set(f"Automatic detector absent in {len(self.controls)}/2 distinct "
+                            "safety samples. Speech remains off until explicit Start.")
             self._update_setup()
             return True
         difference = anchor_difference(reference, frame, profile)
@@ -461,11 +564,17 @@ class AutoNarrationWindow(ObservationWindow):
             return
         super().start()
         if self.running:
-            self.status.set("Automatic reading armed for the selected LOTRO window. "
+            prefix = ("Experimental structural reading" if self.structural_active
+                      else "Automatic reading")
+            self.status.set(f"{prefix} armed for the selected LOTRO window. "
                             "Return focus to the game within 8 seconds. Windows may show "
                             "one steady yellow capture outline until Stop.")
 
     def _arm_policy(self, binding: str) -> None:
+        guard = self.structural_guard
+        if guard is not None and not guard.ready:
+            raise RuntimeError("STRUCTURAL_CONTROLS_INCOMPLETE")
+        self.structural_active = guard is not None
         self.runner.streaming = True
         self.bridge = AutoCoreAdapter(uuid4(), binding, 1, profile_qualified=True)
         result = self.bridge.enable(0)
@@ -475,6 +584,36 @@ class AutoNarrationWindow(ObservationWindow):
         self.pending_speech = None
         self.active_token = None
         self.last_validation_reason = ""
+
+    def _observation_profile(self, frame: Image.Image) -> Calibration | None:
+        if not self.structural_active:
+            return super()._observation_profile(frame)
+        guard, profile, selected = self.structural_guard, self.profile, self.selected
+        if guard is None or profile is None or selected is None:
+            return None
+        proposal = guard.locate(frame)
+        if proposal is None:
+            return None
+        try:
+            return self._structural_profile(frame, profile.dpi,
+                                            selected.client_width,
+                                            selected.client_height, proposal)
+        except ValueError:
+            return None
+
+    def _observation_difference(self, reference: Image.Image, frame: Image.Image,
+                                profile: Calibration) -> float:
+        if self.structural_active:
+            return 0.0  # The independent geometry detector provided this profile.
+        return super()._observation_difference(reference, frame, profile)
+
+    def _observation_digest(self, digest: str, profile: Calibration) -> str:
+        if not self.structural_active:
+            return digest
+        body = profile.body
+        # A moved or resized pane fences old speech even when its words match.
+        bound = f"{digest}:{body.x}:{body.y}:{body.width}:{body.height}"
+        return hashlib.sha256(bound.encode("ascii")).hexdigest()
 
     def _fence_voice(self) -> None:
         self.pending_speech = None
@@ -492,6 +631,10 @@ class AutoNarrationWindow(ObservationWindow):
 
         def work() -> None:
             try:
+                if getattr(self, "structural_active", False):
+                    layout = recognize(body, alternative=False, runner=runner)
+                    if not readable_body(layout):
+                        raise ValueError("STRUCTURAL_BODY_NOT_READABLE")
                 result: object = recognize_auto_crop(body, runner)
             except (OcrCancelled, OSError, ValueError, RuntimeError):
                 result = "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED"
@@ -599,6 +742,7 @@ class AutoNarrationWindow(ObservationWindow):
             self.status.set("Paused and fenced. Start again to arm a new observation session.")
 
     def _on_stop(self) -> None:
+        self.structural_active = False
         if hasattr(self, "reader"):
             self._fence_voice()
         self.bridge = None
@@ -614,6 +758,8 @@ class AutoNarrationWindow(ObservationWindow):
         return "windows_media_ocr_dual_variant"
 
     def _on_calibration_invalidated(self) -> None:
+        self.structural_guard = None
+        self.structural_active = False
         self.positive_scene = None
         self.control_scenes.clear()
         self._clear_control_preview()

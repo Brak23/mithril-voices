@@ -1,5 +1,9 @@
 # Local panel localization preview
 
+For the later box-free structural trial and its separate qualification limits,
+see [windows-structural-auto-trial.md](windows-structural-auto-trial.md). This
+document records the earlier manually marked template-preview baseline.
+
 ## What the prototype does
 
 `PanelLocator` takes an in-memory selected-window frame and returns a reason,
