@@ -46,7 +46,7 @@ manifest were kept locally under ignored `.audition/tmp/`, not added to Git.
 
 | Material | Structural result | Readable-body/crop result | Limit |
 | --- | --- | --- | --- |
-| 11 historical August 2025 screenshots | 11 `FOUND` | Body unannotated in replay | One session, near-identical pane/layout; development only |
+| 11 historical August 2025 screenshots | Nine `FOUND`, two `NOT_FOUND` | Body unannotated in replay | One session, near-identical pane/layout; two visible quest dialogues missed; development only |
 | Five public dialogue screenshots | 5 `FOUND` | Five readable; provisional reference-crop OCR word recall and precision each 1.0; zero edge-clipped words. Body area coverage 0.908–0.970, purity 0.980–0.994. | Same screenshots informed geometry tuning; not holdout or transcript accuracy |
 | Five public non-dialogue screenshots | Two `NOT_FOUND`, one `AMBIGUOUS`, two `FOUND` | Both false geometry proposals failed readable-body due to 9 and 14 clipped words respectively. | Only five negatives; no live false-start rate |
 | Synthetic variations | Movement, independent panel size, color inversion, competing panels, absence, Stop and DPI invalidation exercised | Unit and hidden-UI checks | Generated art does not establish game generalization |
