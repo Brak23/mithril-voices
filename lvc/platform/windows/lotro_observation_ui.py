@@ -622,11 +622,16 @@ class ObservationWindow:
         if reference is None:
             self.stop()
             return
-        difference = anchor_difference(reference, frame, self.profile)
-        present = difference <= ANCHOR_CANDIDATE_MAX_DIFFERENCE
+        active_profile = self._observation_profile(frame)
+        difference = (self._observation_difference(reference, frame, active_profile)
+                      if active_profile is not None else 1.0)
+        present = (active_profile is not None
+                   and difference <= ANCHOR_CANDIDATE_MAX_DIFFERENCE)
         self.metrics["frames"] += 1
         self.metrics["anchor_present" if present else "anchor_absent"] += 1
-        digest = body_digest(frame, self.profile) if present else None
+        digest = (self._observation_digest(body_digest(frame, active_profile),
+                                           active_profile) if present
+                  and active_profile is not None else None)
         binding = f"{self.selected.hwnd}:{self.selected.pid}:{self.selected.process_started_ticks}"
         item = Observation(time.monotonic_ns() // 1_000_000 - self.started_ms,
                            binding, 1, True, present, digest)
@@ -647,7 +652,8 @@ class ObservationWindow:
             self.status.set("Candidate body changed; previous OCR invalidated. Settling 300 ms...")
             self.set_text("")
         elif decision.validation_token is not None:
-            crop = region(frame, self.profile.body)
+            assert active_profile is not None
+            crop = region(frame, active_profile.body)
             if self.ocr_busy:
                 self.deferred_ocr = crop, decision.validation_token
             else:
@@ -655,6 +661,16 @@ class ObservationWindow:
         elif digest != self.last_digest:
             self.status.set("Candidate panel present; waiting for stable body pixels...")
         self.last_digest = digest
+
+    def _observation_profile(self, _frame: Image.Image) -> Calibration | None:
+        return self.profile
+
+    def _observation_difference(self, reference: Image.Image, frame: Image.Image,
+                                profile: Calibration) -> float:
+        return anchor_difference(reference, frame, profile)
+
+    def _observation_digest(self, digest: str, _profile: Calibration) -> str:
+        return digest
 
     def _recognize(self, body: Image.Image, token: tuple[int, str]) -> None:
         self.ocr_busy = True
