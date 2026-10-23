@@ -115,6 +115,27 @@ def edge_checked_body(frame: Image.Image, proposal: PanelProposal) -> PixelRect 
                 local = PixelRect(left - panel.x, upper - panel.y, width, height)
                 if _clear_crop_edges(gray, local):
                     best, best_area = candidate, area
+    # The coarse fractions can land directly on a prose line and skip the
+    # narrow clear band before the controls. Search native-pixel lower edges
+    # only while they could improve the largest clear crop found so far.
+    for side in (0, .02, .04, .06, .08):
+        shift = round(broad.width * side)
+        left, right = broad.x + shift, broad.x + broad.width - shift
+        width = right - left
+        if width < 250:
+            continue
+        for top in (0, .02, .04, .06):
+            upper = broad.y + round(panel.height * top)
+            highest = min(broad.y + broad.height, panel.y + panel.height)
+            floor = max(upper + 250, upper + best_area // width + 1)
+            for lower in range(highest, floor - 1, -1):
+                candidate = PixelRect(left, upper, width, lower - upper)
+                local = PixelRect(left - panel.x, upper - panel.y,
+                                  width, lower - upper)
+                if _clear_crop_edges(gray, local):
+                    best = candidate
+                    best_area = candidate.width * candidate.height
+                    break
     if best_area < broad.width * broad.height * .65:
         return None
     return best

@@ -125,7 +125,7 @@ passed readability and broad-word retention. All five public quest images
 were found and refined, with 1.0 annotated-reference OCR word recall; two
 public negatives were `NOT_FOUND`, two `AMBIGUOUS`, and the remaining raw
 `FOUND` proposal had no clear-edge body. No independent holdout was added.
-The revised code passed 282 Windows v2 tests, Ruff, and Pyright. The new
+The revised code passed 283 Windows v2 tests, Ruff, and Pyright. The new
 detector and crop still require a fresh live quest check, two negative-control
 captures, explicit Start/Stop and owner-confirmed audible behavior. The
 existing installed build was not replaced.
@@ -134,3 +134,14 @@ The revised UI also passed its Windows dependency preflight and hidden UI
 construction check on October 23. A later in-memory exact-window sample
 returned `NOT_FOUND` on an unlabeled game scene. That sample cannot establish
 quest recall or negative-control performance.
+
+A long-dialogue regression found that the original six coarse lower-edge
+fractions could skip a clear strip between the last prose line and the
+controls. The crop search now refines the lower edge at native-pixel
+resolution, bounded by the broad proposal and the area already found. In a
+synthetic 5120 x 1440 scene with a 450 x 750 proposed narrative column, ten
+local refinements averaged 1.74 ms each; this does not include capture,
+geometry detection, OCR or game contention. The long-line regression passes,
+and the same 11 historical and five public development quest images still
+pass all crop checks. All five public development negatives still abstain
+through the configured gates. No new independent validation set was added.

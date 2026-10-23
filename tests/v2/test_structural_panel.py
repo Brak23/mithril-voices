@@ -128,8 +128,25 @@ def test_edge_checked_body_excludes_lower_controls_without_short_fixed_crop() ->
                              PixelRect(110, 110, 350, 430), .9, ())
     assert not crop_edge_clear(image.crop((110, 110, 460, 540)))
     body = edge_checked_body(image, proposal)
-    assert body is not None and body.y + body.height < 539
+    assert body is not None and body.y + body.height <= 539
     assert body.y + body.height > 470
+    assert crop_edge_clear(image.crop((body.x, body.y,
+                                       body.x + body.width, body.y + body.height)))
+
+
+def test_edge_checked_body_keeps_last_line_above_control_bar() -> None:
+    image = Image.new("RGB", (800, 600), "#10151c")
+    art = ImageDraw.Draw(image)
+    for row in range(8):
+        art.text((130, 350 + row * 24), "The last dialogue line matters.",
+                 fill="white")
+    art.line((110, 539, 460, 539), fill="white", width=2)
+    proposal = PanelProposal(PixelRect(100, 100, 600, 450),
+                             PixelRect(110, 110, 350, 430), .9, ())
+    body = edge_checked_body(image, proposal)
+    assert body is not None
+    assert body.y + body.height >= 530
+    assert body.y + body.height <= 539
     assert crop_edge_clear(image.crop((body.x, body.y,
                                        body.x + body.width, body.y + body.height)))
 
