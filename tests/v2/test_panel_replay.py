@@ -9,6 +9,7 @@ from PIL import Image
 
 from lvc.vision.binding import PixelRect
 from lvc.vision.structural_panel import PanelDetection, PanelProposal
+from tools import replay_panel_detector
 from tools.replay_panel_detector import replay
 
 
@@ -50,3 +51,22 @@ def test_replay_rejects_source_group_leaking_across_splits(tmp_path: Path) -> No
     manifest.write_text(json.dumps(rows), encoding="utf-8")
     with pytest.raises(ValueError, match="REPLAY_GROUP_SPLIT_LEAK"):
         replay(manifest, FixedDetector())
+
+
+def test_replay_counts_refined_body_abstention_without_ocr(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    Image.new("RGB", (300, 200), "black").save(tmp_path / "absent.png")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps([{
+        "image": "absent.png", "group": "source-a", "split": "development",
+        "label": "absent", "source": "generated", "rights": "test",
+    }]), encoding="utf-8")
+    monkeypatch.setattr(replay_panel_detector, "edge_checked_body",
+                        lambda _frame, _proposal: None)
+    output = replay(manifest, FixedDetector(),
+                    lambda _image: pytest.fail("edge-abstained crop reached OCR"),
+                    edge_refine=True)
+    assert output["counts"]["development_absent_found"] == 1
+    assert output["counts"]["development_absent_edge_abstain"] == 1
+    assert output["results"][0]["refined_body_found"] is False
+    assert output["contains_pixels_or_text"] is False

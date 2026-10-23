@@ -7,6 +7,7 @@ structure. Its score is a ranking heuristic, never a probability of a quest.
 # pyright: reportMissingImports=false
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from statistics import median
 from typing import Protocol
@@ -53,6 +54,69 @@ def readable_body(passage: OcrPass) -> bool:
             and not any(word.clipped for word in passage.words)
             and min(word.confidence for word in words) >= 15
             and median(word.confidence for word in words) >= 75)
+
+
+def body_retains_reference(broad: OcrPass, candidate: OcrPass) -> bool:
+    """Abstain if a clean word in the broad pane disappeared from the crop."""
+    def tokens(passage: OcrPass, confidence: float) -> Counter[str]:
+        return Counter("".join(char.casefold() for char in word.text if char.isalnum())
+                       for word in passage.words
+                       if word.confidence >= confidence and not word.clipped
+                       and any(char.isalnum() for char in word.text))
+
+    source = tokens(broad, 50)
+    kept = tokens(candidate, 15)
+    total = source.total()
+    return total >= 8 and (source & kept).total() / total >= .98
+
+
+def _clear_crop_edges(gray: np.ndarray, rect: PixelRect) -> bool:
+    """Apply the existing edge-color gate to one panel-local rectangle."""
+    crop = gray[rect.y:rect.y + rect.height, rect.x:rect.x + rect.width]
+    if crop.shape != (rect.height, rect.width):
+        return False
+    corners = crop[np.ix_([0, 1, -2, -1], [0, 1, -2, -1])]
+    background = float(np.median(corners))
+    border = np.concatenate((crop[:2, :].ravel(), crop[-2:, :].ravel(),
+                             crop[2:-2, :2].ravel(), crop[2:-2, -2:].ravel()))
+    return bool(np.all(np.abs(border.astype(np.int16) - background) < 75))
+
+
+def edge_checked_body(frame: Image.Image, proposal: PanelProposal) -> PixelRect | None:
+    """Find the largest clear-edged narrative crop inside a geometric proposal.
+
+    Lower quest controls can occupy a different share of a resized panel. This
+    bounded native-pixel search keeps the longest usable body, and abstains if
+    no crop clears the same border gate used by the Windows OCR adapter.
+    """
+    panel, broad = proposal.panel, proposal.body
+    if not panel.inside(*frame.size) or not broad.inside(*frame.size):
+        return None
+    if broad.width * broad.height > 2_000_000:
+        return None
+    gray = np.asarray(frame.crop((panel.x, panel.y, panel.x + panel.width,
+                                  panel.y + panel.height)).convert("L"))
+    best: PixelRect | None = None
+    best_area = 0
+    for side in (0, .02, .04, .06, .08):
+        shift = round(broad.width * side)
+        left, right = broad.x + shift, broad.x + broad.width - shift
+        for top in (0, .02, .04, .06):
+            upper = broad.y + round(panel.height * top)
+            for fraction in (.78, .82, .86, .90, .94, .98):
+                lower = min(broad.y + broad.height,
+                            panel.y + round(panel.height * fraction))
+                width, height = right - left, lower - upper
+                area = width * height
+                if area <= best_area or width < 250 or height < 250:
+                    continue
+                candidate = PixelRect(left, upper, width, height)
+                local = PixelRect(left - panel.x, upper - panel.y, width, height)
+                if _clear_crop_edges(gray, local):
+                    best, best_area = candidate, area
+    if best_area < broad.width * broad.height * .65:
+        return None
+    return best
 
 
 def _independent_lines(lines: list[tuple[int, int, int]]) -> list[tuple[int, int, int]]:
@@ -104,6 +168,28 @@ def _bar_support(horizontal: list[tuple[int, int, int]], edges: np.ndarray,
     return False
 
 
+def _aligned_inner_top(horizontal: list[tuple[int, int, int]],
+                       left: tuple[int, int, int], middle: tuple[int, int, int],
+                       right: tuple[int, int, int]) -> bool:
+    """Corroborate either complete column top when a full stroke is absent."""
+    for first, second, spanning in ((left, middle, right),
+                                    (middle, right, left)):
+        pair_top = max(first[1], second[1])
+        pair_bottom = min(first[2], second[2])
+        if (abs(first[1] - second[1]) > 12
+                or abs(first[2] - second[2]) > 12
+                or spanning[1] > pair_top + 20
+                or spanning[2] < pair_bottom - 20):
+            continue
+        width = second[0] - first[0]
+        if any(abs(y - pair_top) <= 12
+               and begin <= first[0] + round(width * .07)
+               and end >= second[0] - round(width * .07)
+               for y, begin, end in horizontal):
+            return True
+    return False
+
+
 class StructuralPanelDetector:
     """Find a tall narrative column beside a shorter objective column.
 
@@ -146,12 +232,14 @@ class StructuralPanelDetector:
                     width = right[0] - left[0]
                     if height < 250 or not 0.6 <= width / height <= 3.0:
                         continue
-                    if (not _bar_support(horizontal, edges, boundary=top,
-                                         left=left[0], middle=middle[0],
-                                         right=right[0], height=height)
-                            or not _bar_support(horizontal, edges, boundary=bottom,
-                                                left=left[0], middle=middle[0],
-                                                right=right[0], height=height)):
+                    top_bar = _bar_support(horizontal, edges, boundary=top,
+                                           left=left[0], middle=middle[0],
+                                           right=right[0], height=height)
+                    bottom_bar = _bar_support(horizontal, edges, boundary=bottom,
+                                              left=left[0], middle=middle[0],
+                                              right=right[0], height=height)
+                    inner_top = _aligned_inner_top(horizontal, left, middle, right)
+                    if not bottom_bar or not (top_bar or inner_top):
                         continue
                     inset = max(7, round(left_width * 0.018))
                     left_inset = max(3, round(left_width * 0.005))
@@ -164,9 +252,12 @@ class StructuralPanelDetector:
                         continue
                     # Ranking is structural only. A user-labeled negative and
                     # readable-body gate must qualify any speech use separately.
-                    score = min(0.99, 0.82 + 0.1 * min(1.0, height / 700))
+                    score = min(0.99, 0.82 + 0.1 * min(1.0, height / 700)
+                                + (0.02 if inner_top else 0.0))
                     proposals.append(PanelProposal(
-                        panel, body, score, ("three-column-edges", "top-bottom-crossbars")))
+                        panel, body, score, ("three-column-edges", "bottom-crossbar",
+                                             "aligned-inner-top" if inner_top
+                                             else "top-crossbar")))
         proposals.sort(key=lambda item: item.score, reverse=True)
         unique: list[PanelProposal] = []
         for proposal in proposals:

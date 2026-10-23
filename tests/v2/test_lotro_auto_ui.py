@@ -305,6 +305,37 @@ def test_structural_unreadable_crop_never_reaches_speech_ocr(
         "ocr", (9, (4, "b" * 64), "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED"))
 
 
+def test_structural_crop_missing_broad_words_never_reaches_speech_ocr(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    window = object.__new__(AutoNarrationWindow)
+    window.metrics = {"ocr_attempts": 0}
+    window.results = queue.Queue()
+    window.epoch = 10
+    window.structural_active = True
+    window._current_broad_body = Image.new("RGB", (300, 300))
+
+    class Status:
+        def set(self, _value: str) -> None:
+            pass
+
+    window.status = Status()  # type: ignore[assignment]
+    calls = [0]
+
+    def layout(*_args: object, **_kwargs: object) -> OcrPass:
+        calls[0] += 1
+        count = 8 if calls[0] == 1 else 9
+        return OcrPass("First line.\nSecond line.",
+                       tuple(OcrWord(f"word{index}", 90) for index in range(count)))
+
+    monkeypatch.setattr(lotro_auto_ui, "recognize", layout)
+    monkeypatch.setattr(lotro_auto_ui, "recognize_auto_crop",
+                        lambda *_a, **_kw: pytest.fail("missing broad word reached speech OCR"))
+    window._recognize(Image.new("RGB", (300, 300)), (5, "c" * 64))
+    assert window.results.get(timeout=3) == (
+        "ocr", (10, (5, "c" * 64), "WINDOWS_OCR_UNAVAILABLE_OR_CANCELED"))
+    assert calls[0] == 2
+
+
 def test_capture_rejects_missing_or_resized_window_before_child(
         monkeypatch: pytest.MonkeyPatch) -> None:
     selected = Candidate(10, 20, 30, "C:/lotroclient64.exe", "Synthetic", 800, 500)

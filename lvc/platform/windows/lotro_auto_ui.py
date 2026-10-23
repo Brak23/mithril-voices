@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import tkinter as tk
+from dataclasses import replace
 from pathlib import Path
 from tkinter import ttk
 from uuid import uuid4
@@ -64,6 +65,8 @@ from lvc.vision.structural_panel import (
     PanelProposal,
     StructuralPanelDetector,
     StructuralSessionGuard,
+    body_retains_reference,
+    edge_checked_body,
     readable_body,
 )
 
@@ -100,6 +103,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.panel_locator: PanelLocator | None = None
         self.structural_guard: StructuralSessionGuard | None = None
         self.structural_active = False
+        self._current_broad_body: Image.Image | None = None
         self.preview_anchor: PixelRect | None = None
         self.bridge: AutoCoreAdapter | None = None
         self.reader = ResidentAutoReader()
@@ -237,6 +241,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.panel_locator = None
         self.structural_guard = None
         self.structural_active = False
+        self._current_broad_body = None
         self.preview_anchor = None
         self.saved_load_reason = ""
         self.positive_scene = None
@@ -274,6 +279,7 @@ class AutoNarrationWindow(ObservationWindow):
         if before != (self.anchor, self.body):
             self.structural_guard = None
             self.structural_active = False
+            self._current_broad_body = None
             self.controls.clear()
             self.panel_locator = None
             self.preview_anchor = None
@@ -286,6 +292,7 @@ class AutoNarrationWindow(ObservationWindow):
         self.mode.set("anchor")
         self.structural_guard = None
         self.structural_active = False
+        self._current_broad_body = None
         self.controls.clear()
         self.panel_locator = None
         self.preview_anchor = None
@@ -314,6 +321,7 @@ class AutoNarrationWindow(ObservationWindow):
         if saved and self.profile is not None:
             self.structural_guard = None
             self.structural_active = False
+            self._current_broad_body = None
             assert self.frame is not None
             self.positive_scene = scene_fingerprint(self.frame)
             self.control_scenes.clear()
@@ -353,10 +361,15 @@ class AutoNarrationWindow(ObservationWindow):
         try:
             guard = StructuralSessionGuard(detector, frame)
             proposal = guard.positive
-            sample = recognize(region(frame, proposal.body), alternative=False,
-                               runner=OcrProcessRunner(timeout=3))
-            if not readable_body(sample):
+            refined = edge_checked_body(frame, proposal)
+            if refined is None:
+                raise ValueError("STRUCTURAL_BODY_EDGE_UNCLEAR")
+            runner = OcrProcessRunner(timeout=3)
+            sample = recognize(region(frame, refined), alternative=False, runner=runner)
+            broad = recognize(region(frame, proposal.body), alternative=False, runner=runner)
+            if not readable_body(sample) or not body_retains_reference(broad, sample):
                 raise ValueError("STRUCTURAL_BODY_NOT_READABLE")
+            proposal = replace(proposal, body=refined)
             profile = self._structural_profile(frame, window_dpi(selected),
                                                selected.client_width,
                                                selected.client_height, proposal)
@@ -366,6 +379,7 @@ class AutoNarrationWindow(ObservationWindow):
             return
         self.structural_guard = guard
         self.structural_active = False
+        self._current_broad_body = None
         self.profile = profile
         self.reference = anchor_signature(frame, profile)
         self.anchor = None  # Blue crop is reviewable; no yellow box was requested.
@@ -588,12 +602,18 @@ class AutoNarrationWindow(ObservationWindow):
     def _observation_profile(self, frame: Image.Image) -> Calibration | None:
         if not self.structural_active:
             return super()._observation_profile(frame)
+        self._current_broad_body = None
         guard, profile, selected = self.structural_guard, self.profile, self.selected
         if guard is None or profile is None or selected is None:
             return None
         proposal = guard.locate(frame)
         if proposal is None:
             return None
+        refined = edge_checked_body(frame, proposal)
+        if refined is None:
+            return None
+        self._current_broad_body = region(frame, proposal.body)
+        proposal = replace(proposal, body=refined)
         try:
             return self._structural_profile(frame, profile.dpi,
                                             selected.client_width,
@@ -627,13 +647,17 @@ class AutoNarrationWindow(ObservationWindow):
         epoch = self.epoch
         runner = OcrProcessRunner()
         self.ocr_runner = runner
+        broad = getattr(self, "_current_broad_body", None)
         self.status.set("Stable panel body: checking two local Windows OCR image variants.")
 
         def work() -> None:
             try:
                 if getattr(self, "structural_active", False):
                     layout = recognize(body, alternative=False, runner=runner)
-                    if not readable_body(layout):
+                    if not readable_body(layout) or broad is None:
+                        raise ValueError("STRUCTURAL_BODY_NOT_READABLE")
+                    reference_layout = recognize(broad, alternative=False, runner=runner)
+                    if not body_retains_reference(reference_layout, layout):
                         raise ValueError("STRUCTURAL_BODY_NOT_READABLE")
                 result: object = recognize_auto_crop(body, runner)
             except (OcrCancelled, OSError, ValueError, RuntimeError):
@@ -743,6 +767,7 @@ class AutoNarrationWindow(ObservationWindow):
 
     def _on_stop(self) -> None:
         self.structural_active = False
+        self._current_broad_body = None
         if hasattr(self, "reader"):
             self._fence_voice()
         self.bridge = None
@@ -760,6 +785,7 @@ class AutoNarrationWindow(ObservationWindow):
     def _on_calibration_invalidated(self) -> None:
         self.structural_guard = None
         self.structural_active = False
+        self._current_broad_body = None
         self.positive_scene = None
         self.control_scenes.clear()
         self._clear_control_preview()

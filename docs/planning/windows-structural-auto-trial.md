@@ -94,3 +94,35 @@ and public-image source groups. Measure complete uncontaminated body crops,
 false audible starts, missed dialogue, crop-to-audible time and Stop latency.
 Borderless custom skins need a second candidate method or an explicitly
 supported learned detector; the current line geometry can abstain on them.
+
+## Live diagnosis and local revision, October 23, 2026
+
+The owner opened retail LOTRO in a verified 5120 x 1440, 96 DPI window. A
+bounded in-memory probe of the **PR #30 trial code before this revision**
+alternated between `FOUND` and `NOT_FOUND` on the visible quest pane. One
+`FOUND` proposal used a left body crop approximately x=2807..3256,
+y=359..1089; Tesseract saw 65-69 words but marked 2-5 clipped, and the dual
+Windows OCR path returned `CROP_EDGE_UNCLEAR`. No automatic speech was armed.
+An in-memory diagnostic crop x=2828..3244, y=375..960 retained all 65 baseline
+OCR words in one sample, had zero clipped words, and passed dual Windows OCR
+with 351 accepted characters. This was **silent text admission**, not audible
+latency or narration verification. No private pixels or recognized text were
+saved. An initial attempt to save a private screenshot was rejected by
+automatic approval review; only the in-memory path was then run.
+
+The revision adds a paired-column top-stroke fallback for frames where Hough
+misses the full top bar, a bounded per-frame clear-edge crop search, and a
+second OCR comparison that abstains if high-confidence unclipped words from
+the broad proposal disappear in the refined crop. The original edge,
+readability, dual Windows OCR, negative-scene, stability, and Stop gates remain.
+`python -m tools.replay_panel_detector MANIFEST --ocr-layout --edge-refine`
+reproduces numeric results. On the **same tuning/development material**, all
+11 historical quest frames were structurally found and all 11 refined crops
+passed readability and broad-word retention. All five public quest images
+were found and refined, with 1.0 annotated-reference OCR word recall; two
+public negatives were `NOT_FOUND`, two `AMBIGUOUS`, and the remaining raw
+`FOUND` proposal had no clear-edge body. No independent holdout was added.
+The revised code passed 280 Windows v2 tests, Ruff, and Pyright. The new
+detector and crop still require a fresh live quest check, two negative-control
+captures, explicit Start/Stop and owner-confirmed audible behavior. The
+existing installed build was not replaced.

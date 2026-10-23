@@ -10,6 +10,7 @@ import argparse
 import json
 from collections import Counter
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,8 @@ from lvc.vision.binding import PixelRect
 from lvc.vision.structural_panel import (
     QuestPanelDetector,
     StructuralPanelDetector,
+    body_retains_reference,
+    edge_checked_body,
     readable_body,
 )
 from lvc.vision.text_gate import OcrPass
@@ -47,7 +50,8 @@ def _tokens(passage: OcrPass) -> Counter[str]:
 
 
 def replay(manifest: Path, detector: QuestPanelDetector,
-           layout_ocr: Callable[[Image.Image], OcrPass] | None = None) -> dict[str, Any]:
+           layout_ocr: Callable[[Image.Image], OcrPass] | None = None,
+           *, edge_refine: bool = False) -> dict[str, Any]:
     """Return numeric localization and crop coverage, not image contents."""
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     if not isinstance(payload, list) or not payload:
@@ -92,6 +96,15 @@ def replay(manifest: Path, detector: QuestPanelDetector,
         row: dict[str, Any] = {"group": group, "split": split,
                                "label": label, "reason": detection.reason,
                                "candidate_count": len(detection.candidates)}
+        broad_body = selected.body if selected is not None else None
+        if selected is not None and edge_refine:
+            refined = edge_checked_body(frame, selected)
+            row["refined_body_found"] = refined is not None
+            if refined is None:
+                counts[f"{split}_{label}_edge_abstain"] += 1
+                selected = None
+            else:
+                selected = replace(selected, body=refined)
         candidate_passage = None
         if selected is not None and layout_ocr is not None:
             candidate_passage = layout_ocr(frame.crop((selected.body.x, selected.body.y,
@@ -101,6 +114,12 @@ def replay(manifest: Path, detector: QuestPanelDetector,
             row["ocr_candidate_lines"] = len(candidate_passage.raw_text.splitlines())
             row["ocr_candidate_clipped_words"] = sum(word.clipped
                                                         for word in candidate_passage.words)
+            if edge_refine and broad_body is not None:
+                reference_passage = layout_ocr(frame.crop((
+                    broad_body.x, broad_body.y, broad_body.x + broad_body.width,
+                    broad_body.y + broad_body.height)))
+                row["broad_words_retained"] = body_retains_reference(
+                    reference_passage, candidate_passage)
         if selected is not None and expected_body is not None:
             common = _intersection(selected.body, expected_body)
             # Coverage detects missing dialogue; purity detects objectives,
@@ -128,6 +147,7 @@ def replay(manifest: Path, detector: QuestPanelDetector,
         results.append(row)
     return {"count": len(results), "groups": len(group_splits),
             "counts": dict(sorted(counts.items())), "results": results,
+            "edge_refine": edge_refine,
             "contains_pixels_or_text": False}
 
 
@@ -136,6 +156,8 @@ def main() -> int:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--ocr-layout", action="store_true",
                         help="locally compare OCR words in annotated and proposed body crops")
+    parser.add_argument("--edge-refine", action="store_true",
+                        help="evaluate the per-frame clear-edge body crop and retention gate")
     args = parser.parse_args()
     layout_ocr: Callable[[Image.Image], OcrPass] | None = None
     if args.ocr_layout:
@@ -145,7 +167,8 @@ def main() -> int:
             return recognize(image, alternative=False)
 
         layout_ocr = _layout_ocr
-    print(json.dumps(replay(args.manifest, StructuralPanelDetector(), layout_ocr),
+    print(json.dumps(replay(args.manifest, StructuralPanelDetector(), layout_ocr,
+                            edge_refine=args.edge_refine),
                      sort_keys=True, indent=2))
     return 0
 
