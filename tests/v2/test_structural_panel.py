@@ -11,6 +11,7 @@ from lvc.vision.structural_panel import (
     body_retains_reference,
     edge_checked_body,
     readable_body,
+    stable_body,
 )
 from lvc.vision.text_gate import OcrPass, OcrWord
 from lvc.vision.windows_text_gate import crop_edge_clear
@@ -137,3 +138,21 @@ def test_broad_reference_words_must_survive_refined_crop() -> None:
     noisy = OcrPass("", broad.words + (OcrWord("border", 8),
                                       OcrWord("edge", 90, True)))
     assert body_retains_reference(noisy, broad)
+
+
+def test_stable_body_holds_edge_jitter_but_fences_real_move() -> None:
+    image = Image.new("RGB", (500, 400), "#10151c")
+    ImageDraw.Draw(image).text((80, 80), "Quest words stay here.", fill="white")
+    original = PixelRect(50, 50, 300, 250)
+    first, pixels = stable_body(image, original, None, None)
+    jittered = PixelRect(56, 54, 299, 250)
+    held, held_pixels = stable_body(image, jittered, first, pixels)
+    assert held == original and held_pixels == pixels
+
+    moved = Image.new("RGB", image.size, "#10151c")
+    ImageDraw.Draw(moved).text((90, 80), "Quest words stay here.", fill="white")
+    shifted = PixelRect(60, 50, 300, 250)
+    new_body, new_pixels = stable_body(moved, shifted, held, held_pixels)
+    # The words can look pixel-identical in the shifted crop; coordinates
+    # still change and the observation digest fences the old speech token.
+    assert new_body == shifted and new_pixels == held_pixels

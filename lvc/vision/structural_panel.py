@@ -18,6 +18,7 @@ from PIL import Image
 
 from lvc.vision.binding import PixelRect
 from lvc.vision.text_gate import OcrPass
+from lvc.vision.windows_text_gate import crop_edge_clear
 
 MAX_PIXELS = 12_000_000
 
@@ -117,6 +118,30 @@ def edge_checked_body(frame: Image.Image, proposal: PanelProposal) -> PixelRect 
     if best_area < broad.width * broad.height * .65:
         return None
     return best
+
+
+def stable_body(frame: Image.Image, candidate: PixelRect,
+                previous: PixelRect | None,
+                previous_pixels: bytes | None) -> tuple[PixelRect, bytes]:
+    """Hold a valid pixel-identical crop across small Hough edge jitter.
+
+    A real move or page change alters the pixels at the old coordinates and
+    must use the newly detected box, fencing the prior speech generation.
+    """
+    if previous is not None and previous_pixels is not None:
+        drift = max(abs(getattr(previous, field) - getattr(candidate, field))
+                    for field in ("x", "y", "width", "height"))
+        if drift <= 30 and previous.inside(*frame.size):
+            crop = frame.crop((previous.x, previous.y,
+                               previous.x + previous.width,
+                               previous.y + previous.height))
+            pixels = crop.tobytes()
+            if pixels == previous_pixels and crop_edge_clear(crop):
+                return previous, pixels
+    crop = frame.crop((candidate.x, candidate.y,
+                       candidate.x + candidate.width,
+                       candidate.y + candidate.height))
+    return candidate, crop.tobytes()
 
 
 def _independent_lines(lines: list[tuple[int, int, int]]) -> list[tuple[int, int, int]]:

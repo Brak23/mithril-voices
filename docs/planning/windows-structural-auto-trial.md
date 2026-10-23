@@ -113,7 +113,10 @@ automatic approval review; only the in-memory path was then run.
 The revision adds a paired-column top-stroke fallback for frames where Hough
 misses the full top bar, a bounded per-frame clear-edge crop search, and a
 second OCR comparison that abstains if high-confidence unclipped words from
-the broad proposal disappear in the refined crop. The original edge,
+the broad proposal disappear in the refined crop. Pixel-identical crops can
+hold their previous coordinates across small Hough-line jitter; a real panel
+move changes pixels at the old coordinates and adopts the newly detected box,
+so the coordinate-bound speech token changes. The original edge,
 readability, dual Windows OCR, negative-scene, stability, and Stop gates remain.
 `python -m tools.replay_panel_detector MANIFEST --ocr-layout --edge-refine`
 reproduces numeric results. On the **same tuning/development material**, all

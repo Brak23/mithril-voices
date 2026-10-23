@@ -68,6 +68,7 @@ from lvc.vision.structural_panel import (
     body_retains_reference,
     edge_checked_body,
     readable_body,
+    stable_body,
 )
 
 MIN_NEGATIVE_DIFFERENCE = 0.16
@@ -104,6 +105,8 @@ class AutoNarrationWindow(ObservationWindow):
         self.structural_guard: StructuralSessionGuard | None = None
         self.structural_active = False
         self._current_broad_body: Image.Image | None = None
+        self._last_structural_body: PixelRect | None = None
+        self._last_structural_pixels: bytes | None = None
         self.preview_anchor: PixelRect | None = None
         self.bridge: AutoCoreAdapter | None = None
         self.reader = ResidentAutoReader()
@@ -589,6 +592,8 @@ class AutoNarrationWindow(ObservationWindow):
         if guard is not None and not guard.ready:
             raise RuntimeError("STRUCTURAL_CONTROLS_INCOMPLETE")
         self.structural_active = guard is not None
+        self._last_structural_body = None
+        self._last_structural_pixels = None
         self.runner.streaming = True
         self.bridge = AutoCoreAdapter(uuid4(), binding, 1, profile_qualified=True)
         result = self.bridge.enable(0)
@@ -608,10 +613,18 @@ class AutoNarrationWindow(ObservationWindow):
             return None
         proposal = guard.locate(frame)
         if proposal is None:
+            self._last_structural_body = None
+            self._last_structural_pixels = None
             return None
         refined = edge_checked_body(frame, proposal)
         if refined is None:
+            self._last_structural_body = None
+            self._last_structural_pixels = None
             return None
+        refined, pixels = stable_body(frame, refined, self._last_structural_body,
+                                      self._last_structural_pixels)
+        self._last_structural_body = refined
+        self._last_structural_pixels = pixels
         self._current_broad_body = region(frame, proposal.body)
         proposal = replace(proposal, body=refined)
         try:
@@ -768,6 +781,8 @@ class AutoNarrationWindow(ObservationWindow):
     def _on_stop(self) -> None:
         self.structural_active = False
         self._current_broad_body = None
+        self._last_structural_body = None
+        self._last_structural_pixels = None
         if hasattr(self, "reader"):
             self._fence_voice()
         self.bridge = None
@@ -786,6 +801,8 @@ class AutoNarrationWindow(ObservationWindow):
         self.structural_guard = None
         self.structural_active = False
         self._current_broad_body = None
+        self._last_structural_body = None
+        self._last_structural_pixels = None
         self.positive_scene = None
         self.control_scenes.clear()
         self._clear_control_preview()
