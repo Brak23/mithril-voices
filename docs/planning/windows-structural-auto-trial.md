@@ -125,7 +125,12 @@ passed readability and broad-word retention. All five public quest images
 were found and refined, with 1.0 annotated-reference OCR word recall; two
 public negatives were `NOT_FOUND`, two `AMBIGUOUS`, and the remaining raw
 `FOUND` proposal had no clear-edge body. No independent holdout was added.
-The revised code passed 280 Windows v2 tests, Ruff, and Pyright. The new
+The revised code passed 282 Windows v2 tests, Ruff, and Pyright. The new
 detector and crop still require a fresh live quest check, two negative-control
 captures, explicit Start/Stop and owner-confirmed audible behavior. The
 existing installed build was not replaced.
+
+The revised UI also passed its Windows dependency preflight and hidden UI
+construction check on October 23. A later in-memory exact-window sample
+returned `NOT_FOUND` on an unlabeled game scene. That sample cannot establish
+quest recall or negative-control performance.

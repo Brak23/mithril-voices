@@ -53,6 +53,9 @@ def test_color_movement_and_independent_resize_keep_body_left_of_divider() -> No
         assert selected.body.x + selected.body.width < divider + 8
         assert selected.body.y <= y + 60
         assert selected.body.y + selected.body.height >= y + height - 50
+        refined = edge_checked_body(image, selected)
+        assert refined is not None and refined.inside(*image.size)
+        assert refined.x + refined.width < divider + 8
 
 
 def test_blank_and_unrelated_text_abstain() -> None:
